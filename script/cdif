@@ -5,11 +5,11 @@
 ;#
 ;# cdif: word context diff
 ;#
-;# Copyright (c) 1992-1994 Kazumasa Utashiro <utashiro@iij.ad.jp>
+;# Copyright (c) 1992-1997 Kazumasa Utashiro <utashiro@iij.ad.jp>
 ;# Internet Initiative Japan Inc.
 ;# Sanbancho Annex Bldg. 1-4, Sanban-cho, Chiyoda-ku, Tokyo 102, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.12 1995/11/06 16:27:21 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.13 1997/02/20 07:22:30 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;# Redistribution for non-commercial purpose, with or without
@@ -19,7 +19,7 @@
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
-Usage: $myname [-B] [-v] [-n] [-A #] [-C #] [-D #] [-I #] [-[bwcu]] file1 file2
+Usage: $myname [-Bvn] [-A #] [-C #] [-D #] [-I #] [-[bwcu]] file1 file2
        $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
        $myname [$myname options] [diff-output-file]
 Options:
@@ -30,6 +30,7 @@ Options:
 	-w	ignore whitespace
 	-c[#]	context diff
 	-u[#]	unified diff (if diff has -u option)
+	-e #	expression of `word' (default is '\w+')
 	-A, -C, -D (Append, Change, Delete) takes one of
 		vso: video standout
 		vul: video underline
@@ -49,7 +50,7 @@ if ($ENV{'CDIFOPTS'}) {
     require('shellwords.pl');
     unshift(@ARGV, &shellwords($ENV{'CDIFOPTS'}));
 };
-$opts = 'A:C:D:I:Bcubdvqnt:'.'ibw';
+$opts = 'A:C:D:I:Bcubdvqnt:e:'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -119,7 +120,7 @@ for ('A', 'C', 'D') {
 if ($opt_B) {
     $pat = '[\200-\377]?[\000-\377]';
 } else {
-    $pat = '[\200-\377].|\w+|[ \t\r\f]*\n|\s+|[\000-\377]';
+    $pat = '[\200-\377].|'.($opt_e || '\w+').'|[ \t\r\f]*\n|\s+|[\000-\377]';
 }
 @ul[1,2] = ("_\010", "__\010\010");
 @bs[1,2] = ("\010", "\010\010");
@@ -349,7 +350,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.12 1995/11/06 16:27:21 utashiro Exp $
+.XX $Id: cdif,v 1.13 1997/02/20 07:22:30 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -359,8 +360,7 @@ cdif \- word context diff
 .ta \n(wwu
 .ti -\n(wwu
 \fBcdif\fP	\c
-[-B] [-v] [-n] [-A #] [-C #] [-D #] [-[bwcu]]
-\fIfile1\fP \fIfile2\fP
+[-Bvn] [-A #] [-C #] [-D #] [-[bwcu]] \fIfile1\fP \fIfile2\fP
 .br
 .ti -\n(wwu
 \fBcdif\fP	\c
@@ -435,6 +435,11 @@ terminal.
 .IP \-n
 Force not to use video effect even if the output is a
 terminal.
+.IP "\-e \fIexpression\fP"
+By default `word' is defined by pattern `\ew+'.  You can
+specify the Perl regular expression for `word' with this
+option.  If you want to treat period same as other
+alphabetical characters use option \-e '[\ew\e.]+'.
 .IP "\-[ACD] \fIeffect\fP"
 Specify the effect to use for added, changed and deleted
 words respectively.  Special effects are:
@@ -542,9 +547,8 @@ available.  Sometimes we want to use standout rather than
 bold.  Termfix allows to cancel \fImd\fP and \fImd\fP
 capability only for the invoking command by ``md@'' option.
 .PP
-All of these programs can be ftp'ed from ftp.sra.co.jp by
-anonymous ftp from the directory
-\fIpub/lang/perl/sra-scripts\fP.
+All these programs are available from anonymous ftp:
+ftp://ftp.iij.ad.jp/pub/IIJ/dist/utashiro/perl/.
 .SH AUTHOR
 .nf
 Kazumasa Utashiro <utashiro@iij.ad.jp>
