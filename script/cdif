@@ -2,14 +2,15 @@
 'di ';
 'ds 00 \"';
 'ig 00 ';
+
+require 5.005;
+
 ;#
 ;# cdif: word context diff
 ;#
-## Copyright (c) 1992-2002 Kazumasa Utashiro <utashiro@srekcah.org>
-;# Internet Initiative Japan Inc.
-;# 3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
+## Copyright (c) 1992-2003 Kazumasa Utashiro <utashiro@srekcah.org>
 ;#
-;; $rcsid = q$Id: cdif,v 1.18 2003/12/05 04:22:06 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.19 2003/12/05 18:15:45 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -56,8 +57,9 @@ if ($ENV{'CDIFOPTS'}) {
 $opts = 'A:C:D:I:Bcubdvqnt:e:s'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
-    if (/-rcs$/) { $rcs++; next; }
-    if (/-diff=(.+)$/) { $diff = $1; next; }
+    if (/^-?-rcs$/) { $rcs++; next; }
+    if (/^-?-diff=(.+)$/) { $diff = $1; next; }
+    if (/^-?-color$/) { $opt_color = 1; next; }
     if ($car eq 'h') { &usage; }
     if ($car eq 'H') { exec "nroff -man $0|".($ENV{'PAGER'}||'more')." -s"; }
     if ($car eq 'r') {
@@ -104,14 +106,19 @@ if ($rcs) {
 }
 print "DIFF=\"$DIFF\"\n" if $opt_d;
 
+if ($opt_color) {
+    &color_termcap;
+} else {
+    &termcap;
+}
+
 %func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
 ($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
-    ? ('vso', 'vbd', 'vso') : ('bd', 'ul', 'bd');
+    ? ('vbd', 'vul', 'vbd') : ('bd', 'ul', 'bd');
 for ('A', 'C', 'D') {
     eval "\$opt = \$opt_$_ || \$$_";
     if ($func{$opt}) {
 	&eval("*$_ = \$func{\'$opt\'}");
-	&termcap if ($opt =~ /^v/) && !%TC;
     } else {
 	$S = $S ? ++$S : 'S001';
 	($start, $end) = $opt =~ /,/ ? split(/,/, $opt) : ($opt, $opt);
@@ -442,12 +449,22 @@ sub read {
 }
 
 sub termcap {
-    do 'ioctl.ph' || do 'sys/ioctl.ph';
-    require('termcap.pl'); $ospeed = 1 unless $ospeed;
-    &Tgetent;
-    $so = &Tputs($TC{'so'}); $se = &Tputs($TC{'se'});
-    $us = &Tputs($TC{'us'}); $ue = &Tputs($TC{'ue'});
-    $md = &Tputs($TC{'md'}) || $so; $me = &Tputs($TC{'me'}) || $se;
+    require Term::Cap;
+    $ospeed = 9600 unless $ospeed;
+    my $terminal = Tgetent Term::Cap { TERM => undef, OSPEED => $ospeed };
+    $so = $terminal->Tputs('so');
+    $se = $terminal->Tputs('se');
+    $us = $terminal->Tputs('us');
+    $ue = $terminal->Tputs('ue');
+    $md = $terminal->Tputs('md') || $so;
+    $me = $terminal->Tputs('me') || $se;
+}
+
+sub color_termcap {
+    use Term::ANSIColor qw(:constants);
+    $so = REVERSE    . RED ; $se = RESET;
+    $us = UNDERSCORE . BLUE; $ue = RESET;
+    $md = BOLD       . RED ; $me = RESET;
 }
 
 sub wc_l {
@@ -480,7 +497,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.18 2003/12/05 04:22:06 utashiro Exp $
+.XX $Id: cdif,v 1.19 2003/12/05 18:15:45 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -564,6 +581,10 @@ Force to use video effect even if the output is not a
 terminal.
 .IP \-n
 Force not to use video effect even if the output is a
+terminal.
+.IP \-color
+Use ANSI color escape sequence for output.  This option depends on
+Perl Term::ANSIColor module.
 terminal.
 .IP "\-e \fIexpression\fP"
 By default `word' is defined by pattern `\ew+'.  You can
@@ -677,18 +698,13 @@ handle overstruck and underlined character, and has \-cdif
 option to use \fIcdif\fP instead of normal diff.
 .IP termfix
 is a program to change termcap capability of current
-terminal temporarily.  Recent more and less uses \fImd\fP
-and \fIme\fP capability to display overstruck character if
-available.  Sometimes we want to use standout rather than
-bold.  Termfix allows to cancel \fImd\fP and \fIme\fP
-capability only for the invoking command by ``md@'' option.
+terminal temporarily.
 .PP
-All these programs are available from web page:
+All these programs are available from the web:
 http://www.srekcah.org/~utashiro/perl/scripts/
 .PP
-I'm afraid that most pages may be written in Japanese.  You
-will be able to reach releases without reading description,
-probably...
+I'm afraid that most pages may be written in Japanese.  Hope
+you can reach the newest releases without explanation.
 .SH AUTHOR
 .nf
 Kazumasa Utashiro <utashiro@srekcah.org>
@@ -699,10 +715,10 @@ http://www.srekcah.org/~utashiro/
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
 .SH BUGS
 .PP
-When the last one word (the last byte with \-B option) of a
-line moved to the other line, it is treated as disappeared
-and the new word was appeared in the other line.  This is
-due to the behavior of diff command.
+When the last word (the last byte with \-B option) of a line
+moved to the next line, it is treated as disappeared and the
+new word was appeared.  This is due to the behavior of diff
+command.
 .PP
 \fICdif\fP is naturally slow because it uses normal diff
 command as a back-end processor to compare words.
