@@ -7,7 +7,7 @@
 ;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
 ;# Software Research Associates, Inc., Japan
 ;#
-;; $rcsid = '$Id: cdif,v 1.6 1992/09/07 07:51:51 utashiro Exp $';#'
+;; $rcsid = q$Id: cdif,v 1.7 1992/12/11 02:56:40 utashiro Exp $;
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
@@ -33,7 +33,7 @@ Options:
 		specify any diff command
 _
 
-$opts = 'A:C:D:Bcubdvqnxt:'.'ibw';
+$opts = 'A:C:D:Bcubdvqnt:'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -83,7 +83,7 @@ print "DIFF=\"$DIFF\"\n" if $opt_d;
 
 %func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
 ($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
-    ? ('vso', 'vbd', 'vso') : ('bd', 'bd', 'bd');
+    ? ('vso', 'vbd', 'vso') : ('bd', 'ul', 'bd');
 for ('A', 'C', 'D') {
     eval "\$opt = \$opt_$_ || \$$_";
     if ($func{$opt}) {
@@ -133,10 +133,6 @@ while (<DIFF>) {
 		$old[$i] =~ s/^! //g; $new[$i] =~ s/^! //g;
 		($old[$i], $new[$i]) = &context($old[$i], $new[$i]);
 		$old[$i] =~ s/^/! /g; $new[$i] =~ s/^/! /g;
-	    }
-	    for ($i = $[; $opt_x && $i <= $#old; $i += 2) {
-		$old[$i] =~ s/^(\- )(.*)$/$1.&D($2)/ge;
-		$new[$i] =~ s/^(\+ )(.*)$/$1.&A($2)/ge;
 	    }
 	}
 	print @old, $new, @new;
@@ -195,6 +191,7 @@ sub maketmp {
 	    }
 	}
 	if (s/(\s*)\n/\n/ && (length($1) || $opt_b || $opt_w)) {
+	    #    ^ This have to be *.  Don't change to +.
 	    print TMP ($opt_b || $opt_w) ? "\n" : "$1\n";
 	    push(@words, $1);
 	}
@@ -290,7 +287,7 @@ sub termcap {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.6 1992/09/07 07:51:51 utashiro Exp $
+.XX $Id: cdif,v 1.7 1992/12/11 02:56:40 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -319,9 +316,9 @@ looks like this:
 .nf
 
 	1c1
-	< highlights \fIdeleted\fP and \fBchanged\fP and words
+	< highlights \fBdeleted\fP and \fIchanged\fP and words
 	---
-	> highlights and \fBmodified\fP and \fIadded\fP words
+	> highlights and \fImodified\fP and \fBadded\fP words
 
 .fi
 .PP
@@ -333,9 +330,9 @@ purpose and the output looks like:
 .nf
 
 	1c1
-	< $opts = '\fIcu\fPbdvqnB\fBA\fP:\fBC\fP:\fBD\fP:';
+	< $opts = '\fBcu\fPbdvqnB\fIA\fP:\fIC\fP:\fID\fP:';
 	---
-	> $opts = 'bdvqn\fIxy\fPB\fBP\fP:\fBQ\fP:\fBR\fP:';
+	> $opts = 'bdvqn\fBxy\fPB\fIP\fP:\fIQ\fP:\fIR\fP:';
 
 .fi
 .PP
@@ -351,7 +348,10 @@ like \fImore\fP or \fIless\fP, or printing to appropriate
 printer will make them visible.
 .PP
 If only one file is specified, \fIcdif\fP reads that file
-(stdin if no file) as a output from diff command.
+(stdin if no file) as a output from diff command.  Lines
+those don't look like diff output are simply ignored and
+printed same as input.  So you can use \fIcdif\fP from
+\fIrn\fP(1) like `|cdif'.
 .SH OPTIONS
 .IP \-B
 Compare the data character-by-character context.
