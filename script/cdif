@@ -1,29 +1,34 @@
 #!/usr/local/bin/perl
 ;#
-;# cdif: context diff
+;# cdif: word context diff
 ;#
 ;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
+;# Software Research Associates, Inc., Japan
 ;#
-;; $rcsid = '$Id: cdif,v 1.3 1992/03/13 09:53:40 utashiro Exp $';
+;; $rcsid = '$Id: cdif,v 1.4 1992/03/23 18:40:53 utashiro Exp $';
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
-Usage: $myname [-c] [-b] [-v] [-n] [-A #] [-C #] [-D #] file1 file2
+Usage: $myname [-B] [-c] [-v] [-n] [-A #] [-C #] [-D #] [-b] [-w] file1 file2
        $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
-       $myname [$myname opts] diff-output-file
-       diff file1 file2 | $myname
+       $myname [$myname options] [diff-output-file]
 Options:
+	-B	byte compare
 	-c	diff -c
-	-b	byte compare
 	-v	use video standout (default for tty)
-	-n	use nroff style overstrike (default for no-tty)
-	-A, -C, -D (Append, Change, Delete) takes
-		"vso": video standout		"vul": video underline
-		"bd":  nroff style overstrike	"ul":  nroff style underline
+	-n	use nroff style overstrike (default for non-tty)
+	-b	ignore trailing blank
+	-w	ignore whitespace
+	-A, -C, -D (Append, Change, Delete) takes one of
+		vso: video standout
+		vul: video underline
+		vbd: video bold
+		bd:  nroff style overstrike
+		ul:  nroff style underline
 		or any sequence or sequences separated by comma
 _
 
-$opts = 'cbdvqnt:A:C:D:';
+$opts = 'cbdvqnt:BA:C:D:'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -41,6 +46,9 @@ while ($_ = $ARGV[0], /^-.+/ && shift) {
     }
     &usage("Unknown option: $car\n");
 }
+grep(eval "push(\@sub_diffopt, '-$_') if \$opt_$_;", 'i', 'w');
+@diffopt = @sub_diffopt;
+grep(eval "push(\@diffopt, '-$_') if \$opt_$_;", 'c', 'b');
 
 sub usage {
     select(STDERR);
@@ -48,8 +56,6 @@ sub usage {
     print "$rcsid\n" if $rcsid =~ /:/;
     exit;
 }
-
-push(@diffopt, '-c') if $opt_c;
 
 if ($rcs) {
     push(@rcsopt, '-q') if $opt_q;
@@ -63,13 +69,7 @@ if ($rcs) {
 } else {
     &usage("Arguments error.\n\n") if @ARGV;
 }
-
-$tmp = $opt_t || '/tmp';
-$T1 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . "_1";
-$T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . "_2";
-
-@bs[1,2] = ("\010", "\010\010");
-@ul[1,2] = ("_\010", "__\010\010");
+print "DIFF=\"$DIFF\"\n" if $opt_d;
 
 %func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
 ($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
@@ -87,42 +87,40 @@ for ('A', 'C', 'D') {
     }
 }	
 
+if ($opt_B) {
+    $pat = '[\200-\377]?[\000-\377]';
+} else {
+    $pat = '[\200-\377].|\w+|\s*\n|\s+|[\000-\377]';
+}
+@ul[1,2] = ("_\010", "__\010\010");
+@bs[1,2] = ("\010", "\010\010");
+$tmp = $opt_t || '/tmp';
+$T1 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_1';
+$T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_2';
+
+@SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
+
 open(DIFF) || die "diff: $!\n";
 while (<DIFF>) {
     print;
-    $diff_c = 0;
-    if ($diff_c = ($_ eq "***************\n")) {
-	@old = ($_ = <DIFF>);
-	($left) = /^\*\*\* ([\d,]+) \*\*\*\*/;
-	($l1, $l2) = &range($left);
-	push(@old, &read_diffc(DIFF, $n = $l2 - $l1 + 1));
-	print(@old), next if @old <= 2;
-	@new = ($_ = <DIFF>);
-	($right) = /^--- ([\d,]+) ----/;
-	($r1, $r2) = &range($right);
-	push(@new, &read_diffc(DIFF, $n = $r2 - $r1 + 1));
-	for ($i = $[ + 2; $i <= $#old; $i += 2) {
-	    &context($old[$i], $new[$i]);
-	    $old[$i] = $obuf;
-	    $new[$i] = $nbuf;
+    if ($diff_c = (($left) = /^\*\*\* ([\d,]+) \*\*\*\*$/)) {
+	@old = &read_diffc(DIFF, scalar(&range($left)));
+	print(@old), next if @old < 2;
+	$new = $_ = <DIFF>; @new = ();
+	if (($right) = /^--- ([\d,]+) ----$/) {
+	    @new = &read_diffc(DIFF, scalar(&range($right)));
+	    for ($i = $[ + 1; $i <= $#old; $i += 2) {
+		($old[$i], $new[$i]) = &context($old[$i], $new[$i]);
+	    }
 	}
-	print @old, @new;
-    } elsif (($left, $ctrl, $right) = /^([\d,]+)([adc])([\d,]+)/) {
-	($l1, $l2) = &range($left);
-	($r1, $r2) = &range($right);
-	$old = $new = '';
-	if ($ctrl eq 'd' || $ctrl eq 'c') {
-	    $old = &read(DIFF, $n = $l2 - $l1 + 1);
-	}
-	$separator = ($ctrl eq 'c') ? &read(DIFF, 1) : '';
-	if ($ctrl eq 'a' || $ctrl eq 'c') {
-	    $new = &read(DIFF, $n = $r2 - $r1 + 1);
-	}
-	if ($ctrl eq 'c' && &context($old, $new)) {
-	    print $obuf, $separator, $nbuf;
-	} else {
-	    print $old, $separator, $new;
-	}
+	print @old, $new, @new;
+    }
+    elsif (($left, $right) = /^([\d,]+)c([\d,]+)$/) {
+	$old = &read(DIFF, scalar(&range($left)));
+	$del = &read(DIFF, 1);
+	$new = &read(DIFF, scalar(&range($right)));
+	($old, $new) = &context($old, $new);
+	print $old, $del, $new;
     }
 }
 close(DIFF);
@@ -136,7 +134,7 @@ sub context {
     @c{'a', 'd', 'c'} = (0, 0, 0);
     @owlist = &maketmp($T1, $old);
     @nwlist = &maketmp($T2, $new);
-    open(CDIF, "diff $T1 $T2 |") || die "diff: $!\n";
+    open(CDIF, "diff @sub_diffopt $T1 $T2 |") || die "diff: $!\n";
     /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while (<CDIF>);
     close(CDIF);
     if ($opt_d >= 1) {
@@ -144,29 +142,39 @@ sub context {
 	printf "append=$c{'a'} delete=$c{'d'} change=$c{'c'}\n";
     }
     &makebuf;
-    unlink($T1), unlink($T2) if $opt_d < 2;
+    &cleanup() if $opt_d < 2;
     die "$myname: illegal status of subprocess\n" if ($?>>8) > 1;
-    return 1;
+    return ($obuf, $nbuf);
+}
+
+sub cleanup {
+    unlink($T1), unlink($T2) if $opt_d < 2;
+    print("Signal @_\n"), exit 2 if @_;
 }
 
 sub maketmp {
-    local($tmp, @list, @wlist) = @_;
-    open (TMP, ">$tmp") || warn "$F: $!\n", return 0;
-    foreach (@list) {
-	s/^[!<>] //g;
-	if ($opt_b) {
-	    @words = /[\200-\377]?[\000-\377]/g;
-	} else {
-	    @words = /[\200-\377].|\w+|[\000-\377]/g;
+    local($tmp, $_, @words) = @_;
+    local(@notspace) = (0);
+    open (TMP, ">$tmp") || warn "$tmp: $!\n", return 0;
+    s/^[!<>] //g;
+    foreach (/$pat/go) {
+	if ($opt_w) {
+	    push(@notspace, !/\s/);
+	    if (shift(@notspace) && $notspace[0]) {
+		push(@words, '');
+		print TMP "\n";
+	    }
 	}
-	push(@wlist, @words);
-	foreach (@words) {
-	    s/\n/\r/;
-	    print TMP $_, "\n";
+	if (s/(\s*)\n/\n/ && (length($1) || $opt_b || $opt_w)) {
+	    print TMP ($opt_b || $opt_w) ? "\n" : "$1\n";
+	    push(@words, $1);
 	}
+	push(@words, $_);
+	print TMP $_;
+	print TMP "\n" unless /\n$/;
     }
     close(TMP);
-    @wlist;
+    @words;
 }
 
 sub makebuf {
@@ -201,11 +209,10 @@ sub makebuf {
     } else {
 	$obuf =~ s/^/< /g; $nbuf =~ s/^/> /g;
     }
-    return 1;
 }
 
 sub read_diffc {
-    local($FH, $n, $buf, $bang, @buf, $_) = @_;
+    local($FH, $n, @buf, $buf, $bang, $_) = @_;
     while ($n-- && ($_ = <DIFF>)) {
 	push(@buf, $buf), $buf = '', $bang ^= 1 if /^!/ ^ $bang;
 	$buf .= $_;
@@ -217,33 +224,19 @@ sub read_diffc {
 sub vso { join('', $so, @_, $se); }
 sub vul { join('', $us, @_, $ue); }
 sub vbd { join('', $md, @_, $me); }
-
-sub bd {
-    local($_) = join('', @_);
-    s/[\200-\377]?./$&.$bs[length($&)].$&/ge;
-    $_;
-}
-
-sub ul {
-    local($_) = join('', @_);
-    s/[\200-\377]?./$ul[length($&)].$&/eg;
-    $_;
-}
+sub ul { join('', grep(s/[\200-\377]?./$ul[length($&)].$&/ge || 1, @_)); }
+sub bd { join('', grep(s/[\200-\377]?./$&.$bs[length($&)].$&/ge || 1, @_)); }
 
 sub range {
-    local($_) = @_;
-    /,/ ? split(/,/) : ($_, $_);
+    local($_, $from, $to) = @_;
+    ($from, $to) = /,/ ? split(/,/) : ($_, $_);
+    wantarray ? ($from, $to) : $to - $from + 1;
 }
 
 sub read {
-    local($fh, $c, $buf) = (@_, '');
-    $buf .= <$fh> while $c--;
-    $buf;
-}
-
-sub skip {
-    local($fh, $c) = @_;
-    scalar(<$fh>) while ($c--);
+    local($FH, $c, @buf) = (@_, '');
+    push(@buf, scalar(<$FH>)) while $c--;
+    wantarray ? @buf : join('', @buf);
 }
 
 sub termcap {
