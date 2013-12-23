@@ -5,11 +5,11 @@
 ;#
 ;# cdif: word context diff
 ;#
-;# Copyright (c) 1992-1997 Kazumasa Utashiro <utashiro@iij.ad.jp>
+;# Copyright (c) 1992-1998 Kazumasa Utashiro <utashiro@iij.ad.jp>
 ;# Internet Initiative Japan Inc.
-;# Sanbancho Annex Bldg. 1-4, Sanban-cho, Chiyoda-ku, Tokyo 102, Japan
+;# 3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.13 1997/02/20 07:22:30 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.14 1999/02/03 12:43:36 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;# Redistribution for non-commercial purpose, with or without
@@ -112,7 +112,7 @@ for ('A', 'C', 'D') {
     } else {
 	$S = $S ? ++$S : 'S001';
 	($start, $end) = $opt =~ /,/ ? split(/,/, $opt) : ($opt, $opt);
-	$start =~ s/\W/\\$&/g; $end =~ s/\W/\\$&/g;
+	$start =~ s/(\W)/\\$1/g; $end =~ s/(\W)/\\$1/g;
 	&eval("sub $S {join('', \"$start\", \@_, \"$end\");} *$_ = *$S;\n");
     }
 }	
@@ -127,11 +127,13 @@ if ($opt_B) {
 
 if (defined($opt_I)) {
     if ($opt_I =~ /^vbar$/i) {			# special string 'vbar'
-	$opt_ix = 1; $opt_ib = $opt_I =~ /[A-Z]/;
+	$opt_ix = 1;
+	$opt_ib = $opt_I =~ /[A-Z]/;
 	$opt_I = '|';
     }
     if ($opt_I =~ /^caret$/i) {			# special string 'caret'
-	$opt_ix = $opt_iu = 1; $opt_ib = $opt_I =~ /[A-Z]/;
+	$opt_ix = $opt_iu = 1;
+	$opt_ib = $opt_I =~ /[A-Z]/;
 	$opt_I = '^';
     }
     $opt_I = &bd($opt_I) if $opt_ib;
@@ -140,46 +142,73 @@ if (defined($opt_I)) {
     $opt_I = $hlf . $opt_I . $hlr if $opt_iu;
 }
 
+;#
+;# Temporary file names
+;#
 $tmp = $opt_t || '/tmp';
-$T1 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_1';
-$T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_2';
+$TBASE = "$tmp/cdif_$$";
+($T1, $T2) = ("${TBASE}_1", "${TBASE}_2");
 
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
+
 $* = 1;
 
 open(DIFF) || die "$diff: $!\n";
 while (<DIFF>) {
     print;
-    if (($left, $right) = /^([\d,]+)c([\d,]+)$/) {
+    #
+    # normal diff
+    #
+    if (($left, $right) = /^([\d,]+)c([\d,]+)\r?$/) {
 	$old = &read(DIFF, scalar(&range($left)));
 	$del = &read(DIFF, 1);
 	$new = &read(DIFF, scalar(&range($right)));
-	$old =~ s/^< //g; $new =~ s/^> //g;
+
+	$old =~ s/^< //g;
+	$new =~ s/^> //g;
+
 	($old, $new) = &context($old, $new);
-	$old =~ s/^/< /g; $new =~ s/^/> /g;
+
+	$old =~ s/^/< /g;
+	$new =~ s/^/> /g;
+
 	print $old, $del, $new;
     }
-    elsif (($left) = /^\*\*\* ([\d,]+) \*\*\*\*$/) {
+    #
+    # diff -c
+    #
+    elsif (($left) = /^\*\*\* ([\d,]+) \*\*\*\*\r?$/) {
 	@old = &read_diffc(DIFF, scalar(&range($left)));
 	print(@old), next if @old < 2;
 	$new = $_ = <DIFF>; @new = ();
 	if (($right) = /^--- ([\d,]+) ----$/) {
 	    @new = &read_diffc(DIFF, scalar(&range($right)));
 	    for ($i = $[ + 1; $i <= $#old; $i += 2) {
-		$old[$i] =~ s/^! //g; $new[$i] =~ s/^! //g;
+		$old[$i] =~ s/^! //g;
+		$new[$i] =~ s/^! //g;
+
 		($old[$i], $new[$i]) = &context($old[$i], $new[$i]);
-		$old[$i] =~ s/^/! /g; $new[$i] =~ s/^/! /g;
+
+		$old[$i] =~ s/^/! /g;
+		$new[$i] =~ s/^/! /g;
 	    }
 	}
 	print @old, $new, @new;
     }
-    elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@$/)  {
+    #
+    # diff -u
+    #
+    elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@\r?$/)  {
 	@buf = &read_diffu(DIFF, $2 || 1, $4 || 1);
 	while (($same, $old, $new) = splice(@buf, 0, 3)) {
 	    if ($old && $new) {
-		$old =~ s/^\-//g; $new =~ s/^\+//g;
+		$old =~ s/^\-//g;
+		$new =~ s/^\+//g;
+
 		($old, $new) = &context($old, $new);
-		$old =~ s/^/-/g; $new =~ s/^/+/g;
+
+		$old =~ s/^/-/g;
+		$new =~ s/^/+/g;
 	    }
 	    print $same, $old, $new;
 	}
@@ -193,31 +222,59 @@ exit $? >> 8;
 sub context {
     local($old, $new, $_) = @_;
     local(@control);
+
+    if ($opt_d >= 2) {
+	$sequence++;
+	$T1 = sprintf("%s_%04d_1", $TBASE, $sequence);
+	$T2 = sprintf("%s_%04d_2", $TBASE, $sequence);
+    }
+
     @c{'a', 'd', 'c'} = (0, 0, 0);
     @owlist = &maketmp($T1, $old);
     @nwlist = &maketmp($T2, $new);
+
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
-    /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while <CDIF>;
+    while (<CDIF>) {
+	if (/^\d+(,\d+)?[adc]\d+(,\d+)?$/) {
+	    push(@control, $_);
+	    $c{$1}++;
+	}
+    }
     close CDIF;
     &cleanup() if $opt_d < 2;
+
     if ($opt_d >= 1) {
 	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
 	printf "append=$c{'a'} delete=$c{'d'} change=$c{'c'}\n";
     }
+
     &makebuf;
     die "$myname: illegal status of subprocess\n" if ($?>>8) > 1;
+
     return ($obuf, $nbuf);
 }
 
 sub cleanup {
-    unlink($T1), unlink($T2) if $opt_d < 2;
-    warn("\nSignal @_\n"), exit 2 if @_;
+    if ($opt_d < 2) {
+	unlink($T1);
+	unlink($T2);
+    }
+    if (@_) {
+	warn("\nSignal @_\n");
+	exit 2;
+    }
 }
 
+;#
+;# Divide given text into word list.  Then write them into temporary
+;# file `$file' which include the word list one on each line.  The list
+;# itself is returned as a result of subroutine.
+;#
 sub maketmp {
-    local($tmp, $_, @words) = @_;
+    local($file, $_) = @_;
+    local(@words);
     local(@notspace) = (0);
-    open(TMP, ">$tmp") || warn "$tmp: $!\n", return 0;
+    open(TMP, ">$file") || warn "$file: $!\n", return 0;
 
     foreach (/$pat/go) {
 	if ($opt_w) {
@@ -237,20 +294,34 @@ sub maketmp {
 	print TMP "\n" unless /\n$/;
     }
     close TMP;
-    if ($opt_d && @words != &wc_l($tmp)) {
-	die "Error! (\@words != `wc -l $tmp`)\n";
+
+    if ($opt_d && @words != &wc_l($file)) {
+	die "Error! (\@words != `wc -l $file`)\n";
     }
+
     @words;
 }
 
+;#
+;# Make result text using these global variables:
+;#
+;#  @owlist: old word list
+;#  @nwlist: new word list
+;#  @control: how different these lists (`diff' result control lines)
+;#
 sub makebuf {
     local($_, $old, $ctrl, $new, $o1, $o2, $n1, $n2);
-    local($o, $n);
-    $obuf = $nbuf = '';
+    local($o, $n) = (0, 0);	# pointers
+    $obuf = $nbuf = '';		# result buffer
+
     for (@control) {
-	($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/;
-	($o1, $o2) = &range($old); $o1--; $o2--;
-	($n1, $n2) = &range($new); $n1--; $n2--;
+	(($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/) || do {
+	    die "Panic! Unexpected diff output";
+	};
+	($o1, $o2) = &range($old);
+	($n1, $n2) = &range($new);
+	$o1--; $o2--; $n1--; $n2--; # make them zero origin
+
 	$obuf .= join('', @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
 	$nbuf .= join('', @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
 	if ($ctrl eq 'd') {
@@ -296,8 +367,12 @@ sub read_diffu {
 sub vso { join('', $so, @_, $se); }
 sub vul { join('', $us, @_, $ue); }
 sub vbd { join('', $md, @_, $me); }
-sub ul { join('', grep(s/[\200-\377]?./$ul[length($&)].$&/ge || 1, @_)); }
-sub bd { join('', grep(s/[\200-\377]?./$&.$bs[length($&)].$&/ge || 1, @_)); }
+sub ul {
+    join('', grep(s/([\200-\377]?[^\s])/$ul[length($1)].$1/ge || 1, @_));
+}
+sub bd {
+    join('', grep(s/([\200-\377]?[^\s])/$1.$bs[length($1)].$1/ge || 1, @_));
+}
 
 sub range {
     local($_, $from, $to) = @_;
@@ -337,7 +412,7 @@ sub eval {
 
 sub unctrl {
     local($_) = shift;
-    s/[\000-\010\013-\037]/'^' . pack('c', ord($&)|0100)/ge;
+    s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
     $_;
 }
 ######################################################################
@@ -350,7 +425,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.13 1997/02/20 07:22:30 utashiro Exp $
+.XX $Id: cdif,v 1.14 1999/02/03 12:43:36 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -544,7 +619,7 @@ is a program to change termcap capability of current
 terminal temporarily.  Recent more and less uses \fImd\fP
 and \fIme\fP capability to display overstruck character if
 available.  Sometimes we want to use standout rather than
-bold.  Termfix allows to cancel \fImd\fP and \fImd\fP
+bold.  Termfix allows to cancel \fImd\fP and \fIme\fP
 capability only for the invoking command by ``md@'' option.
 .PP
 All these programs are available from anonymous ftp:
@@ -553,7 +628,7 @@ ftp://ftp.iij.ad.jp/pub/IIJ/dist/utashiro/perl/.
 .nf
 Kazumasa Utashiro <utashiro@iij.ad.jp>
 Internet Initiative Japan Inc.
-1-4 Sanban-cho, Chiyoda-ku, Tokyo 102, Japan
+3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
 .fi
 .SH "SEE ALSO"
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
