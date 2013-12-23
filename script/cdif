@@ -8,7 +8,7 @@
 ;# Software Research Associates, Inc.
 ;# 1-1-1 Hirakawa-cho, Chiyoda-ku, Tokyo 102, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.9 1993/05/13 10:14:11 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.10 1993/06/15 09:32:08 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
@@ -140,7 +140,7 @@ $T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_2';
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
 $* = 1;
 
-open(DIFF) || die "$diff: $!\n";
+open DIFF || die "$diff: $!\n";
 while (<DIFF>) {
     print;
     if (($left, $right) = /^([\d,]+)c([\d,]+)$/) {
@@ -166,8 +166,8 @@ while (<DIFF>) {
 	}
 	print @old, $new, @new;
     }
-    elsif (($ol, $nl) = /^\@\@ -\d+,(\d+) \+\d+,(\d+) \@\@$/) {
-	@buf = &read_diffu(DIFF, $ol, $nl);
+    elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@$/)  {
+	@buf = &read_diffu(DIFF, $2 || 1, $4 || 1);
 	while (($same, $old, $new) = splice(@buf, 0, 3)) {
 	    if ($old && $new) {
 		$old =~ s/^\-//g; $new =~ s/^\+//g;
@@ -178,8 +178,8 @@ while (<DIFF>) {
 	}
     }
 }
-close(DIFF);
-exit($? >> 8);
+close DIFF;
+exit $? >> 8;
 
 ######################################################################
 
@@ -191,7 +191,7 @@ sub context {
     @nwlist = &maketmp($T2, $new);
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while <CDIF>;
-    close(CDIF);
+    close CDIF;
     &cleanup() if $opt_d < 2;
     if ($opt_d >= 1) {
 	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
@@ -210,7 +210,7 @@ sub cleanup {
 sub maketmp {
     local($tmp, $_, @words) = @_;
     local(@notspace) = (0);
-    open (TMP, ">$tmp") || warn "$tmp: $!\n", return 0;
+    open(TMP, ">$tmp") || warn "$tmp: $!\n", return 0;
 
     foreach (/$pat/go) {
 	if ($opt_w) {
@@ -229,7 +229,7 @@ sub maketmp {
 	print TMP $_;
 	print TMP "\n" unless /\n$/;
     }
-    close(TMP);
+    close TMP;
     if ($opt_d && @words != &wc_l($tmp)) {
 	die "Error! (\@words != `wc -l $tmp`)\n";
     }
@@ -251,13 +251,13 @@ sub makebuf {
 	    $o = $o2 + 1;
 	    $nbuf .= $nwlist[$n++] . $opt_I if $opt_I;
 	}
-	if ($ctrl eq 'c') {
+	elsif ($ctrl eq 'c') {
 	    $obuf .= &C(@owlist[$o1 .. $o2]);
 	    $nbuf .= &C(@nwlist[$n1 .. $n2]);
 	    $o = $o2 + 1;
 	    $n = $n2 + 1;
 	}
-	if ($ctrl eq 'a') {
+	elsif ($ctrl eq 'a') {
 	    $nbuf .= &A(@nwlist[$n1 .. $n2]);
 	    $n = $n2 + 1;
 	    $obuf .= $owlist[$o++] . $opt_I if $opt_I;
@@ -318,7 +318,7 @@ sub wc_l {
     local(*FILE, $line);
     open(FILE, $file) || die "$file: $!\n";
     $line++ while <FILE>;
-    close(FILE);
+    close FILE;
     $line;
 }
 ######################################################################
@@ -331,7 +331,7 @@ sub wc_l {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.9 1993/05/13 10:14:11 utashiro Exp $
+.XX $Id: cdif,v 1.10 1993/06/15 09:32:08 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
