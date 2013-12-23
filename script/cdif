@@ -7,7 +7,7 @@
 ;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
 ;# Software Research Associates, Inc., Japan
 ;#
-;; $rcsid = '$Id: cdif,v 1.5 1992/05/01 22:46:10 utashiro Exp $';#'
+;; $rcsid = '$Id: cdif,v 1.6 1992/09/07 07:51:51 utashiro Exp $';#'
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
@@ -20,8 +20,8 @@ Options:
 	-n	use nroff style overstrike (default for non-tty)
 	-b	ignore trailing blank
 	-w	ignore whitespace
-	-c	context diff
-	-u	unified diff (if diff has -u option)
+	-c[#]	context diff
+	-u[#]	unified diff (if diff has -u option)
 	-A, -C, -D (Append, Change, Delete) takes one of
 		vso: video standout
 		vul: video underline
@@ -33,7 +33,7 @@ Options:
 		specify any diff command
 _
 
-$opts = 'cubdvqnt:BA:C:D:'.'ibw';
+$opts = 'A:C:D:Bcubdvqnxt:'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -44,6 +44,11 @@ while ($_ = $ARGV[0], /^-.+/ && shift) {
 	&usage("$_: Too many revisions\n\n") if @rcs == 2;
 	$rcs++; push(@rcs, $_); next;
     }
+    if (s/^-?([cu]\d+)//) {
+	push(@diffopts, "-$1"); eval "\$opt_$car++"; redo;
+    }
+    push(@diffopts, "-$car") if index("iwcbu", $car) >= $[;
+    push(@sub_diffopts, "-$car") if index("iw", $car) >= $[;
     if (index($opts, "$car:") >= $[) {
 	eval "\$opt_$car = length(\$cdr) ? \$cdr : \@ARGV ? shift : &usage";
 	next;
@@ -54,9 +59,6 @@ while ($_ = $ARGV[0], /^-.+/ && shift) {
     &usage("Unknown option: $car\n");
 }
 $diff = $rcs ? 'rcsdiff' : 'diff' unless $diff;
-grep(eval "push(\@sub_diffopt, '-$_') if \$opt_$_;", 'i', 'w');
-@diffopt = @sub_diffopt;
-grep(eval "push(\@diffopt, '-$_') if \$opt_$_;", 'c', 'b', 'u');
 
 sub usage {
     select(STDERR);
@@ -68,10 +70,10 @@ sub usage {
 if ($rcs) {
     push(@rcsopt, '-q') if $opt_q;
     $rcsfile = shift || &usage("No RCS filename\n\n");
-    $DIFF = "$diff @diffopt @rcsopt @rcs $dopts $rcsfile|";
+    $DIFF = "$diff @diffopts @rcsopt @rcs $dopts $rcsfile|";
 } elsif (@ARGV == 2) {
     ($OLD, $NEW) = splice(@ARGV, 0, 2);
-    $DIFF = "$diff @diffopt $OLD $NEW |";
+    $DIFF = "$diff @diffopts $OLD $NEW |";
 } elsif (@ARGV < 2) {
     $DIFF = shift || '-';
 } else {
@@ -107,6 +109,7 @@ $T1 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_1';
 $T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_2';
 
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
+$* = 1;
 
 open(DIFF) || die "$diff: $!\n";
 while (<DIFF>) {
@@ -130,6 +133,10 @@ while (<DIFF>) {
 		$old[$i] =~ s/^! //g; $new[$i] =~ s/^! //g;
 		($old[$i], $new[$i]) = &context($old[$i], $new[$i]);
 		$old[$i] =~ s/^/! /g; $new[$i] =~ s/^/! /g;
+	    }
+	    for ($i = $[; $opt_x && $i <= $#old; $i += 2) {
+		$old[$i] =~ s/^(\- )(.*)$/$1.&D($2)/ge;
+		$new[$i] =~ s/^(\+ )(.*)$/$1.&A($2)/ge;
 	    }
 	}
 	print @old, $new, @new;
@@ -157,15 +164,15 @@ sub context {
     @c{'a', 'd', 'c'} = (0, 0, 0);
     @owlist = &maketmp($T1, $old);
     @nwlist = &maketmp($T2, $new);
-    open(CDIF, "diff @sub_diffopt $T1 $T2 |") || die "diff: $!\n";
+    open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while (<CDIF>);
     close(CDIF);
+    &cleanup() if $opt_d < 2;
     if ($opt_d >= 1) {
 	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
 	printf "append=$c{'a'} delete=$c{'d'} change=$c{'c'}\n";
     }
     &makebuf;
-    &cleanup() if $opt_d < 2;
     die "$myname: illegal status of subprocess\n" if ($?>>8) > 1;
     return ($obuf, $nbuf);
 }
@@ -283,7 +290,7 @@ sub termcap {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.5 1992/05/01 22:46:10 utashiro Exp $
+.XX $Id: cdif,v 1.6 1992/09/07 07:51:51 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -335,13 +342,13 @@ purpose and the output looks like:
 If the standard output is a terminal, \fIcdif\fP uses
 termcap to highlights words.  It uses \fImd\fP and \fIme\fP
 (bold or bright) sequence for changed words and \fIso\fP and
-\fIse\fP sequence (standout) for changed part.
+\fIse\fP (standout) sequence for deleted and added part.
 .PP
 If the standard output is not a terminal, it uses nroff
 style overstriking to highlight them.  You won't be able to
 tell the difference on normal screen but using pager command
 like \fImore\fP or \fIless\fP, or printing to appropriate
-printer will help it.
+printer will make them visible.
 .PP
 If only one file is specified, \fIcdif\fP reads that file
 (stdin if no file) as a output from diff command.
@@ -423,6 +430,6 @@ Software Research Associates, Inc., Japan
 .SH "SEE ALSO"
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
 .SH BUGS
-\fICdif\fP is naturally slow because it's using normal diff
+\fICdif\fP is naturally slow because it uses normal diff
 command as a back-end processor to compare words.
 .ex
