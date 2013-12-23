@@ -8,9 +8,9 @@ require 5.005;
 ;#
 ;# cdif: word context diff
 ;#
-## Copyright (c) 1992-2003 Kazumasa Utashiro <utashiro@srekcah.org>
+## Copyright (c) 1992-2013 Kazumasa Utashiro
 ;#
-;; $rcsid = q$Id: cdif,v 1.19 2003/12/05 18:15:45 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.20 2013/12/23 09:47:38 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -50,6 +50,8 @@ Options:
 		specify any diff command
 _
 
+my $opt_color = 1;
+
 if ($ENV{'CDIFOPTS'}) {
     require('shellwords.pl');
     unshift(@ARGV, &shellwords($ENV{'CDIFOPTS'}));
@@ -59,7 +61,7 @@ while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/^-?-rcs$/) { $rcs++; next; }
     if (/^-?-diff=(.+)$/) { $diff = $1; next; }
-    if (/^-?-color$/) { $opt_color = 1; next; }
+    if (/^-?-nocolor$/) { $opt_color = 0; next; }
     if ($car eq 'h') { &usage; }
     if ($car eq 'H') { exec "nroff -man $0|".($ENV{'PAGER'}||'more')." -s"; }
     if ($car eq 'r') {
@@ -167,8 +169,6 @@ $TBASE = "$tmp/cdif_$$";
 @stat{'a', 'd', 'c', 'anl', 'dnl', 'cnl'} = (0, 0, 0, 0, 0, 0);
 @stat{'anlb', 'dnlb', 'cnlb'} = (0, 0, 0);
 
-$* = 1;
-
 open(DIFF) || die "$diff: $!\n";
 while (<DIFF>) {
     print;
@@ -180,13 +180,13 @@ while (<DIFF>) {
 	$del = &read(DIFF, 1);
 	$new = &read(DIFF, scalar(&range($right)));
 
-	$old =~ s/^< //g;
-	$new =~ s/^> //g;
+	$old =~ s/^< //mg;
+	$new =~ s/^> //mg;
 
 	($old, $new) = &context($old, $new);
 
-	$old =~ s/^/< /g;
-	$new =~ s/^/> /g;
+	$old =~ s/^/< /mg;
+	$new =~ s/^/> /mg;
 
 	print $old, $del, $new;
     }
@@ -200,13 +200,13 @@ while (<DIFF>) {
 	if (($right) = /^--- ([\d,]+) ----$/) {
 	    @new = &read_diffc(DIFF, scalar(&range($right)));
 	    for ($i = $[ + 1; $i <= $#old; $i += 2) {
-		$old[$i] =~ s/^! //g;
-		$new[$i] =~ s/^! //g;
+		$old[$i] =~ s/^! //mg;
+		$new[$i] =~ s/^! //mg;
 
 		($old[$i], $new[$i]) = &context($old[$i], $new[$i]);
 
-		$old[$i] =~ s/^/! /g;
-		$new[$i] =~ s/^/! /g;
+		$old[$i] =~ s/^/! /mg;
+		$new[$i] =~ s/^/! /mg;
 	    }
 	}
 	print @old, $new, @new;
@@ -218,13 +218,13 @@ while (<DIFF>) {
 	@buf = &read_diffu(DIFF, $2 || 1, $4 || 1);
 	while (($same, $old, $new) = splice(@buf, 0, 3)) {
 	    if ($old && $new) {
-		$old =~ s/^\-//g;
-		$new =~ s/^\+//g;
+		$old =~ s/^\-//mg;
+		$new =~ s/^\+//mg;
 
 		($old, $new) = &context($old, $new);
 
-		$old =~ s/^/-/g;
-		$new =~ s/^/+/g;
+		$old =~ s/^/-/mg;
+		$new =~ s/^/+/mg;
 	    }
 	    print $same, $old, $new;
 	}
@@ -497,7 +497,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.19 2003/12/05 18:15:45 utashiro Exp $
+.XX $Id: cdif,v 1.20 2013/12/23 09:47:38 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -699,17 +699,10 @@ option to use \fIcdif\fP instead of normal diff.
 .IP termfix
 is a program to change termcap capability of current
 terminal temporarily.
-.PP
-All these programs are available from the web:
-http://www.srekcah.org/~utashiro/perl/scripts/
-.PP
-I'm afraid that most pages may be written in Japanese.  Hope
-you can reach the newest releases without explanation.
 .SH AUTHOR
 .nf
-Kazumasa Utashiro <utashiro@srekcah.org>
-.br
-http://www.srekcah.org/~utashiro/
+Kazumasa Utashiro
+https://github.com/kaz-utashiro/
 .fi
 .SH "SEE ALSO"
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
