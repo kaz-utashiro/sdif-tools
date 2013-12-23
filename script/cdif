@@ -9,13 +9,15 @@
 ;# Internet Initiative Japan Inc.
 ;# 3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.16 2002/09/11 13:31:03 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.17 2002/09/12 00:41:42 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
-;# Redistribution for non-commercial purpose, with or without
-;# modification, is granted as long as all copyright notices are
-;# retained.  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
-;# ANY EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED.
+## Use and redistribution for ANY PURPOSE are granted as long as all
+## copyright notices are retained.  Redistribution with modification
+## is allowed provided that you make your modified version obviously
+## distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
+## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+## DISCLAIMED.
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
@@ -450,7 +452,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.16 2002/09/11 13:31:03 utashiro Exp $
+.XX $Id: cdif,v 1.17 2002/09/12 00:41:42 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -653,13 +655,17 @@ available.  Sometimes we want to use standout rather than
 bold.  Termfix allows to cancel \fImd\fP and \fIme\fP
 capability only for the invoking command by ``md@'' option.
 .PP
-All these programs are available from anonymous ftp:
-ftp://ftp.iij.ad.jp/pub/IIJ/dist/utashiro/perl/.
+All these programs are available from web page:
+http://www.srekcah.org/~utashiro/perl/scripts/
+.PP
+I'm afraid that most pages may be written in Japanese.  You
+will be able to reach releases without reading description,
+probably...
 .SH AUTHOR
 .nf
-Kazumasa Utashiro <utashiro@iij.ad.jp>
-Internet Initiative Japan Inc.
-3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
+Kazumasa Utashiro <utashiro@srekcah.org>
+.br
+http://www.srekcah.org/~utashiro/
 .fi
 .SH "SEE ALSO"
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
@@ -672,4 +678,12 @@ due to the behavior of diff command.
 .PP
 \fICdif\fP is naturally slow because it uses normal diff
 command as a back-end processor to compare words.
+.SH COPYRIGHT
+.PP
+Use and redistribution for ANY PURPOSE are granted as long as all
+copyright notices are retained.  Redistribution with modification
+is allowed provided that you make your modified version obviously
+distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
+BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+DISCLAIMED.
 .ex
