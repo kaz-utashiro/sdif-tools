@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl
-'di';
-'ig00';
+'di ';
+'ds 00 \"';
+'ig 00 ';
 ;#
 ;# cdif: word context diff
 ;#
@@ -8,7 +9,7 @@
 ;# Internet Initiative Japan Inc.
 ;# Sanbancho Annex Bldg. 1-4, Sanban-cho, Chiyoda-ku, Tokyo 102, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.11 1994/11/08 08:46:10 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.12 1995/11/06 16:27:21 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;# Redistribution for non-commercial purpose, with or without
@@ -339,7 +340,7 @@ sub unctrl {
     $_;
 }
 ######################################################################
-.00;			# finish .ig
+.00 ;			# finish .ig
 
 'di			\" finish diversion--previous line must be blank
 .nr nl 0-1		\" fake up transition to first page again
@@ -348,7 +349,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.11 1994/11/08 08:46:10 utashiro Exp $
+.XX $Id: cdif,v 1.12 1995/11/06 16:27:21 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -541,14 +542,14 @@ available.  Sometimes we want to use standout rather than
 bold.  Termfix allows to cancel \fImd\fP and \fImd\fP
 capability only for the invoking command by ``md@'' option.
 .PP
-All of these programs can be ftp'ed from sra.co.jp
-(133.137.4.3) by anonymous ftp from the directory
-~ftp/pub/lang/perl/sra-scripts.
+All of these programs can be ftp'ed from ftp.sra.co.jp by
+anonymous ftp from the directory
+\fIpub/lang/perl/sra-scripts\fP.
 .SH AUTHOR
 .nf
-Kazumasa Utashiro <utashiro@sra.co.jp>
-Software Research Associates, Inc.
-1-1-1 Hirakawa-cho, Chiyoda-ku, Tokyo 102, Japan
+Kazumasa Utashiro <utashiro@iij.ad.jp>
+Internet Initiative Japan Inc.
+1-4 Sanban-cho, Chiyoda-ku, Tokyo 102, Japan
 .fi
 .SH "SEE ALSO"
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
