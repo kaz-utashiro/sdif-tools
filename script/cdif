@@ -4,7 +4,7 @@
 ;#
 ;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
 ;#
-;; $rcsid = '$Header: /Users/utashiro/Factory/Git/cdif/RCS/cdif,v 1.1 1992/03/11 20:00:54 utashiro Exp $';
+;; $rcsid = '$Header: /Users/utashiro/Factory/Git/cdif/RCS/cdif,v 1.2 1992/03/12 11:47:34 utashiro Exp $';
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
@@ -16,20 +16,19 @@ Options:
 	-b	byte compare
 	-v	use video standout (default for tty)
 	-n	use nroff style overstrike (default for no-tty)
-	-u	use underline rather than standout or overstrike
 	-A, -C, -D (Append, Change, Delete) takes
 		"vso": video standout		"vul": video underline
 		"bd":  nroff style overstrike	"ul":  nroff style underline
 		or any sequence or sequences separated by comma
 _
 
-$opts = 'bdvuqnA:C:D:';
+$opts = 'bdvqnt:A:C:D:';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
     if ($car eq 'h') { &usage; }
     if ($car eq 'r') {
-	&usage("$_: Too many revisions\n") if (@rcs == 2);
+	&usage("$_: Too many revisions\n\n") if @rcs == 2;
 	$rcs++; push(@rcs, $_); next;
     }
     if (index($opts, "$car:") >= $[) {
@@ -62,13 +61,16 @@ if ($rcs) {
     &usage("Arguments error.\n\n") if @ARGV;
 }
 
-$tmp = '/tmp';
-$T1 = "$tmp/cdif_" . ($opt_d ? $< : $$) . "_1";
-$T2 = "$tmp/cdif_" . ($opt_d ? $< : $$) . "_2";
+$tmp = $opt_t || '/tmp';
+$T1 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . "_1";
+$T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . "_2";
 
-($v, $n) = $opt_u ? ('vul', 'ul') : ('vso', 'bd');
-%func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul);
-($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT)) ? ($v) x 3 : ($n) x 3;
+@bs[1,2] = ("\010", "\010\010");
+@ul[1,2] = ("_\010", "__\010\010");
+
+%func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
+($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
+    ? ('vso', 'vbd', 'vso') : ('bd', 'bd', 'bd');
 for ('A', 'C', 'D') {
     eval "\$opt = \$opt_$_ || \$$_";
     if ($func{$opt}) {
@@ -85,6 +87,7 @@ for ('A', 'C', 'D') {
 open(DIFF) || die "diff: $!\n";
 while (<DIFF>) {
     if (($left, $ctrl, $right) = /([\d,]+)([adc])([\d,]+)/) {
+	print;
 	($l1, $l2) = &range($left);
 	($r1, $r2) = &range($right);
 	@old = @new = ();
@@ -96,9 +99,8 @@ while (<DIFF>) {
 	    @new = &read(DIFF, $n = $r2 - $r1 + 1);
 	}
     } else {
-	warn "Unrecognizable line -- $_";
+	die "Data format error on line $.\n-->$_";
     }
-    print $_;
     if ($ctrl eq 'c') {
 	do context(*old, *new);
     } else {
@@ -113,13 +115,18 @@ exit($? >> 8);
 sub context {
     local(*old, *new, $_) = @_;
     local(@control);
+    @c{'a', 'd', 'c'} = (0, 0, 0);
     @owlist = &maketmp($T1, @old);
     @nwlist = &maketmp($T2, @new);
     open(CDIF, "diff $T1 $T2 |") || die "diff: $!\n";
-    /[\d,]+[adc][\d,]+/ && push(@control, $_) while (<CDIF>);
+    /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while (<CDIF>);
     close(CDIF);
+    if ($opt_d >= 1) {
+	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
+	printf "append=$c{'a'} delete=$c{'d'} change=$c{'c'}\n";
+    }
     &out;
-    unlink($T1), unlink($T2) unless $opt_d;
+    unlink($T1), unlink($T2) unless $opt_d >= 2;
     die "$myname: illegal status of subprocess\n" if ($?>>8) > 1;
 }
 
@@ -130,8 +137,8 @@ sub out {
 	($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/;
 	($o1, $o2) = &range($old); $o1--; $o2--;
 	($n1, $n2) = &range($new); $n1--; $n2--;
-	$obuf .= join('', @owlist[$o .. $o1 - 1]), $o = $o1 if ($o < $o1);
-	$nbuf .= join('', @nwlist[$n .. $n1 - 1]), $n = $n1 if ($n < $n1);
+	$obuf .= join('', @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
+	$nbuf .= join('', @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
 	if ($ctrl eq 'd') {
 	    $obuf .= &D(@owlist[$o1 .. $o2]);
 	    $o = $o2 + 1;
@@ -154,25 +161,18 @@ sub out {
     print $obuf, @separator, $nbuf;
 }
 
-sub vso {
-    &termcap unless %TC;
-    join('', $so, @_, $se);
-}
-
-sub vul {
-    join('', $us, @_, $ue);
-}
+sub vso { join('', $so, @_, $se); }
+sub vul { join('', $us, @_, $ue); }
+sub vbd { join('', $md, @_, $me); }
 
 sub bd {
     local($_) = join('', @_);
-    @bs[1,2] = ("\010", "\010\010") unless @bs;
     s/[\200-\377]?./$&.$bs[length($&)].$&/ge;
     $_;
 }
 
 sub ul {
     local($_) = join('', @_);
-    @ul[1,2] = ("_\010", "__\010\010") unless @ul;
     s/[\200-\377]?./$ul[length($&)].$&/eg;
     $_;
 }
@@ -219,5 +219,5 @@ sub termcap {
     &Tgetent;
     $so = &Tputs($TC{'so'}); $se = &Tputs($TC{'se'});
     $us = &Tputs($TC{'us'}); $ue = &Tputs($TC{'ue'});
-
+    $md = &Tputs($TC{'md'}) || $so; $me = &Tputs($TC{'me'}) || $se;
 }
