@@ -10,7 +10,7 @@ require 5.005;
 ;#
 ## Copyright (c) 1992-2013 Kazumasa Utashiro
 ;#
-;; $rcsid = q$Id: cdif,v 1.20 2013/12/23 09:47:38 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 2.1 2013/12/23 10:08:27 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -497,7 +497,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.20 2013/12/23 09:47:38 utashiro Exp $
+.XX $Id: cdif,v 2.1 2013/12/23 10:08:27 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
