@@ -9,7 +9,7 @@
 ;# Internet Initiative Japan Inc.
 ;# 3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.14 1999/02/03 12:43:36 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.15 1999/02/03 13:14:20 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;# Redistribution for non-commercial purpose, with or without
@@ -235,7 +235,7 @@ sub context {
 
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     while (<CDIF>) {
-	if (/^\d+(,\d+)?[adc]\d+(,\d+)?$/) {
+	if (/^[\d,]+([adc])[\d,]+$/) {
 	    push(@control, $_);
 	    $c{$1}++;
 	}
@@ -425,7 +425,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.14 1999/02/03 12:43:36 utashiro Exp $
+.XX $Id: cdif,v 1.15 1999/02/03 13:14:20 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
