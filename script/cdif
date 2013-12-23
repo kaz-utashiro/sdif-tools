@@ -4,15 +4,16 @@
 ;#
 ;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
 ;#
-;; $rcsid = '$Header: /Users/utashiro/Factory/Git/cdif/RCS/cdif,v 1.2 1992/03/12 11:47:34 utashiro Exp $';
+;; $rcsid = '$Id: cdif,v 1.3 1992/03/13 09:53:40 utashiro Exp $';
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
-Usage: $myname [-b] [-v] [-n] [-A #] [-C #] [-D #] file1 file2
+Usage: $myname [-c] [-b] [-v] [-n] [-A #] [-C #] [-D #] file1 file2
        $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
        $myname [$myname opts] diff-output-file
        diff file1 file2 | $myname
 Options:
+	-c	diff -c
 	-b	byte compare
 	-v	use video standout (default for tty)
 	-n	use nroff style overstrike (default for no-tty)
@@ -22,7 +23,7 @@ Options:
 		or any sequence or sequences separated by comma
 _
 
-$opts = 'bdvqnt:A:C:D:';
+$opts = 'cbdvqnt:A:C:D:';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -48,13 +49,15 @@ sub usage {
     exit;
 }
 
+push(@diffopt, '-c') if $opt_c;
+
 if ($rcs) {
     push(@rcsopt, '-q') if $opt_q;
     $rcsfile = shift || &usage("No RCS filename\n\n");
-    $DIFF = "rcsdiff @rcsopt @rcs $dopts $rcsfile|";
+    $DIFF = "rcsdiff @diffopt @rcsopt @rcs $dopts $rcsfile|";
 } elsif (@ARGV == 2) {
     ($OLD, $NEW) = splice(@ARGV, 0, 2);
-    $DIFF = "diff $OLD $NEW |";
+    $DIFF = "diff @diffopt $OLD $NEW |";
 } elsif (@ARGV < 2) {
     $DIFF = shift || '-';
 } else {
@@ -86,25 +89,40 @@ for ('A', 'C', 'D') {
 
 open(DIFF) || die "diff: $!\n";
 while (<DIFF>) {
-    if (($left, $ctrl, $right) = /([\d,]+)([adc])([\d,]+)/) {
-	print;
+    print;
+    $diff_c = 0;
+    if ($diff_c = ($_ eq "***************\n")) {
+	@old = ($_ = <DIFF>);
+	($left) = /^\*\*\* ([\d,]+) \*\*\*\*/;
+	($l1, $l2) = &range($left);
+	push(@old, &read_diffc(DIFF, $n = $l2 - $l1 + 1));
+	print(@old), next if @old <= 2;
+	@new = ($_ = <DIFF>);
+	($right) = /^--- ([\d,]+) ----/;
+	($r1, $r2) = &range($right);
+	push(@new, &read_diffc(DIFF, $n = $r2 - $r1 + 1));
+	for ($i = $[ + 2; $i <= $#old; $i += 2) {
+	    &context($old[$i], $new[$i]);
+	    $old[$i] = $obuf;
+	    $new[$i] = $nbuf;
+	}
+	print @old, @new;
+    } elsif (($left, $ctrl, $right) = /^([\d,]+)([adc])([\d,]+)/) {
 	($l1, $l2) = &range($left);
 	($r1, $r2) = &range($right);
-	@old = @new = ();
+	$old = $new = '';
 	if ($ctrl eq 'd' || $ctrl eq 'c') {
-	    @old = &read(DIFF, $n = $l2 - $l1 + 1);
+	    $old = &read(DIFF, $n = $l2 - $l1 + 1);
 	}
-	@separator = &read(DIFF, 1) if $ctrl eq 'c';
+	$separator = ($ctrl eq 'c') ? &read(DIFF, 1) : '';
 	if ($ctrl eq 'a' || $ctrl eq 'c') {
-	    @new = &read(DIFF, $n = $r2 - $r1 + 1);
+	    $new = &read(DIFF, $n = $r2 - $r1 + 1);
 	}
-    } else {
-	die "Data format error on line $.\n-->$_";
-    }
-    if ($ctrl eq 'c') {
-	do context(*old, *new);
-    } else {
-	print @old, @new;
+	if ($ctrl eq 'c' && &context($old, $new)) {
+	    print $obuf, $separator, $nbuf;
+	} else {
+	    print $old, $separator, $new;
+	}
     }
 }
 close(DIFF);
@@ -113,11 +131,11 @@ exit($? >> 8);
 ######################################################################
 
 sub context {
-    local(*old, *new, $_) = @_;
+    local($old, $new, $_) = @_;
     local(@control);
     @c{'a', 'd', 'c'} = (0, 0, 0);
-    @owlist = &maketmp($T1, @old);
-    @nwlist = &maketmp($T2, @new);
+    @owlist = &maketmp($T1, $old);
+    @nwlist = &maketmp($T2, $new);
     open(CDIF, "diff $T1 $T2 |") || die "diff: $!\n";
     /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while (<CDIF>);
     close(CDIF);
@@ -125,14 +143,36 @@ sub context {
 	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
 	printf "append=$c{'a'} delete=$c{'d'} change=$c{'c'}\n";
     }
-    &out;
-    unlink($T1), unlink($T2) unless $opt_d >= 2;
+    &makebuf;
+    unlink($T1), unlink($T2) if $opt_d < 2;
     die "$myname: illegal status of subprocess\n" if ($?>>8) > 1;
+    return 1;
 }
 
-sub out {
+sub maketmp {
+    local($tmp, @list, @wlist) = @_;
+    open (TMP, ">$tmp") || warn "$F: $!\n", return 0;
+    foreach (@list) {
+	s/^[!<>] //g;
+	if ($opt_b) {
+	    @words = /[\200-\377]?[\000-\377]/g;
+	} else {
+	    @words = /[\200-\377].|\w+|[\000-\377]/g;
+	}
+	push(@wlist, @words);
+	foreach (@words) {
+	    s/\n/\r/;
+	    print TMP $_, "\n";
+	}
+    }
+    close(TMP);
+    @wlist;
+}
+
+sub makebuf {
     local($_, $old, $ctrl, $new, $o1, $o2, $n1, $n2);
-    local($o, $n, $obuf, $nbuf) = (0, 0);
+    local($o, $n) = ($[, $[);
+    $obuf = $nbuf = '';
     for (@control) {
 	($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/;
 	($o1, $o2) = &range($old); $o1--; $o2--;
@@ -156,9 +196,22 @@ sub out {
     }
     $obuf .= join('', @owlist[$o .. $#owlist]);
     $nbuf .= join('', @nwlist[$n .. $#nwlist]);
-    $obuf =~ s/^/< /g;
-    $nbuf =~ s/^/> /g;
-    print $obuf, @separator, $nbuf;
+    if ($diff_c) {
+	$obuf =~ s/^/! /g; $nbuf =~ s/^/! /g;
+    } else {
+	$obuf =~ s/^/< /g; $nbuf =~ s/^/> /g;
+    }
+    return 1;
+}
+
+sub read_diffc {
+    local($FH, $n, $buf, $bang, @buf, $_) = @_;
+    while ($n-- && ($_ = <DIFF>)) {
+	push(@buf, $buf), $buf = '', $bang ^= 1 if /^!/ ^ $bang;
+	$buf .= $_;
+    }
+    push(@buf, $buf) if $buf;
+    @buf;
 }
 
 sub vso { join('', $so, @_, $se); }
@@ -177,35 +230,15 @@ sub ul {
     $_;
 }
 
-sub maketmp {
-    local($tmp, @list, @wlist) = @_;
-    open (TMP, ">$tmp") || warn "$F: $!\n", return 0;
-    foreach (@list) {
-	s/^[<>] //;
-	if ($opt_b) {
-	    @words = /[\200-\377]?[\000-\377]/g;
-	} else {
-	    @words = /[\200-\377].|\w+|[\000-\377]/g;
-	}
-	push(@wlist, @words);
-	foreach (@words) {
-	    s/\n/\r/;
-	    print TMP $_, "\n";
-	}
-    }
-    close(TMP);
-    @wlist;
-}
-
 sub range {
     local($_) = @_;
     /,/ ? split(/,/) : ($_, $_);
 }
 
 sub read {
-    local($fh, $c, @buf) = @_;
-    push(@buf, scalar(<$fh>)) while ($c--);
-    @buf;
+    local($fh, $c, $buf) = (@_, '');
+    $buf .= <$fh> while $c--;
+    $buf;
 }
 
 sub skip {
