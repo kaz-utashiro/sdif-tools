@@ -9,7 +9,7 @@
 ;# Internet Initiative Japan Inc.
 ;# 3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.17 2002/09/12 00:41:42 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.18 2003/12/05 04:22:06 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -157,7 +157,8 @@ $TBASE = "$tmp/cdif_$$";
 ;#
 ;# Total statistic info
 ;#
-@stat{'a', 'd', 'c', 'anl', 'dnl'} = (0, 0, 0, 0, 0);
+@stat{'a', 'd', 'c', 'anl', 'dnl', 'cnl'} = (0, 0, 0, 0, 0, 0);
+@stat{'anlb', 'dnlb', 'cnlb'} = (0, 0, 0);
 
 $* = 1;
 
@@ -225,12 +226,21 @@ while (<DIFF>) {
 close DIFF;
 
 if ($opt_s) {
-    print("TOTAL:          ");
+    select STDERR;
+
+    print("TOTAL:             ");
     printf("append=%d delete=%d change=%d\n",
 	   $stat{'a'}, $stat{'d'}, $stat{'c'});
-    print("INGORE NEWLINE: ");
+    print("INGORE WHITESPACE: ");
     printf("append=%d delete=%d change=%d\n",
-	   $stat{'a'} - $stat{'anl'}, $stat{'d'} - $stat{'dnl'}, $stat{'c'});
+	   $stat{'anl'},
+	   $stat{'dnl'},
+	   $stat{'cnl'});
+    print("INGORE WHITESPACE (bytes): ");
+    printf("append=%d delete=%d change=%d\n",
+	   $stat{'anlb'},
+	   $stat{'dnlb'},
+	   $stat{'cnlb'});
 }
 
 exit $? >> 8;
@@ -241,10 +251,18 @@ sub context {
     local($old, $new, $_) = @_;
     local(@control);
 
-    if ($opt_d >= 2) {
+    if ($opt_d >= 3) {
 	$sequence++;
 	$T1 = sprintf("%s_%04d_1", $TBASE, $sequence);
 	$T2 = sprintf("%s_%04d_2", $TBASE, $sequence);
+    }
+
+    if ($opt_d >= 2) {
+	print STDERR "****************************** Comparing ...\n";
+	print STDERR $old;
+	print STDERR "****************************** and\n";
+	print STDERR $new;
+	print STDERR "****************************** .\n";
     }
 
     @c{'a', 'd', 'c'} = (0, 0, 0);
@@ -253,13 +271,16 @@ sub context {
 
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     while (<CDIF>) {
+	if ($opt_d >= 2) {
+	    print;
+	}
 	if (/^[\d,]+([adc])[\d,]+$/) {
 	    push(@control, $_);
 	    $c{$1}++;
 	}
     }
     close CDIF;
-    &cleanup() if $opt_d < 2;
+    &cleanup() if $opt_d < 3;
 
     if ($opt_d >= 1) {
 	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
@@ -346,22 +367,29 @@ sub makebuf {
 	$stat{$ctrl}++;
 
 	if ($ctrl eq 'd') {
-	    if ($owlist[$o2] eq "\n") {
+	    if ($owlist[$o2] =~ /\S/) {
 		$stat{'dnl'}++;
+		$stat{'dnlb'} += length(join('', @owlist[$o1 .. $o2]));
 	    }
 	    $obuf .= &D(@owlist[$o1 .. $o2]);
 	    $o = $o2 + 1;
 	    $nbuf .= $nwlist[$n++] . $opt_I if $opt_I;
 	}
 	elsif ($ctrl eq 'c') {
+	    if (($owlist[$o2] =~ /\S/) || ($nwlist[$n2] =~ /\S/)) {
+		$stat{'cnl'}++;
+		$stat{'cnlb'} += length(join('', @owlist[$o1 .. $o2]));
+		$stat{'cnlb'} += length(join('', @nwlist[$n1 .. $n2]));
+	    }
 	    $obuf .= &C(@owlist[$o1 .. $o2]);
 	    $nbuf .= &C(@nwlist[$n1 .. $n2]);
 	    $o = $o2 + 1;
 	    $n = $n2 + 1;
 	}
 	elsif ($ctrl eq 'a') {
-	    if ($nwlist[$n2] eq "\n") {
+	    if ($nwlist[$n2] =~ /\S/) {
 		$stat{'anl'}++;
+		$stat{'anlb'} += length(join('', @nwlist[$n1 .. $n2]));
 	    }
 	    $nbuf .= &A(@nwlist[$n1 .. $n2]);
 	    $n = $n2 + 1;
@@ -452,7 +480,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.17 2002/09/12 00:41:42 utashiro Exp $
+.XX $Id: cdif,v 1.18 2003/12/05 04:22:06 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
