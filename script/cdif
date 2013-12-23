@@ -7,11 +7,12 @@
 ;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
 ;# Software Research Associates, Inc., Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.7 1992/12/11 02:56:40 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.8 1992/12/28 11:49:23 utashiro Exp $;
+;# Original: 1992/03/11
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
-Usage: $myname [-B] [-v] [-n] [-A #] [-C #] [-D #] [-[bwcu]] file1 file2
+Usage: $myname [-B] [-v] [-n] [-A #] [-C #] [-D #] [-I #] [-[bwcu]] file1 file2
        $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
        $myname [$myname options] [diff-output-file]
 Options:
@@ -29,11 +30,15 @@ Options:
 		bd:  nroff style overstrike
 		ul:  nroff style underline
 		or any sequence or sequences separated by comma
+	-I	specify string to be shown on insertion point
+		Following strings have special meanings.
+		vbar:	print vertical bar at the point
+		caret:	print caret under the point
 	-diff=command
 		specify any diff command
 _
 
-$opts = 'A:C:D:Bcubdvqnt:'.'ibw';
+$opts = 'A:C:D:I:Bcubdvqnt:'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -49,6 +54,9 @@ while ($_ = $ARGV[0], /^-.+/ && shift) {
     }
     push(@diffopts, "-$car") if index("iwcbu", $car) >= $[;
     push(@sub_diffopts, "-$car") if index("iw", $car) >= $[;
+    if (/-(i[bxu])$/) {
+	eval "\$opt_$1 = 1;"; next;
+    }
     if (index($opts, "$car:") >= $[) {
 	eval "\$opt_$car = length(\$cdr) ? \$cdr : \@ARGV ? shift : &usage";
 	next;
@@ -100,10 +108,26 @@ for ('A', 'C', 'D') {
 if ($opt_B) {
     $pat = '[\200-\377]?[\000-\377]';
 } else {
-    $pat = '[\200-\377].|\w+|\s*\n|\s+|[\000-\377]';
+    $pat = '[\200-\377].|\w+|[ \t\r\f]*\n|\s+|[\000-\377]';
 }
 @ul[1,2] = ("_\010", "__\010\010");
 @bs[1,2] = ("\010", "\010\010");
+
+if (defined($opt_I)) {
+    if ($opt_I =~ /^vbar$/i) {			# special string 'vbar'
+	$opt_ix = 1; $opt_ib = $opt_I =~ /[A-Z]/;
+	$opt_I = '|';
+    }
+    if ($opt_I =~ /^caret$/i) {			# special string 'caret'
+	$opt_ix = $opt_iu = 1; $opt_ib = $opt_I =~ /[A-Z]/;
+	$opt_I = '^';
+    }
+    $opt_I = &bd($opt_I) if $opt_ib;
+    ($hcr, $hcf, $hlr, $hlf) = ("\0336", "\0337", "\0338", "\0339");
+    $opt_I = $hcr . $opt_I . $hcr if $opt_ix;
+    $opt_I = $hlf . $opt_I . $hlr if $opt_iu;
+}
+
 $tmp = $opt_t || '/tmp';
 $T1 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_1';
 $T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_2';
@@ -182,6 +206,7 @@ sub maketmp {
     local($tmp, $_, @words) = @_;
     local(@notspace) = (0);
     open (TMP, ">$tmp") || warn "$tmp: $!\n", return 0;
+
     foreach (/$pat/go) {
 	if ($opt_w) {
 	    push(@notspace, !/\s/);
@@ -190,8 +215,8 @@ sub maketmp {
 		print TMP "\n";
 	    }
 	}
-	if (s/(\s*)\n/\n/ && (length($1) || $opt_b || $opt_w)) {
-	    #    ^ This have to be *.  Don't change to +.
+	if (s/^(\s*)\n/\n/ && (length($1) || $opt_b || $opt_w)) {
+	    #     ^ This have to be *.  Don't change to +.
 	    print TMP ($opt_b || $opt_w) ? "\n" : "$1\n";
 	    push(@words, $1);
 	}
@@ -200,6 +225,9 @@ sub maketmp {
 	print TMP "\n" unless /\n$/;
     }
     close(TMP);
+    if ($opt_d && @words != &wc_l($tmp)) {
+	die "Error! (\@words != `wc -l $tmp`)\n";
+    }
     @words;
 }
 
@@ -216,6 +244,7 @@ sub makebuf {
 	if ($ctrl eq 'd') {
 	    $obuf .= &D(@owlist[$o1 .. $o2]);
 	    $o = $o2 + 1;
+	    $nbuf .= $nwlist[$n++] . $opt_I if $opt_I;
 	}
 	if ($ctrl eq 'c') {
 	    $obuf .= &C(@owlist[$o1 .. $o2]);
@@ -226,6 +255,7 @@ sub makebuf {
 	if ($ctrl eq 'a') {
 	    $nbuf .= &A(@nwlist[$n1 .. $n2]);
 	    $n = $n2 + 1;
+	    $obuf .= $owlist[$o++] . $opt_I if $opt_I
 	}
     }
     $obuf .= join('', @owlist[$o .. $#owlist]);
@@ -277,6 +307,15 @@ sub termcap {
     $us = &Tputs($TC{'us'}); $ue = &Tputs($TC{'ue'});
     $md = &Tputs($TC{'md'}) || $so; $me = &Tputs($TC{'me'}) || $se;
 }
+
+sub wc_l {
+    local($file) = shift;
+    local(*FILE, $line);
+    open(FILE, $file) || die "$file: $!\n";
+    $line++ while <FILE>;
+    close(FILE);
+    $line;
+}
 ######################################################################
 .00;			# finish .ig
 
@@ -287,7 +326,7 @@ sub termcap {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.7 1992/12/11 02:56:40 utashiro Exp $
+.XX $Id: cdif,v 1.8 1992/12/28 11:49:23 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -309,10 +348,10 @@ cdif \- word context diff
 [\fIcdif options\fP] [\fIdiff-output-file\fP]
 .SH DESCRIPTION
 .I Cdif
-is a post-processor of diff command.  It highlights deleted,
-changed and added words based on word context.  Highlighting
-is usually done by using different style font and the output
-looks like this:
+is a post-processor of the Unix \fIdiff\fP command.  It
+highlights deleted, changed and added words based on word
+context.  Highlighting is usually done by using different
+style font and the output looks like this:
 .nf
 
 	1c1
@@ -391,6 +430,49 @@ produces following output.
 	> highlights and [modified] and{ added} words
 
 .fi
+.IP "\-I \fIstring\fP"
+Specify the string to be shown at the inserted or deleted
+point.  Normally the point at where new text is inserted
+or old text is deleted is not indicated in the output.  \-I
+option specifies the string which is to be shown at the
+insertion point.  For example, command
+.nf
+
+	cdif -D'<,>' -C'[,]' -A'{,}' -I'|'
+
+.fi
+produces the output like below.
+.nf
+
+	1c1
+	< highlights <deleted >and [changed] and| words
+	---
+	> highlights |and [modified] and{ added} words
+
+.fi
+Following four options are used to specify how this string
+is printed in the output.
+.RS
+.IP \-ib
+Makes the string overstruck.
+.IP \-iu
+Put the string under the line.  According to the sequence of
+Teletype model 37, the string is enclosed by ESC-9 and ESC-8
+sequences.
+.IP \-ix
+Put the string at the exact point.  The string is enclosed
+by non-standard ESC-6 sequences which indecate to move the
+printing point half-character backward.  Currently this
+sequence is understood only by my perl version of a2ps.  See
+RELATED COMMANDS.
+.RE
+.IP ""
+Special strings \fIvbar\fP, \fIVBAR\fP, \fIcaret\fP,
+\fICARET\fP are prepared for shortcut.  `\fIvbar\fP' means
+putting the vertical bar (|) at the exact insertion point.
+`\fIcaret\fP' means putting the caret mark (^) under the
+exact inserntion point.  Uppercase chacacter makes them
+overstruck.
 .IP "\-diff=\fIcommand\fP"
 Specify the diff command to use.
 .IP "\-rcs, \-r\fIrev\fP"
