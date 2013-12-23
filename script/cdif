@@ -5,11 +5,11 @@
 ;#
 ;# cdif: word context diff
 ;#
-;# Copyright (c) 1992-1998 Kazumasa Utashiro <utashiro@iij.ad.jp>
+## Copyright (c) 1992-2002 Kazumasa Utashiro <utashiro@srekcah.org>
 ;# Internet Initiative Japan Inc.
 ;# 3-13 Kanda Nishiki-cho, Chiyoda-ku, Tokyo 101-0054, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.15 1999/02/03 13:14:20 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.16 2002/09/11 13:31:03 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;# Redistribution for non-commercial purpose, with or without
@@ -19,7 +19,7 @@
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
-Usage: $myname [-Bvn] [-A #] [-C #] [-D #] [-I #] [-[bwcu]] file1 file2
+Usage: $myname [-Bvns] [-A #] [-C #] [-D #] [-I #] [-e #] [-[bwcu]] file1 file2
        $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
        $myname [$myname options] [diff-output-file]
 Options:
@@ -31,6 +31,7 @@ Options:
 	-c[#]	context diff
 	-u[#]	unified diff (if diff has -u option)
 	-e #	expression of `word' (default is '\w+')
+	-s	show statistical information at the end
 	-A, -C, -D (Append, Change, Delete) takes one of
 		vso: video standout
 		vul: video underline
@@ -50,7 +51,7 @@ if ($ENV{'CDIFOPTS'}) {
     require('shellwords.pl');
     unshift(@ARGV, &shellwords($ENV{'CDIFOPTS'}));
 };
-$opts = 'A:C:D:I:Bcubdvqnt:e:'.'ibw';
+$opts = 'A:C:D:I:Bcubdvqnt:e:s'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
     if (/-rcs$/) { $rcs++; next; }
@@ -151,6 +152,11 @@ $TBASE = "$tmp/cdif_$$";
 
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
 
+;#
+;# Total statistic info
+;#
+@stat{'a', 'd', 'c', 'anl', 'dnl'} = (0, 0, 0, 0, 0);
+
 $* = 1;
 
 open(DIFF) || die "$diff: $!\n";
@@ -215,6 +221,16 @@ while (<DIFF>) {
     }
 }
 close DIFF;
+
+if ($opt_s) {
+    print("TOTAL:          ");
+    printf("append=%d delete=%d change=%d\n",
+	   $stat{'a'}, $stat{'d'}, $stat{'c'});
+    print("INGORE NEWLINE: ");
+    printf("append=%d delete=%d change=%d\n",
+	   $stat{'a'} - $stat{'anl'}, $stat{'d'} - $stat{'dnl'}, $stat{'c'});
+}
+
 exit $? >> 8;
 
 ######################################################################
@@ -324,7 +340,13 @@ sub makebuf {
 
 	$obuf .= join('', @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
 	$nbuf .= join('', @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
+
+	$stat{$ctrl}++;
+
 	if ($ctrl eq 'd') {
+	    if ($owlist[$o2] eq "\n") {
+		$stat{'dnl'}++;
+	    }
 	    $obuf .= &D(@owlist[$o1 .. $o2]);
 	    $o = $o2 + 1;
 	    $nbuf .= $nwlist[$n++] . $opt_I if $opt_I;
@@ -336,6 +358,9 @@ sub makebuf {
 	    $n = $n2 + 1;
 	}
 	elsif ($ctrl eq 'a') {
+	    if ($nwlist[$n2] eq "\n") {
+		$stat{'anl'}++;
+	    }
 	    $nbuf .= &A(@nwlist[$n1 .. $n2]);
 	    $n = $n2 + 1;
 	    $obuf .= $owlist[$o++] . $opt_I if $opt_I;
@@ -425,7 +450,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.15 1999/02/03 13:14:20 utashiro Exp $
+.XX $Id: cdif,v 1.16 2002/09/11 13:31:03 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -435,7 +460,7 @@ cdif \- word context diff
 .ta \n(wwu
 .ti -\n(wwu
 \fBcdif\fP	\c
-[-Bvn] [-A #] [-C #] [-D #] [-[bwcu]] \fIfile1\fP \fIfile2\fP
+[-Bvns] [-A #] [-C #] [-D #] [-I #] [-e #] [-[bwcu]] \fIfile1\fP \fIfile2\fP
 .br
 .ti -\n(wwu
 \fBcdif\fP	\c
@@ -602,6 +627,12 @@ required when \-r\fIrev\fP is supplied.
 Passed through to the back-end diff command.  \fICdif\fP can
 process the output from context diff (\-c) and unified diff
 (\-u) if those are available.
+.IP "\-s"
+Print statistical information at the end of output.  It shows number
+of total appended/deleted/changed words in the context of cdif.  It's
+common to have many inserts and deletes of newlines becuase of text
+filling process.  So normal informaiton is followed by modified number
+which ignores insert/delete newlines.
 .SH RELATED COMMANDS
 .IP a2ps
 is a command which converts ascii text to postscript
