@@ -4,10 +4,11 @@
 ;#
 ;# cdif: word context diff
 ;#
-;# Copyright (c) 1992 Kazumasa Utashiro <utashiro@sra.co.jp>
-;# Software Research Associates, Inc., Japan
+;# Copyright (c) 1992-1993 Kazumasa Utashiro <utashiro@sra.co.jp>
+;# Software Research Associates, Inc.
+;# 1-1-1 Hirakawa-cho, Chiyoda-ku, Tokyo 102, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.8 1992/12/28 11:49:23 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.9 1993/05/13 10:14:11 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
@@ -38,6 +39,10 @@ Options:
 		specify any diff command
 _
 
+if ($ENV{'CDIFOPTS'}) {
+    require('shellwords.pl');
+    unshift(@ARGV, &shellwords($ENV{'CDIFOPTS'}));
+};
 $opts = 'A:C:D:I:Bcubdvqnt:'.'ibw';
 while ($_ = $ARGV[0], /^-.+/ && shift) {
     next unless ($car, $cdr) = /^-?(.)(.*)/;
@@ -185,7 +190,7 @@ sub context {
     @owlist = &maketmp($T1, $old);
     @nwlist = &maketmp($T2, $new);
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
-    /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while (<CDIF>);
+    /[\d,]+([adc])[\d,]+/ && push(@control, $_) && $c{$1}++ while <CDIF>;
     close(CDIF);
     &cleanup() if $opt_d < 2;
     if ($opt_d >= 1) {
@@ -255,7 +260,7 @@ sub makebuf {
 	if ($ctrl eq 'a') {
 	    $nbuf .= &A(@nwlist[$n1 .. $n2]);
 	    $n = $n2 + 1;
-	    $obuf .= $owlist[$o++] . $opt_I if $opt_I
+	    $obuf .= $owlist[$o++] . $opt_I if $opt_I;
 	}
     }
     $obuf .= join('', @owlist[$o .. $#owlist]);
@@ -326,7 +331,7 @@ sub wc_l {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.8 1992/12/28 11:49:23 utashiro Exp $
+.XX $Id: cdif,v 1.9 1993/05/13 10:14:11 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -352,6 +357,7 @@ is a post-processor of the Unix \fIdiff\fP command.  It
 highlights deleted, changed and added words based on word
 context.  Highlighting is usually done by using different
 style font and the output looks like this:
+.ne 6
 .nf
 
 	1c1
@@ -366,6 +372,7 @@ Appended and deleted lines are not effected at all.
 You may want to compare character-by-character rather than
 word-by-word.  Option \-B option can be used for that
 purpose and the output looks like:
+.ne 6
 .nf
 
 	1c1
@@ -387,9 +394,19 @@ like \fImore\fP or \fIless\fP, or printing to appropriate
 printer will make them visible.
 .PP
 If only one file is specified, \fIcdif\fP reads that file
-(stdin if no file) as a output from diff command.  Lines
-those don't look like diff output are simply ignored and
-printed same as input.  So you can use \fIcdif\fP from
+(stdin if no file) as a output from diff command.  This is
+convenient because you don't have to retype the command
+line.  \fICdif\fP is often used in following context.
+.ne 5
+.nf
+
+	% rcsdiff foo.c
+	(I can't see any difference...)
+	% !! | cdif
+
+.fi
+Lines those don't look like diff output are simply ignored
+and printed same as input.  So you can use \fIcdif\fP from
 \fIrn\fP(1) like `|cdif'.
 .SH OPTIONS
 .IP \-B
@@ -403,6 +420,7 @@ terminal.
 .IP "\-[ACD] \fIeffect\fP"
 Specify the effect to use for added, changed and deleted
 words respectively.  Special effects are:
+.ne 7
 .nf
 
 	vso: video standout
@@ -416,12 +434,14 @@ words respectively.  Special effects are:
 If specified effect doesn't match to any of special words,
 the sequence is used to highlighting string.  Start and end
 string are separated by comma.  So command:
+.ne 3
 .nf
 
 	cdif -D'<,>' -C'[,]' -A'{,}'
 
 .fi
 produces following output.
+.ne 6
 .nf
 
 	1c1
@@ -436,12 +456,14 @@ point.  Normally the point at where new text is inserted
 or old text is deleted is not indicated in the output.  \-I
 option specifies the string which is to be shown at the
 insertion point.  For example, command
+.ne 3
 .nf
 
 	cdif -D'<,>' -C'[,]' -A'{,}' -I'|'
 
 .fi
 produces the output like below.
+.ne 6
 .nf
 
 	1c1
@@ -461,7 +483,7 @@ Teletype model 37, the string is enclosed by ESC-9 and ESC-8
 sequences.
 .IP \-ix
 Put the string at the exact point.  The string is enclosed
-by non-standard ESC-6 sequences which indecate to move the
+by non-standard ESC-6 sequences which indicate to move the
 printing point half-character backward.  Currently this
 sequence is understood only by my perl version of a2ps.  See
 RELATED COMMANDS.
@@ -471,7 +493,7 @@ Special strings \fIvbar\fP, \fIVBAR\fP, \fIcaret\fP,
 \fICARET\fP are prepared for shortcut.  `\fIvbar\fP' means
 putting the vertical bar (|) at the exact insertion point.
 `\fIcaret\fP' means putting the caret mark (^) under the
-exact inserntion point.  Uppercase chacacter makes them
+exact insertion point.  Uppercase character makes them
 overstruck.
 .IP "\-diff=\fIcommand\fP"
 Specify the diff command to use.
@@ -499,19 +521,27 @@ is a program to change termcap capability of current
 terminal temporarily.  Recent more and less uses \fImd\fP
 and \fIme\fP capability to display overstruck character if
 available.  Sometimes we want to use standout rather than
-bolding.  Termfix allows to cancel \fImd\fP and \fImd\fP
+bold.  Termfix allows to cancel \fImd\fP and \fImd\fP
 capability only for the invoking command by ``md@'' option.
 .PP
 All of these programs can be ftp'ed from sra.co.jp
 (133.137.4.3) by anonymous ftp from the directory
 ~ftp/pub/lang/perl/sra-scripts.
 .SH AUTHOR
+.nf
 Kazumasa Utashiro <utashiro@sra.co.jp>
-.br
-Software Research Associates, Inc., Japan
+Software Research Associates, Inc.
+1-1-1 Hirakawa-cho, Chiyoda-ku, Tokyo 102, Japan
+.fi
 .SH "SEE ALSO"
 perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
 .SH BUGS
+.PP
+When the last one word (the last byte with \-B option) of a
+line moved to the other line, it is treated as disappeared
+and the new word was appeared in the other line.  This is
+due to the behavior of diff command.
+.PP
 \fICdif\fP is naturally slow because it uses normal diff
 command as a back-end processor to compare words.
 .ex
