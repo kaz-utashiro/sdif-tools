@@ -4,12 +4,17 @@
 ;#
 ;# cdif: word context diff
 ;#
-;# Copyright (c) 1992-1993 Kazumasa Utashiro <utashiro@sra.co.jp>
-;# Software Research Associates, Inc.
-;# 1-1-1 Hirakawa-cho, Chiyoda-ku, Tokyo 102, Japan
+;# Copyright (c) 1992-1994 Kazumasa Utashiro <utashiro@iij.ad.jp>
+;# Internet Initiative Japan Inc.
+;# Sanbancho Annex Bldg. 1-4, Sanban-cho, Chiyoda-ku, Tokyo 102, Japan
 ;#
-;; $rcsid = q$Id: cdif,v 1.10 1993/06/15 09:32:08 utashiro Exp $;
+;; $rcsid = q$Id: cdif,v 1.11 1994/11/08 08:46:10 utashiro Exp $;
 ;# Original: 1992/03/11
+;#
+;# Redistribution for non-commercial purpose, with or without
+;# modification, is granted as long as all copyright notices are
+;# retained.  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND
+;# ANY EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED.
 ;#
 ;; ($myname = $0) =~ s,.*/,,;
 ;; $usage = <<_;
@@ -100,13 +105,13 @@ print "DIFF=\"$DIFF\"\n" if $opt_d;
 for ('A', 'C', 'D') {
     eval "\$opt = \$opt_$_ || \$$_";
     if ($func{$opt}) {
-	eval "*$_ = \$func{$opt}";
+	&eval("*$_ = \$func{\'$opt\'}");
 	&termcap if ($opt =~ /^v/) && !%TC;
     } else {
 	$S = $S ? ++$S : 'S001';
 	($start, $end) = $opt =~ /,/ ? split(/,/, $opt) : ($opt, $opt);
 	$start =~ s/\W/\\$&/g; $end =~ s/\W/\\$&/g;
-	eval "sub $S {join('', \"$start\", \@_, \"$end\");} *$_ = *$S;\n";
+	&eval("sub $S {join('', \"$start\", \@_, \"$end\");} *$_ = *$S;\n");
     }
 }	
 
@@ -140,7 +145,7 @@ $T2 = "$tmp/cdif_" . ($opt_d >= 2 ? $< : $$) . '_2';
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
 $* = 1;
 
-open DIFF || die "$diff: $!\n";
+open(DIFF) || die "$diff: $!\n";
 while (<DIFF>) {
     print;
     if (($left, $right) = /^([\d,]+)c([\d,]+)$/) {
@@ -321,6 +326,18 @@ sub wc_l {
     close FILE;
     $line;
 }
+
+sub eval {
+    print STDERR &unctrl($_[0]), "\n" x ($_[0] !~ /\n$/) if $_[1] || $opt_d;
+    eval shift;
+    die sprintf("eval failed in file %s on line %s\n$@", (caller)[1,2]) if $@;
+}
+
+sub unctrl {
+    local($_) = shift;
+    s/[\000-\010\013-\037]/'^' . pack('c', ord($&)|0100)/ge;
+    $_;
+}
 ######################################################################
 .00;			# finish .ig
 
@@ -331,7 +348,7 @@ sub wc_l {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 1.10 1993/06/15 09:32:08 utashiro Exp $
+.XX $Id: cdif,v 1.11 1994/11/08 08:46:10 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
