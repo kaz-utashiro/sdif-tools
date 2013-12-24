@@ -3,14 +3,18 @@
 'ds 00 \"';
 'ig 00 ';
 
-require 5.005;
+use strict;
+use warnings;
+require 5.010;
+
+use Text::ParseWords qw(shellwords);
 
 ;#
 ;# cdif: word context diff
 ;#
 ## Copyright (c) 1992-2013 Kazumasa Utashiro
 ;#
-;; $rcsid = q$Id: cdif,v 2.1 2013/12/23 10:08:27 utashiro Exp $;
+;; my $rcsid = q$Id: cdif,v 2.2 2013/12/24 02:08:47 utashiro Exp $;
 ;# Original: 1992/03/11
 ;#
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -20,8 +24,8 @@ require 5.005;
 ## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
 ## DISCLAIMED.
 ;#
-;; ($myname = $0) =~ s,.*/,,;
-;; $usage = <<_;
+;; (my $myname = $0) =~ s,.*/,,;
+;; my $usage = <<_;
 Usage: $myname [-Bvns] [-A #] [-C #] [-D #] [-I #] [-e #] [-[bwcu]] file1 file2
        $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
        $myname [$myname options] [diff-output-file]
@@ -33,7 +37,7 @@ Options:
 	-w	ignore whitespace
 	-c[#]	context diff
 	-u[#]	unified diff (if diff has -u option)
-	-e #	expression of `word' (default is '\w+')
+	-e #	expression of `word' (default is '\\w+')
 	-s	show statistical information at the end
 	-A, -C, -D (Append, Change, Delete) takes one of
 		vso: video standout
@@ -50,15 +54,43 @@ Options:
 		specify any diff command
 _
 
+##
+## options
+##
+my $opt_A;
+my $opt_C;
+my $opt_D;
+my $opt_I;
+my $opt_B;
+my $opt_c;
+my $opt_u;
+my $opt_b;
+my $opt_d = 0;
+my $opt_v;
+my $opt_q;
+my $opt_n;
+my $opt_t;
+my $opt_e;
+my $opt_s;
+my $opt_w;
 my $opt_color = 1;
 
+my @rcs;
+my $rcs;
+my @rcsopt;
+my $diff;
+my @diffopts;
+my @sub_diffopts;
+
 if ($ENV{'CDIFOPTS'}) {
-    require('shellwords.pl');
-    unshift(@ARGV, &shellwords($ENV{'CDIFOPTS'}));
+    unshift(@ARGV, shellwords($ENV{'CDIFOPTS'}));
 };
-$opts = 'A:C:D:I:Bcubdvqnt:e:s'.'ibw';
-while ($_ = $ARGV[0], /^-.+/ && shift) {
-    next unless ($car, $cdr) = /^-?(.)(.*)/;
+my $opts = 'A:C:D:I:Bcubdvqnt:e:s'.'ibw';
+while (@ARGV and $ARGV[0] =~ /^-.+/) {
+
+    local $_ = shift;
+    next unless my($car, $cdr) = /^-?(.)(.*)/;
+
     if (/^-?-rcs$/) { $rcs++; next; }
     if (/^-?-diff=(.+)$/) { $diff = $1; next; }
     if (/^-?-nocolor$/) { $opt_color = 0; next; }
@@ -71,16 +103,16 @@ while ($_ = $ARGV[0], /^-.+/ && shift) {
     if (s/^-?([cu]\d+)//) {
 	push(@diffopts, "-$1"); eval "\$opt_$car++"; redo;
     }
-    push(@diffopts, "-$car") if index("iwcbu", $car) >= $[;
-    push(@sub_diffopts, "-$car") if index("iw", $car) >= $[;
+    push(@diffopts, "-$car") if index("iwcbu", $car) >= 0;
+    push(@sub_diffopts, "-$car") if index("iw", $car) >= 0;
     if (/-(i[bxu])$/) {
 	eval "\$opt_$1 = 1;"; next;
     }
-    if (index($opts, "$car:") >= $[) {
+    if (index($opts, "$car:") >= 0) {
 	eval "\$opt_$car = length(\$cdr) ? \$cdr : \@ARGV ? shift : &usage";
 	next;
     }
-    if (index($opts, $car) >= $[) {
+    if (index($opts, $car) >= 0) {
 	eval "\$opt_$car++"; $_ = $cdr; redo;
     }
     &usage("Unknown option: $car\n");
@@ -94,10 +126,14 @@ sub usage {
     exit;
 }
 
+my $DIFF;
+my $OLD;
+my $NEW;
+
 if ($rcs) {
     push(@rcsopt, '-q') if $opt_q;
-    $rcsfile = shift || &usage("No RCS filename\n\n");
-    $DIFF = "$diff @diffopts @rcsopt @rcs $dopts $rcsfile|";
+    my $rcsfile = shift || &usage("No RCS filename\n\n");
+    $DIFF = "$diff @diffopts @rcsopt @rcs $rcsfile|";
 } elsif (@ARGV == 2) {
     ($OLD, $NEW) = splice(@ARGV, 0, 2);
     $DIFF = "$diff @diffopts $OLD $NEW |";
@@ -114,30 +150,36 @@ if ($opt_color) {
     &termcap;
 }
 
-%func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
-($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
+my %func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
+my($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
     ? ('vbd', 'vul', 'vbd') : ('bd', 'ul', 'bd');
+my $S;
 for ('A', 'C', 'D') {
+    my $opt;
     eval "\$opt = \$opt_$_ || \$$_";
     if ($func{$opt}) {
 	&eval("*$_ = \$func{\'$opt\'}");
     } else {
 	$S = $S ? ++$S : 'S001';
-	($start, $end) = $opt =~ /,/ ? split(/,/, $opt) : ($opt, $opt);
+	my($start, $end) = $opt =~ /,/ ? split(/,/, $opt) : ($opt, $opt);
 	$start =~ s/(\W)/\\$1/g; $end =~ s/(\W)/\\$1/g;
 	&eval("sub $S {join('', \"$start\", \@_, \"$end\");} *$_ = *$S;\n");
     }
 }	
 
+my $pat;
 if ($opt_B) {
     $pat = '[\200-\377]?[\000-\377]';
 } else {
     $pat = '[\200-\377].|'.($opt_e || '\w+').'|[ \t\r\f]*\n|\s+|[\000-\377]';
 }
-@ul[1,2] = ("_\010", "__\010\010");
-@bs[1,2] = ("\010", "\010\010");
+my @ul = ("", "_\010", "__\010\010");
+my @bs = ("", "\010", "\010\010");
 
 if (defined($opt_I)) {
+    my $opt_ix;
+    my $opt_ib;
+    my $opt_iu;
     if ($opt_I =~ /^vbar$/i) {			# special string 'vbar'
 	$opt_ix = 1;
 	$opt_ib = $opt_I =~ /[A-Z]/;
@@ -149,7 +191,7 @@ if (defined($opt_I)) {
 	$opt_I = '^';
     }
     $opt_I = &bd($opt_I) if $opt_ib;
-    ($hcr, $hcf, $hlr, $hlf) = ("\0336", "\0337", "\0338", "\0339");
+    my($hcr, $hcf, $hlr, $hlf) = ("\0336", "\0337", "\0338", "\0339");
     $opt_I = $hcr . $opt_I . $hcr if $opt_ix;
     $opt_I = $hlf . $opt_I . $hlr if $opt_iu;
 }
@@ -157,28 +199,30 @@ if (defined($opt_I)) {
 ;#
 ;# Temporary file names
 ;#
-$tmp = $opt_t || '/tmp';
-$TBASE = "$tmp/cdif_$$";
-($T1, $T2) = ("${TBASE}_1", "${TBASE}_2");
+my $tmp = $opt_t || '/tmp';
+my $TBASE = "$tmp/cdif_$$";
+my($T1, $T2) = ("${TBASE}_1", "${TBASE}_2");
 
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
 
 ;#
 ;# Total statistic info
 ;#
+my %stat;
 @stat{'a', 'd', 'c', 'anl', 'dnl', 'cnl'} = (0, 0, 0, 0, 0, 0);
 @stat{'anlb', 'dnlb', 'cnlb'} = (0, 0, 0);
 
-open(DIFF) || die "$diff: $!\n";
+open(DIFF, $DIFF) || die "$diff: $!\n";
 while (<DIFF>) {
     print;
+    my($left, $right);
     #
     # normal diff
     #
     if (($left, $right) = /^([\d,]+)c([\d,]+)\r?$/) {
-	$old = &read(DIFF, scalar(&range($left)));
-	$del = &read(DIFF, 1);
-	$new = &read(DIFF, scalar(&range($right)));
+	my $old = &read_diff(*DIFF, scalar(&range($left)));
+	my $del = &read_diff(*DIFF, 1);
+	my $new = &read_diff(*DIFF, scalar(&range($right)));
 
 	$old =~ s/^< //mg;
 	$new =~ s/^> //mg;
@@ -194,12 +238,16 @@ while (<DIFF>) {
     # diff -c
     #
     elsif (($left) = /^\*\*\* ([\d,]+) \*\*\*\*\r?$/) {
-	@old = &read_diffc(DIFF, scalar(&range($left)));
-	print(@old), next if @old < 2;
-	$new = $_ = <DIFF>; @new = ();
+	my(@old, @new);
+	@old = &read_diffc(*DIFF, scalar(&range($left)));
+	if (@old < 2) {
+	    print @old;
+	    next;
+	}
+	my $new = $_ = <DIFF>;
 	if (($right) = /^--- ([\d,]+) ----$/) {
-	    @new = &read_diffc(DIFF, scalar(&range($right)));
-	    for ($i = $[ + 1; $i <= $#old; $i += 2) {
+	    @new = &read_diffc(*DIFF, scalar(&range($right)));
+	    for (my $i = 1; $i <= $#old; $i += 2) {
 		$old[$i] =~ s/^! //mg;
 		$new[$i] =~ s/^! //mg;
 
@@ -215,8 +263,9 @@ while (<DIFF>) {
     # diff -u
     #
     elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@\r?$/)  {
-	@buf = &read_diffu(DIFF, $2 || 1, $4 || 1);
-	while (($same, $old, $new) = splice(@buf, 0, 3)) {
+	my @buf = &read_diffu(*DIFF, $2 || 1, $4 || 1);
+	while (my($same, $old, $new) = splice(@buf, 0, 3)) {
+	    print $same;
 	    if ($old && $new) {
 		$old =~ s/^\-//mg;
 		$new =~ s/^\+//mg;
@@ -225,8 +274,9 @@ while (<DIFF>) {
 
 		$old =~ s/^/-/mg;
 		$new =~ s/^/+/mg;
+
+		print $old, $new;
 	    }
-	    print $same, $old, $new;
 	}
     }
 }
@@ -254,9 +304,15 @@ exit $? >> 8;
 
 ######################################################################
 
+my @owlist;
+my @nwlist;
+my @control;
+my $sequence = 0;
+my($obuf, $nbuf);
+
 sub context {
-    local($old, $new, $_) = @_;
-    local(@control);
+    my($old, $new) = @_;
+    local $_;
 
     if ($opt_d >= 3) {
 	$sequence++;
@@ -272,9 +328,11 @@ sub context {
 	print STDERR "****************************** .\n";
     }
 
+    my %c;
     @c{'a', 'd', 'c'} = (0, 0, 0);
     @owlist = &maketmp($T1, $old);
     @nwlist = &maketmp($T2, $new);
+    @control = ();
 
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     while (<CDIF>) {
@@ -317,9 +375,12 @@ sub cleanup {
 ;# itself is returned as a result of subroutine.
 ;#
 sub maketmp {
-    local($file, $_) = @_;
-    local(@words);
-    local(@notspace) = (0);
+    my $file = shift;
+    my $text = shift;
+    local $_ = $text;
+    my @words;
+    my @notspace = (0);
+
     open(TMP, ">$file") || warn "$file: $!\n", return 0;
 
     foreach (/$pat/go) {
@@ -356,17 +417,17 @@ sub maketmp {
 ;#  @control: how different these lists (`diff' result control lines)
 ;#
 sub makebuf {
-    local($_, $old, $ctrl, $new, $o1, $o2, $n1, $n2);
-    local($o, $n) = (0, 0);	# pointers
+    local $_;
+    my($o, $n) = (0, 0);	# pointers
     $obuf = $nbuf = '';		# result buffer
 
     for (@control) {
-	(($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/) || do {
+	my($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/ or do {
 	    die "Panic! Unexpected diff output";
 	};
-	($o1, $o2) = &range($old);
-	($n1, $n2) = &range($new);
-	$o1--; $o2--; $n1--; $n2--; # make them zero origin
+	my($o1, $o2) = &range($old);
+	my($n1, $n2) = &range($new);
+	map { $_-- } $o1, $o2, $n1, $n2; # make them zero origin
 
 	$obuf .= join('', @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
 	$nbuf .= join('', @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
@@ -407,8 +468,17 @@ sub makebuf {
     $nbuf .= join('', @nwlist[$n .. $#nwlist]);
 }
 
+sub read_diff {
+    my($FH, $c) = @_;
+    my @buf;
+    push @buf, scalar <$FH> while $c--;
+    wantarray ? @buf : join '', @buf;
+}
+
 sub read_diffc {
-    local($FH, $n, $i, @buf, $_) = @_;
+    my($FH, $n, $i) = @_;
+    my @buf;
+    local $_;
     for ($i = 0; $n-- && ($_ = <$FH>); $buf[$i] .= $_) {
 	$i++ if ($i % 2) != /^!/;
     }
@@ -416,15 +486,21 @@ sub read_diffc {
 }
 
 sub read_diffu {
-    local($FH, @l[1,2,0]) = @_;
-    local($i, @buf, $slot);
-    %slot = (' ', 0, '-', 1, '+', 2) unless %slot;
+    my $FH = shift;
+    my @l = (0, @_);
+
+    my $i = 0;
+    my @buf;
+    my $slot;
+    my %slot = (' ' => 0, '-' => 1, '+' => 2);
     for (; 2 * $l[0] + $l[1] + $l[2] > 0 && ($_ = <$FH>); $buf[$i] .= $_) {
 	$i++ while ($i % 3) != ($slot = $slot{substr($_, 0, 1)});
 	$l[$slot]--;
     }
     @buf;
 }
+
+my($so, $se, $us, $ue, $md, $me);
 
 sub vso { join('', $so, @_, $se); }
 sub vul { join('', $us, @_, $ue); }
@@ -437,21 +513,15 @@ sub bd {
 }
 
 sub range {
-    local($_, $from, $to) = @_;
+    local $_ = shift;
+    my($from, $to) = @_;
     ($from, $to) = /,/ ? split(/,/) : ($_, $_);
     wantarray ? ($from, $to) : $to - $from + 1;
 }
 
-sub read {
-    local($FH, $c, @buf) = (@_);
-    push(@buf, scalar(<$FH>)) while $c--;
-    wantarray ? @buf : join('', @buf);
-}
-
 sub termcap {
     require Term::Cap;
-    $ospeed = 9600 unless $ospeed;
-    my $terminal = Tgetent Term::Cap { TERM => undef, OSPEED => $ospeed };
+    my $terminal = Tgetent Term::Cap { TERM => undef, OSPEED => 9600 };
     $so = $terminal->Tputs('so');
     $se = $terminal->Tputs('se');
     $us = $terminal->Tputs('us');
@@ -468,8 +538,9 @@ sub color_termcap {
 }
 
 sub wc_l {
-    local($file) = shift;
-    local(*FILE, $line);
+    my $file = shift;
+    my $line;
+    local *FILE;
     open(FILE, $file) || die "$file: $!\n";
     $line++ while <FILE>;
     close FILE;
@@ -497,7 +568,7 @@ sub unctrl {
 .de XX
 .ds XX \\$4\ (v\\$3)
 ..
-.XX $Id: cdif,v 2.1 2013/12/23 10:08:27 utashiro Exp $
+.XX $Id: cdif,v 2.2 2013/12/24 02:08:47 utashiro Exp $
 .TH CDIF 1 \*(XX
 .SH NAME
 cdif \- word context diff
@@ -582,8 +653,8 @@ terminal.
 .IP \-n
 Force not to use video effect even if the output is a
 terminal.
-.IP \-color
-Use ANSI color escape sequence for output.  This option depends on
+.IP \-nocolor
+Do not use ANSI color escape sequence for output.  This option depends on
 Perl Term::ANSIColor module.
 terminal.
 .IP "\-e \fIexpression\fP"
