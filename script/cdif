@@ -1,128 +1,112 @@
-#!/usr/local/bin/perl
-'di ';
-'ds 00 \"';
-'ig 00 ';
+#!/usr/bin/perl
 
 use strict;
 use warnings;
 require 5.010;
 
+use utf8;
+use Encode;
+use Encode::Guess;
+
+use Getopt::Long;
+use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 
-;#
-;# cdif: word context diff
-;#
+##
+## cdif: word context diff
+##
 ## Copyright (c) 1992-2013 Kazumasa Utashiro
-;#
-;; my $rcsid = q$Id: cdif,v 2.2 2013/12/24 02:08:47 utashiro Exp $;
-;# Original: 1992/03/11
-;#
+##
+;; my $rcsid = q$Id: cdif,v 2.4 2013/12/27 07:13:15 utashiro Exp $;
+## Original: 1992/03/11
+##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
 ## is allowed provided that you make your modified version obviously
 ## distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
 ## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
 ## DISCLAIMED.
-;#
-;; (my $myname = $0) =~ s,.*/,,;
-;; my $usage = <<_;
-Usage: $myname [-Bvns] [-A #] [-C #] [-D #] [-I #] [-e #] [-[bwcu]] file1 file2
-       $myname [-rcs] [-q] [-rrev1 [-rrev2]] [$myname options] file
-       $myname [$myname options] [diff-output-file]
-Options:
-	-B	byte compare
-	-v	use video standout (default for tty)
-	-n	use nroff style overstrike (default for non-tty)
-	-b	ignore trailing blank
-	-w	ignore whitespace
-	-c[#]	context diff
-	-u[#]	unified diff (if diff has -u option)
-	-e #	expression of `word' (default is '\\w+')
-	-s	show statistical information at the end
-	-A, -C, -D (Append, Change, Delete) takes one of
-		vso: video standout
-		vul: video underline
-		vbd: video bold
-		bd:  nroff style overstrike
-		ul:  nroff style underline
-		or any sequence or sequences separated by comma
-	-I	specify string to be shown on insertion point
-		Following strings have special meanings.
-		vbar:	print vertical bar at the point
-		caret:	print caret under the point
-	-diff=command
-		specify any diff command
-_
+##
 
 ##
 ## options
 ##
-my $opt_A;
-my $opt_C;
-my $opt_D;
-my $opt_I;
 my $opt_B;
 my $opt_c;
 my $opt_u;
 my $opt_b;
+my $opt_i;
 my $opt_d = 0;
-my $opt_v;
 my $opt_q;
 my $opt_n;
 my $opt_t;
-my $opt_e;
 my $opt_s;
 my $opt_w;
 my $opt_color = 1;
+my $opt_keeptmpfile;
 
-my @rcs;
 my $rcs;
 my @rcsopt;
 my $diff;
 my @diffopts;
 my @sub_diffopts;
 
+my $opt_expand = 1;
+my $expand_width = terminal_width();
+
+my %colormap = (
+    MARK_OLD  =>  "CS",
+    MARK_NEW  =>  "MS",
+    CONTROL   =>  "S",
+    APPEND    =>  "RDw",
+    DELETE    =>  "RDw",
+    OLD       =>  "BDw",
+    NEW       =>  "BDw",
+    );
+
+binmode STDOUT, ":encoding(utf8)";
+
 if ($ENV{'CDIFOPTS'}) {
     unshift(@ARGV, shellwords($ENV{'CDIFOPTS'}));
-};
-my $opts = 'A:C:D:I:Bcubdvqnt:e:s'.'ibw';
-while (@ARGV and $ARGV[0] =~ /^-.+/) {
-
-    local $_ = shift;
-    next unless my($car, $cdr) = /^-?(.)(.*)/;
-
-    if (/^-?-rcs$/) { $rcs++; next; }
-    if (/^-?-diff=(.+)$/) { $diff = $1; next; }
-    if (/^-?-nocolor$/) { $opt_color = 0; next; }
-    if ($car eq 'h') { &usage; }
-    if ($car eq 'H') { exec "nroff -man $0|".($ENV{'PAGER'}||'more')." -s"; }
-    if ($car eq 'r') {
-	&usage("$_: Too many revisions\n\n") if @rcs == 2;
-	$rcs++; push(@rcs, $_); next;
-    }
-    if (s/^-?([cu]\d+)//) {
-	push(@diffopts, "-$1"); eval "\$opt_$car++"; redo;
-    }
-    push(@diffopts, "-$car") if index("iwcbu", $car) >= 0;
-    push(@sub_diffopts, "-$car") if index("iw", $car) >= 0;
-    if (/-(i[bxu])$/) {
-	eval "\$opt_$1 = 1;"; next;
-    }
-    if (index($opts, "$car:") >= 0) {
-	eval "\$opt_$car = length(\$cdr) ? \$cdr : \@ARGV ? shift : &usage";
-	next;
-    }
-    if (index($opts, $car) >= 0) {
-	eval "\$opt_$car++"; $_ = $cdr; redo;
-    }
-    &usage("Unknown option: $car\n");
 }
+
+my @optargs = (
+    "d+" => \$opt_d,
+    "B|char" => \$opt_B,
+    "diff=s" => \$diff,
+    "color!" => \$opt_color,
+    "colormap|cm=s" => \%colormap,
+    "keeptmpfile" => \$opt_keeptmpfile,
+    "h" => sub { usage() },
+    "man" => sub { pod2usage({-verbose => 2}) },
+    "t=s" => \$opt_t,
+
+    "i" => \$opt_i,
+    "b" => \$opt_b,
+    "w" => \$opt_w,
+    "c" => sub { push(@diffopts, "-c") },
+    "u" => sub { push(@diffopts, "-u") },
+    "C=i" => sub { push(@diffopts, "-C" . ($_[1] > 0 ? $_[1] : '')) },
+    "U=i" => sub { push(@diffopts, "-U" . ($_[1] > 0 ? $_[1] : '')) },
+
+    "rcs" => \$rcs,
+    "r=s" => sub { push @rcsopt, "-r$_[1]" },
+    "q" => sub { push @rcsopt, "-q" },
+);
+
+Getopt::Long::Configure("bundling");
+GetOptions(@optargs) || usage();
+
+$rcs++ if @rcsopt;
 $diff = $rcs ? 'rcsdiff' : 'diff' unless $diff;
 
+push(@sub_diffopts,
+     $opt_i ? "-i" : (),
+     $opt_w ? "-w" : (),
+    );
+
 sub usage {
-    select(STDERR);
-    print @_, $usage;
-    print "$rcsid\n" if $rcsid =~ /:/;
+    pod2usage;
     exit;
 }
 
@@ -131,106 +115,95 @@ my $OLD;
 my $NEW;
 
 if ($rcs) {
-    push(@rcsopt, '-q') if $opt_q;
-    my $rcsfile = shift || &usage("No RCS filename\n\n");
-    $DIFF = "$diff @diffopts @rcsopt @rcs $rcsfile|";
+    my $rcsfile = shift || usage("No RCS filename\n\n");
+    $DIFF = "$diff @diffopts @rcsopt $rcsfile|";
 } elsif (@ARGV == 2) {
     ($OLD, $NEW) = splice(@ARGV, 0, 2);
     $DIFF = "$diff @diffopts $OLD $NEW |";
 } elsif (@ARGV < 2) {
     $DIFF = shift || '-';
 } else {
-    &usage("Arguments error.\n\n") if @ARGV;
+    usage("Arguments error.\n\n") if @ARGV;
 }
 print "DIFF=\"$DIFF\"\n" if $opt_d;
 
-if ($opt_color) {
-    &color_termcap;
-} else {
-    &termcap;
-}
+my %func = $opt_color ?
+    (
+     APPEND => sub { color("APPEND", @_) },
+     DELETE => sub { color("DELETE", @_) },
+     OLD    => sub { color("OLD",    @_) },
+     NEW    => sub { color("NEW",    @_) },
+    ) :
+    (
+     APPEND => \&bd,
+     DELETE => \&bd,
+     OLD    => \&ul,
+     NEW    => \&ul,
+    );
 
-my %func = ('bd', *bd, 'ul', *ul, 'vso', *vso, 'vul', *vul, 'vbd', *vbd);
-my($A, $C, $D) = (!$opt_n && ($opt_v || -t STDOUT))
-    ? ('vbd', 'vul', 'vbd') : ('bd', 'ul', 'bd');
-my $S;
-for ('A', 'C', 'D') {
-    my $opt;
-    eval "\$opt = \$opt_$_ || \$$_";
-    if ($func{$opt}) {
-	&eval("*$_ = \$func{\'$opt\'}");
-    } else {
-	$S = $S ? ++$S : 'S001';
-	my($start, $end) = $opt =~ /,/ ? split(/,/, $opt) : ($opt, $opt);
-	$start =~ s/(\W)/\\$1/g; $end =~ s/(\W)/\\$1/g;
-	&eval("sub $S {join('', \"$start\", \@_, \"$end\");} *$_ = *$S;\n");
-    }
-}	
+my $wchar_re = qr{
+    [ \p{East_Asian_Width=Wide} \p{East_Asian_Width=FullWidth} ]
+}x;
 
-my $pat;
+my $w_pattern;
 if ($opt_B) {
-    $pat = '[\200-\377]?[\000-\377]';
+    $w_pattern = qr/./s;
 } else {
-    $pat = '[\200-\377].|'.($opt_e || '\w+').'|[ \t\r\f]*\n|\s+|[\000-\377]';
+    $w_pattern = qr{
+	\p{Han}+ | \p{InHiragana}+ | \p{InKatakana}+ |
+	\p{Hang}+ |
+	[a-zA-Z0-9_]+ | [ \t\r\f]*\n | \s+ | (.)\g{-1}*
+    }x;
 }
 my @ul = ("", "_\010", "__\010\010");
 my @bs = ("", "\010", "\010\010");
 
-if (defined($opt_I)) {
-    my $opt_ix;
-    my $opt_ib;
-    my $opt_iu;
-    if ($opt_I =~ /^vbar$/i) {			# special string 'vbar'
-	$opt_ix = 1;
-	$opt_ib = $opt_I =~ /[A-Z]/;
-	$opt_I = '|';
-    }
-    if ($opt_I =~ /^caret$/i) {			# special string 'caret'
-	$opt_ix = $opt_iu = 1;
-	$opt_ib = $opt_I =~ /[A-Z]/;
-	$opt_I = '^';
-    }
-    $opt_I = &bd($opt_I) if $opt_ib;
-    my($hcr, $hcf, $hlr, $hlf) = ("\0336", "\0337", "\0338", "\0339");
-    $opt_I = $hcr . $opt_I . $hcr if $opt_ix;
-    $opt_I = $hlf . $opt_I . $hlr if $opt_iu;
-}
-
-;#
-;# Temporary file names
-;#
+##
+## Temporary file names
+##
 my $tmp = $opt_t || '/tmp';
 my $TBASE = "$tmp/cdif_$$";
 my($T1, $T2) = ("${TBASE}_1", "${TBASE}_2");
 
 @SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
 
-;#
-;# Total statistic info
-;#
+##
+## Total statistic info
+##
 my %stat;
 @stat{'a', 'd', 'c', 'anl', 'dnl', 'cnl'} = (0, 0, 0, 0, 0, 0);
 @stat{'anlb', 'dnlb', 'cnlb'} = (0, 0, 0);
 
-open(DIFF, $DIFF) || die "$diff: $!\n";
+open(DIFF, $DIFF) || die "$DIFF: $!\n";
+binmode DIFF, ":encoding(utf8)";
+
 while (<DIFF>) {
-    print;
+    my($so, $se) = colorseq('S');
     my($left, $right);
     #
     # normal diff
     #
-    if (($left, $right) = /^([\d,]+)c([\d,]+)\r?$/) {
-	my $old = &read_diff(*DIFF, scalar(&range($left)));
-	my $del = &read_diff(*DIFF, 1);
-	my $new = &read_diff(*DIFF, scalar(&range($right)));
+    if (($left, $right) = /^([\d,]+)[ad]([\d,]+)\r?$/) {
+	print_control($_);
+    }
+    elsif (($left, $right) = /^([\d,]+)c([\d,]+)\r?$/) {
+	print_control($_);
+	my $old = read_diff(*DIFF, scalar(range($left)));
+	my $del = read_diff(*DIFF, 1);
+	my $new = read_diff(*DIFF, scalar(range($right)));
 
 	$old =~ s/^< //mg;
 	$new =~ s/^> //mg;
 
-	($old, $new) = &context($old, $new);
+	($old, $new) = context($old, $new);
 
-	$old =~ s/^/< /mg;
-	$new =~ s/^/> /mg;
+	if ($opt_color) {
+	    $old =~ s/^/color("MARK_OLD", "< ")/mge;
+	    $new =~ s/^/color("MARK_NEW", "> ")/mge;
+	} else {
+	    $old =~ s/^/< /mg;
+	    $new =~ s/^/> /mg;
+	}
 
 	print $old, $del, $new;
     }
@@ -238,23 +211,30 @@ while (<DIFF>) {
     # diff -c
     #
     elsif (($left) = /^\*\*\* ([\d,]+) \*\*\*\*\r?$/) {
+	print_control($_);
 	my(@old, @new);
-	@old = &read_diffc(*DIFF, scalar(&range($left)));
+	@old = read_diffc(*DIFF, scalar(range($left)));
 	if (@old < 2) {
 	    print @old;
 	    next;
 	}
 	my $new = $_ = <DIFF>;
 	if (($right) = /^--- ([\d,]+) ----$/) {
-	    @new = &read_diffc(*DIFF, scalar(&range($right)));
-	    for (my $i = 1; $i <= $#old; $i += 2) {
-		$old[$i] =~ s/^! //mg;
-		$new[$i] =~ s/^! //mg;
+	    @new = read_diffc(*DIFF, scalar(range($right)));
+	    for my $i (0 .. $#old) {
+		if ($i % 2) {
+		    $old[$i] =~ s/^! //mg;
+		    $new[$i] =~ s/^! //mg;
 
-		($old[$i], $new[$i]) = &context($old[$i], $new[$i]);
+		    ($old[$i], $new[$i]) = context($old[$i], $new[$i]);
 
-		$old[$i] =~ s/^/! /mg;
-		$new[$i] =~ s/^/! /mg;
+		    $old[$i] =~ s/^/! /mg;
+		    $new[$i] =~ s/^/! /mg;
+		}
+		if ($opt_color) {
+		    $old[$i] =~ s/^([\-\!] )/color("MARK_OLD", $1)/mge;
+		    $new[$i] =~ s/^([\+\!] )/color("MARK_NEW", $1)/mge;
+		}
 	    }
 	}
 	print @old, $new, @new;
@@ -262,22 +242,30 @@ while (<DIFF>) {
     #
     # diff -u
     #
-    elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@\r?$/)  {
-	my @buf = &read_diffu(*DIFF, $2 || 1, $4 || 1);
+    elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@/)  {
+	print_control($_);
+	my @buf = read_diffu(*DIFF, $2 || 1, $4 || 1);
 	while (my($same, $old, $new) = splice(@buf, 0, 3)) {
 	    print $same;
-	    if ($old && $new) {
+	    if ($old and $new) {
 		$old =~ s/^\-//mg;
 		$new =~ s/^\+//mg;
 
-		($old, $new) = &context($old, $new);
+		($old, $new) = context($old, $new);
 
 		$old =~ s/^/-/mg;
 		$new =~ s/^/+/mg;
-
-		print $old, $new;
 	    }
+	    if ($opt_color) {
+		$old =~ s/^\-/color("MARK_OLD", "-")/mge if $old;
+		$new =~ s/^\+/color("MARK_NEW", "+")/mge if $new;
+	    }
+	    print $old if $old;
+	    print $new if $new;
 	}
+    }
+    else {
+	print;
     }
 }
 close DIFF;
@@ -304,20 +292,27 @@ exit $? >> 8;
 
 ######################################################################
 
-my @owlist;
-my @nwlist;
-my @control;
-my $sequence = 0;
-my($obuf, $nbuf);
+sub print_control {
+    my $line = shift;
+    if ($opt_color) {
+	if ($opt_expand and length($line) < $expand_width) {
+	    $line =~ s/$/' ' x ($expand_width - length($_))/e
+	}
+	$line = color($colormap{CONTROL}, $line);
+    }
+    print $line;
+}
+
+my $tmp_sequence = 0;
 
 sub context {
     my($old, $new) = @_;
     local $_;
 
-    if ($opt_d >= 3) {
-	$sequence++;
-	$T1 = sprintf("%s_%04d_1", $TBASE, $sequence);
-	$T2 = sprintf("%s_%04d_2", $TBASE, $sequence);
+    if ($opt_keeptmpfile) {
+	$tmp_sequence++;
+	$T1 = sprintf("%s_%04d_1", $TBASE, $tmp_sequence);
+	$T2 = sprintf("%s_%04d_2", $TBASE, $tmp_sequence);
     }
 
     if ($opt_d >= 2) {
@@ -328,62 +323,59 @@ sub context {
 	print STDERR "****************************** .\n";
     }
 
-    my %c;
-    @c{'a', 'd', 'c'} = (0, 0, 0);
-    @owlist = &maketmp($T1, $old);
-    @nwlist = &maketmp($T2, $new);
-    @control = ();
+    my %c = (a => 0, d => 0, c => 0);
+    my @owlist = &maketmp($T1, $old);
+    my @nwlist = &maketmp($T2, $new);
+    my @control = ();
 
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
+    binmode CDIF, ":encoding(utf8)";
     while (<CDIF>) {
-	if ($opt_d >= 2) {
-	    print;
-	}
+	print if $opt_d >= 2;
 	if (/^[\d,]+([adc])[\d,]+$/) {
-	    push(@control, $_);
+	    push @control, $_;
 	    $c{$1}++;
 	}
     }
     close CDIF;
-    &cleanup() if $opt_d < 3;
+    cleanup() unless $opt_keeptmpfile;
 
     if ($opt_d >= 1) {
 	printf "old=%d new=%d control=%d\n", @owlist+0, @nwlist+0, @control+0;
-	printf "append=$c{'a'} delete=$c{'d'} change=$c{'c'}\n";
+	printf "append=$c{a} delete=$c{d} change=$c{c}\n";
     }
 
-    &makebuf;
-    die "$myname: illegal status of subprocess\n" if ($?>>8) > 1;
+    my($obuf, $nbuf) = makebuf(\@owlist, \@nwlist, \@control);
+    die "illegal status of subprocess\n" if ($?>>8) > 1;
 
-    return ($obuf, $nbuf);
+    ($obuf, $nbuf);
 }
 
 sub cleanup {
-    if ($opt_d < 2) {
-	unlink($T1);
-	unlink($T2);
-    }
+    unlink $T1;
+    unlink $T2;
     if (@_) {
-	warn("\nSignal @_\n");
+	warn "\nSignal @_\n";
 	exit 2;
     }
 }
 
-;#
-;# Divide given text into word list.  Then write them into temporary
-;# file `$file' which include the word list one on each line.  The list
-;# itself is returned as a result of subroutine.
-;#
+##
+## Divide given text into word list.  Then write them into temporary
+## file `$file' which include the word list one on each line.  The list
+## itself is returned as a result of subroutine.
+##
 sub maketmp {
-    my $file = shift;
+    my $tmp_file = shift;
     my $text = shift;
-    local $_ = $text;
     my @words;
     my @notspace = (0);
 
-    open(TMP, ">$file") || warn "$file: $!\n", return 0;
+    open(TMP, ">$tmp_file") || warn "$tmp_file: $!\n", return 0;
+    binmode TMP, ":encoding(utf8)";
 
-    foreach (/$pat/go) {
+    while ($text =~ /($w_pattern)/g) {
+	local $_ = $1;
 	if ($opt_w) {
 	    push(@notspace, !/\s/);
 	    if (shift(@notspace) && $notspace[0]) {
@@ -396,41 +388,43 @@ sub maketmp {
 	    print TMP ($opt_b || $opt_w) ? "\n" : "$1\n";
 	    push(@words, $1);
 	}
-	push(@words, $_);
+	push @words, $_;
 	print TMP $_;
 	print TMP "\n" unless /\n$/;
     }
     close TMP;
 
-    if ($opt_d && @words != &wc_l($file)) {
-	die "Error! (\@words != `wc -l $file`)\n";
+    if ($opt_d && @words != &wc_l($tmp_file)) {
+	die "Error! (\@words != `wc -l $tmp_file`)\n";
     }
 
     @words;
 }
 
-;#
-;# Make result text using these global variables:
-;#
-;#  @owlist: old word list
-;#  @nwlist: new word list
-;#  @control: how different these lists (`diff' result control lines)
-;#
+##
+##  @owlist: old word list
+##  @nwlist: new word list
+##  @control: how different these lists (`diff' result control lines)
+##
 sub makebuf {
-    local $_;
+    my($ol, $nl, $ctrl) = @_;
+    my @owlist = @$ol;
+    my @nwlist = @$nl;
+    my @control = @$ctrl;
+
     my($o, $n) = (0, 0);	# pointers
-    $obuf = $nbuf = '';		# result buffer
+    my(@obuf, @nbuf);
 
     for (@control) {
 	my($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/ or do {
 	    die "Panic! Unexpected diff output";
 	};
-	my($o1, $o2) = &range($old);
-	my($n1, $n2) = &range($new);
-	map { $_-- } $o1, $o2, $n1, $n2; # make them zero origin
+	my($o1, $o2) = range($old);
+	my($n1, $n2) = range($new);
+	map { $_-- } $o1, $o2, $n1, $n2; # make them zero origined
 
-	$obuf .= join('', @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
-	$nbuf .= join('', @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
+	push(@obuf, @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
+	push(@nbuf, @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
 
 	$stat{$ctrl}++;
 
@@ -439,9 +433,8 @@ sub makebuf {
 		$stat{'dnl'}++;
 		$stat{'dnlb'} += length(join('', @owlist[$o1 .. $o2]));
 	    }
-	    $obuf .= &D(@owlist[$o1 .. $o2]);
+	    push(@obuf, $func{DELETE}->(@owlist[$o1 .. $o2]));
 	    $o = $o2 + 1;
-	    $nbuf .= $nwlist[$n++] . $opt_I if $opt_I;
 	}
 	elsif ($ctrl eq 'c') {
 	    if (($owlist[$o2] =~ /\S/) || ($nwlist[$n2] =~ /\S/)) {
@@ -449,8 +442,8 @@ sub makebuf {
 		$stat{'cnlb'} += length(join('', @owlist[$o1 .. $o2]));
 		$stat{'cnlb'} += length(join('', @nwlist[$n1 .. $n2]));
 	    }
-	    $obuf .= &C(@owlist[$o1 .. $o2]);
-	    $nbuf .= &C(@nwlist[$n1 .. $n2]);
+	    push(@obuf, $func{OLD}->(@owlist[$o1 .. $o2]));
+	    push(@nbuf, $func{NEW}->(@nwlist[$n1 .. $n2]));
 	    $o = $o2 + 1;
 	    $n = $n2 + 1;
 	}
@@ -459,30 +452,33 @@ sub makebuf {
 		$stat{'anl'}++;
 		$stat{'anlb'} += length(join('', @nwlist[$n1 .. $n2]));
 	    }
-	    $nbuf .= &A(@nwlist[$n1 .. $n2]);
+	    push(@nbuf, $func{APPEND}->(@nwlist[$n1 .. $n2]));
 	    $n = $n2 + 1;
-	    $obuf .= $owlist[$o++] . $opt_I if $opt_I;
 	}
     }
-    $obuf .= join('', @owlist[$o .. $#owlist]);
-    $nbuf .= join('', @nwlist[$n .. $#nwlist]);
+    push(@obuf, @owlist[$o .. $#owlist]);
+    push(@nbuf, @nwlist[$n .. $#nwlist]);
+
+    (join('', @obuf), join('', @nbuf));
 }
 
 sub read_diff {
     my($FH, $c) = @_;
     my @buf;
-    push @buf, scalar <$FH> while $c--;
+    while ($c-- > 0) {
+	push @buf, scalar <$FH>;
+    }
     wantarray ? @buf : join '', @buf;
 }
 
 sub read_diffc {
-    my($FH, $n, $i) = @_;
+    my($FH, $n) = @_;
     my @buf;
     local $_;
-    for ($i = 0; $n-- && ($_ = <$FH>); $buf[$i] .= $_) {
+    for (my $i = 0; $n-- && ($_ = <$FH>); $buf[$i] .= $_) {
 	$i++ if ($i % 2) != /^!/;
     }
-    @buf;
+    map { $_ // "" } @buf;
 }
 
 sub read_diffu {
@@ -497,19 +493,30 @@ sub read_diffu {
 	$i++ while ($i % 3) != ($slot = $slot{substr($_, 0, 1)});
 	$l[$slot]--;
     }
-    @buf;
+    map { $_ // "" } @buf;
 }
 
-my($so, $se, $us, $ue, $md, $me);
+## 
+## Copied from MBprintf.pm
+## 
+sub mbwidth {
+    my $arg = shift;
+    my $len = length($arg);
+    while ($arg =~ m/($wchar_re+)/go) {
+	$len += length($1);
+    }
+    $len;
+}
 
-sub vso { join('', $so, @_, $se); }
-sub vul { join('', $us, @_, $ue); }
-sub vbd { join('', $md, @_, $me); }
 sub ul {
-    join('', grep(s/([\200-\377]?[^\s])/$ul[length($1)].$1/ge || 1, @_));
+    local $_ = join '', @_;
+    s/(.)/$ul[mbwidth($1)].$1/ge;
+    $_;
 }
 sub bd {
-    join('', grep(s/([\200-\377]?[^\s])/$1.$bs[length($1)].$1/ge || 1, @_));
+    local $_ = join '', @_;
+    s/(\S)/$1.$bs[mbwidth($1)].$1/ge;
+    $_;
 }
 
 sub range {
@@ -519,22 +526,46 @@ sub range {
     wantarray ? ($from, $to) : $to - $from + 1;
 }
 
-sub termcap {
-    require Term::Cap;
-    my $terminal = Tgetent Term::Cap { TERM => undef, OSPEED => 9600 };
-    $so = $terminal->Tputs('so');
-    $se = $terminal->Tputs('se');
-    $us = $terminal->Tputs('us');
-    $ue = $terminal->Tputs('ue');
-    $md = $terminal->Tputs('md') || $so;
-    $me = $terminal->Tputs('me') || $se;
+use Term::ANSIColor qw(:constants);
+
+sub colorseq {
+    my $colormode = shift;
+
+    my($start, $end) = ('', '');
+    if ($colormode =~ /,/) {
+	($start, $end) = split(/,/, $colormode, 2);
+    } else {
+	map {
+	    $start .= UNDERLINE if /U/;
+	    $start .= REVERSE   if /S/;
+	    $start .= BOLD      if /D/;
+	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
+	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
+	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
+	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
+	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
+	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
+	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
+	} $colormode if $colormode;
+	$end = RESET if $start;
+	$start =~ s/m\e\[/;/g;
+    }
+    ($start, $end);
 }
 
-sub color_termcap {
-    use Term::ANSIColor qw(:constants);
-    $so = REVERSE    . RED ; $se = RESET;
-    $us = UNDERSCORE . BLUE; $ue = RESET;
-    $md = BOLD       . RED ; $me = RESET;
+my %colorcache;
+
+sub color {
+    my $color = shift;
+    my $text = join '', @_;
+    my $cache;
+    unless ($cache = $colorcache{$color}) {
+	my $mode = $colormap{$color} || $color;
+	$colorcache{$color} = [ colorseq($mode) ];
+    }
+    my($s, $e) = @{$colorcache{$color}};
+    $text =~ s/([^\r\n]+)/$s$1$e/g;
+    $text;
 }
 
 sub wc_l {
@@ -554,244 +585,127 @@ sub eval {
 }
 
 sub unctrl {
-    local($_) = shift;
+    local $_ = shift;
     s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
     $_;
 }
+
+sub terminal_width {
+    my $width = 80;
+    if (-t STDERR) {
+	my $stty = `stty -f /dev/stderr all`; # XXX too easy...
+	if ($stty =~ /(\d+) +columns/) {
+	    $width = $1;
+	}
+    }
+    $width;
+}
+
 ######################################################################
-.00 ;			# finish .ig
 
-'di			\" finish diversion--previous line must be blank
-.nr nl 0-1		\" fake up transition to first page again
-.nr % 0			\" start at page 1
-'; __END__ ############# From here on it's a standard manual page ####
-.de XX
-.ds XX \\$4\ (v\\$3)
-..
-.XX $Id: cdif,v 2.2 2013/12/24 02:08:47 utashiro Exp $
-.TH CDIF 1 \*(XX
-.SH NAME
-cdif \- word context diff
-.SH SYNOPSIS
-.nr ww \w'\fBcdif\fP\ '
-.in +\n(wwu
-.ta \n(wwu
-.ti -\n(wwu
-\fBcdif\fP	\c
-[-Bvns] [-A #] [-C #] [-D #] [-I #] [-e #] [-[bwcu]] \fIfile1\fP \fIfile2\fP
-.br
-.ti -\n(wwu
-\fBcdif\fP	\c
-[-rcs] [-q] [-r\fIrev1\fP [-r\fIrev2\fP]] [\fIcdif options\fP] \fIfile\fP
-.br
-.ti -\n(wwu
-\fBcdif\fP	\c
-[\fIcdif options\fP] [\fIdiff-output-file\fP]
-.SH DESCRIPTION
-.I Cdif
-is a post-processor of the Unix \fIdiff\fP command.  It
-highlights deleted, changed and added words based on word
-context.  Highlighting is usually done by using different
-style font and the output looks like this:
-.ne 6
-.nf
+=head1 NAME
 
-	1c1
-	< highlights \fBdeleted\fP and \fIchanged\fP and words
-	---
-	> highlights and \fImodified\fP and \fBadded\fP words
+cdif - word context diff
 
-.fi
-.PP
+=head1 SYNOPSIS
+
+cdif [ -[Bs] ] [ -[bwcu] ] file1 file2
+
+cdif [-rcs] [-q] [-rrev1 [-rrev2]] [cdif options] file
+
+cdif [cdif options] [diff-output-file]
+
+Options:
+
+	-B		char-by-char compare
+	-b		ignore trailing blank
+	-w		ignore whitespace
+	-c		context diff
+	-u		unified diff
+	-s		show statistical information at the end
+	--[no]color	use/no color (dfault ON)
+	--diff=command	specify any diff command
+	--rcs		use rcsdiff
+	-r<rev>, -q	rcs options
+
+=head1 DESCRIPTION
+
+B<Cdif> is a post-processor of the Unix diff command.  It highlights
+deleted, changed and added words based on word context.
+
 Appended and deleted lines are not effected at all.
-.PP
+
 You may want to compare character-by-character rather than
-word-by-word.  Option \-B option can be used for that
-purpose and the output looks like:
-.ne 6
-.nf
+word-by-word.  Option B<-B> option can be used for that purpose.
 
-	1c1
-	< $opts = '\fBcu\fPbdvqnB\fIA\fP:\fIC\fP:\fID\fP:';
-	---
-	> $opts = 'bdvqn\fBxy\fPB\fIP\fP:\fIQ\fP:\fIR\fP:';
+If only one file is specified, cdif reads that file (stdin if no file)
+as a output from diff command.  This is convenient because you don't
+have to retype the command line.
 
-.fi
-.PP
-If the standard output is a terminal, \fIcdif\fP uses
-termcap to highlights words.  It uses \fImd\fP and \fIme\fP
-(bold or bright) sequence for changed words and \fIso\fP and
-\fIse\fP (standout) sequence for deleted and added part.
-.PP
-If the standard output is not a terminal, it uses nroff
-style overstriking to highlight them.  You won't be able to
-tell the difference on normal screen but using pager command
-like \fImore\fP or \fIless\fP, or printing to appropriate
-printer will make them visible.
-.PP
-If only one file is specified, \fIcdif\fP reads that file
-(stdin if no file) as a output from diff command.  This is
-convenient because you don't have to retype the command
-line.  \fICdif\fP is often used in following context.
-.ne 5
-.nf
+Lines those don’t look like diff output are simply ignored and
+printed same as input.
 
-	% rcsdiff foo.c
-	(I can't see any difference...)
-	% !! | cdif
+=head1 OPTIONS
 
-.fi
-Lines those don't look like diff output are simply ignored
-and printed same as input.  So you can use \fIcdif\fP from
-\fIrn\fP(1) like `|cdif'.
-.SH OPTIONS
-.IP \-B
+=over 7
+
+=item B<-B>, B<--char>
+
 Compare the data character-by-character context.
-.IP \-v
-Force to use video effect even if the output is not a
-terminal.
-.IP \-n
-Force not to use video effect even if the output is a
-terminal.
-.IP \-nocolor
-Do not use ANSI color escape sequence for output.  This option depends on
-Perl Term::ANSIColor module.
-terminal.
-.IP "\-e \fIexpression\fP"
-By default `word' is defined by pattern `\ew+'.  You can
-specify the Perl regular expression for `word' with this
-option.  If you want to treat period same as other
-alphabetical characters use option \-e '[\ew\e.]+'.
-.IP "\-[ACD] \fIeffect\fP"
-Specify the effect to use for added, changed and deleted
-words respectively.  Special effects are:
-.ne 7
-.nf
 
-	vso: video standout
-	vul: video underline
-	vbd: video bold
-	bd: nroff style overstrike
-	ul: nroff style underline
+=item B<--nocolor>
 
-.fi
-.IP
-If specified effect doesn't match to any of special words,
-the sequence is used to highlighting string.  Start and end
-string are separated by comma.  So command:
-.ne 3
-.nf
+Do not use ANSI color escape sequence for output.
 
-	cdif -D'<,>' -C'[,]' -A'{,}'
+=item B<--diff>=I<command>
 
-.fi
-produces following output.
-.ne 6
-.nf
-
-	1c1
-	< highlights <deleted >and [changed] and words
-	---
-	> highlights and [modified] and{ added} words
-
-.fi
-.IP "\-I \fIstring\fP"
-Specify the string to be shown at the inserted or deleted
-point.  Normally the point at where new text is inserted
-or old text is deleted is not indicated in the output.  \-I
-option specifies the string which is to be shown at the
-insertion point.  For example, command
-.ne 3
-.nf
-
-	cdif -D'<,>' -C'[,]' -A'{,}' -I'|'
-
-.fi
-produces the output like below.
-.ne 6
-.nf
-
-	1c1
-	< highlights <deleted >and [changed] and| words
-	---
-	> highlights |and [modified] and{ added} words
-
-.fi
-Following four options are used to specify how this string
-is printed in the output.
-.RS
-.IP \-ib
-Makes the string overstruck.
-.IP \-iu
-Put the string under the line.  According to the sequence of
-Teletype model 37, the string is enclosed by ESC-9 and ESC-8
-sequences.
-.IP \-ix
-Put the string at the exact point.  The string is enclosed
-by non-standard ESC-6 sequences which indicate to move the
-printing point half-character backward.  Currently this
-sequence is understood only by my perl version of a2ps.  See
-RELATED COMMANDS.
-.RE
-.IP ""
-Special strings \fIvbar\fP, \fIVBAR\fP, \fIcaret\fP,
-\fICARET\fP are prepared for shortcut.  `\fIvbar\fP' means
-putting the vertical bar (|) at the exact insertion point.
-`\fIcaret\fP' means putting the caret mark (^) under the
-exact insertion point.  Uppercase character makes them
-overstruck.
-.IP "\-diff=\fIcommand\fP"
 Specify the diff command to use.
-.IP "\-rcs, \-r\fIrev\fP"
-Use rcsdiff instead of normal diff.  Option \-rcs is not
-required when \-r\fIrev\fP is supplied.
-.IP "\-b, \-w, \-c, \-u"
-Passed through to the back-end diff command.  \fICdif\fP can
-process the output from context diff (\-c) and unified diff
-(\-u) if those are available.
-.IP "\-s"
+
+=item B<--rcs>, B<-r>I<rev>
+
+Use rcsdiff instead of normal diff.  Option B<--rcs> is not required
+when B<-r>I<rev> is supplied.
+
+=item B<-b>, B<-w>, B<-c>, B<-u>
+
+Passed through to the back-end diff command.  B<cdif> can process the
+output from context diff (B<-c>) and unified diff (B<-u>) if those are
+available.
+
+=item B<-s>
+
 Print statistical information at the end of output.  It shows number
-of total appended/deleted/changed words in the context of cdif.  It's
+of total appended/deleted/changed words in the context of cdif.  It’s
 common to have many inserts and deletes of newlines becuase of text
 filling process.  So normal informaiton is followed by modified number
 which ignores insert/delete newlines.
-.SH RELATED COMMANDS
-.IP a2ps
-is a command which converts ascii text to postscript
-program.  C version was originally posted to usenet by
-miguel@imag.imag.fr (Miguel Santana).  I reimplemented it by
-perl and enhanced to use different font family for
-overstruck and underlined characters.  This is a convenient
-tool to print the output from cdif to postscript printer.
-.IP sdif
-is a System V's sdiff clone written in perl.  It also can
-handle overstruck and underlined character, and has \-cdif
-option to use \fIcdif\fP instead of normal diff.
-.IP termfix
-is a program to change termcap capability of current
-terminal temporarily.
-.SH AUTHOR
-.nf
+
+=back
+
+=head1 AUTHOR
+
 Kazumasa Utashiro
+
 https://github.com/kaz-utashiro/
-.fi
-.SH "SEE ALSO"
-perl(1), diff(1), sdif(1), a2ps(1), termfix(1)
-.SH BUGS
-.PP
-When the last word (the last byte with \-B option) of a line
-moved to the next line, it is treated as disappeared and the
-new word was appeared.  This is due to the behavior of diff
-command.
-.PP
-\fICdif\fP is naturally slow because it uses normal diff
-command as a back-end processor to compare words.
-.SH COPYRIGHT
-.PP
+
+=head1 SEE ALSO
+
+perl(1), diff(1), sdif(1)
+
+=head1 BUGS
+
+When the last word (the last byte with B<-B> option) of a line moved
+to the next line, it is treated as disappeared and the new word was
+appeared.  This is due to the behavior of diff command.
+
+B<cdif> is naturally slow because it uses normal diff command as a
+backend processor to compare words.
+
+=head1 COPYRIGHT
+
 Use and redistribution for ANY PURPOSE are granted as long as all
-copyright notices are retained.  Redistribution with modification
-is allowed provided that you make your modified version obviously
-distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
-BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+copyright notices are retained.  Redistribution with modification is
+allowed provided that you make your modified version obviously
+distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
+THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
 DISCLAIMED.
-.ex
