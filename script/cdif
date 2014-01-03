@@ -20,7 +20,7 @@ $Data::Dumper::Terse = 1;
 ##
 ## Copyright (c) 1992-2014 Kazumasa Utashiro
 ##
-;; my $rcsid = q$Id: cdif,v 2.5 2014/01/02 05:19:04 utashiro Exp $;
+;; my $rcsid = q$Id: cdif,v 2.5.1.1 2014/01/03 14:02:42 utashiro Exp $;
 ## Original: 1992/03/11
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -39,6 +39,7 @@ my $opt_d = 0;
 my $opt_q;
 my $opt_n;
 my $opt_tmp;
+my $opt_mecab;
 
 my $opt_stat;
 my $opt_color = 1;
@@ -82,6 +83,7 @@ my @optargs = (
     "man" => sub { pod2usage({-verbose => 2}) },
     "stat" => \$opt_stat,
     "tmp=s" => \$opt_tmp,
+    "mecab" => \$opt_mecab,
 
     "i|ignore-case" => \$opt_i,
     "b|ignore-space-change" => \$opt_b,
@@ -434,6 +436,47 @@ sub maketmp {
     open(TMP, ">$tmp_file") || warn "$tmp_file: $!\n", return 0;
     binmode TMP, ":encoding(utf8)";
 
+  MECAB:
+
+    goto NORMAL unless $opt_mecab;
+
+    my $pid = open(MECAB, '|-');
+    goto NORMAL if not defined $pid;
+
+    my $eos = "EOS" . "000";
+    $eos++ while $text =~ /$eos/;
+    if ($pid) {
+	binmode MECAB, ":encoding(utf8)";
+	print MECAB $text;
+    } else {
+	open(STDOUT, ">&", TMP);
+	close TMP;
+	for ("disabling unreach warning") {
+	    exec('mecab',
+		 '--node-format', '%M\\n', '--eos-format', "$eos\\n");
+	}
+	while ($text =~ /($w_pattern)/g) {
+	    my $w = $1;
+	    $w =~ s/^[ \t]*\n/$eos/;
+	    print $w, "\n";
+	}
+	exit;
+    }
+    close MECAB;
+    if (open(MECAB, "<:encoding(utf8)", $tmp_file)) {
+	while (<MECAB>) {
+	    chomp;
+	    s/$eos/\n/;
+	    push(@words, $_);
+	}
+	close MECAB;
+    } else {
+	warn "$tmp_file: $!\n";
+    }
+    goto DONE;
+
+  NORMAL:
+
     while ($text =~ /($w_pattern)/g) {
 	local $_ = $1;
 	if ($opt_w) {
@@ -452,6 +495,9 @@ sub maketmp {
 	print TMP $_;
 	print TMP "\n" unless /\n$/;
     }
+
+  DONE:
+
     close TMP;
 
     if ($opt_d && @words != &wc_l($tmp_file)) {
@@ -841,6 +887,11 @@ of total appended/deleted/changed words in the context of cdif.  It's
 common to have many insertions and deletions of newlines becuase of
 text filling process.  So normal informaiton is followed by modified
 number which ignores insert/delete newlines.
+
+=item B<--mecab>
+
+Experimental option for using B<mecab> as a tokenizer.  To use this
+option, external command B<mecab> has to be installed.
 
 =back
 
