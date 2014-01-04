@@ -46,7 +46,7 @@ my @opt_colormap;
 my $opt_keeptmpfile;
 my $opt_commandcolor = 1;
 my $opt_markcolor = 1;
-my $opt_textcolor = 0;
+my $opt_textcolor = 1;
 
 my $opt_c;
 my $opt_u;
@@ -703,10 +703,10 @@ Options:
 	--diff=command      specify diff command
 	--stat              show statistical information
 	--colormap=s        specify color map
-	--[no]color         color or not           (default true )
-	--[no]commandcolor  color for command line (default true )
-	--[no]markcolor     color for diff mark    (default true )
-	--[no]textcolor     color for normal text  (default false)
+	--[no]color         color or not           (default true)
+	--[no]commandcolor  color for command line (default true)
+	--[no]markcolor     color for diff mark    (default true)
+	--[no]textcolor     color for normal text  (default true)
 
 
 =head1 DESCRIPTION
@@ -812,8 +812,8 @@ Defaults are :
     COMMAND => "SE"
     OMARK   => "CS"
     NMARK   => "MS"
-    OTEXT   => "C"    # disabled by default
-    NTEXT   => "M"    # disabled by defualt
+    OTEXT   => "C"
+    NTEXT   => "M"
     OCHANGE => "BDw"
     NCHANGE => "BDw"
     DELETE  => "RDw"
@@ -822,7 +822,7 @@ Defaults are :
 This is equivalent to :
 
     cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
-         --cm '*TEXT=,*CHANGE=BDw,DELETE=APPEND=RDw'
+         --cm 'OTEXT=C,NTEXT=M,*CHANGE=BDw,DELETE=APPEND=RDw'
 
 =item B<-->[B<no>]B<commandcolor>, B<--cc>
 
