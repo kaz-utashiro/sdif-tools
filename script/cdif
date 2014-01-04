@@ -467,16 +467,16 @@ sub maketmp {
 ##  @command: how different these lists (`diff' result command lines)
 ##
 sub makebuf {
-    my($ol, $nl, $ctrl) = @_;
+    my($ol, $nl, $c) = @_;
     my @owlist = @$ol;
     my @nwlist = @$nl;
-    my @command = @$ctrl;
+    my @command = @$c;
 
     my($o, $n) = (0, 0);	# pointers
     my(@obuf, @nbuf);
 
     for (@command) {
-	my($old, $ctrl, $new) = /([\d,]+)([adc])([\d,]+)/ or do {
+	my($old, $cmd, $new) = /([\d,]+)([adc])([\d,]+)/ or do {
 	    die "Panic! Unexpected diff output";
 	};
 	my($o1, $o2) = range($old);
@@ -486,9 +486,9 @@ sub makebuf {
 	push(@obuf, @owlist[$o .. $o1 - 1]), $o = $o1 if $o < $o1;
 	push(@nbuf, @nwlist[$n .. $n1 - 1]), $n = $n1 if $n < $n1;
 
-	$stat{$ctrl}++;
+	$stat{$cmd}++;
 
-	if ($ctrl eq 'd') {
+	if ($cmd eq 'd') {
 	    my $os = join('', @owlist[$o1 .. $o2]);
 	    if ($owlist[$o2] =~ /\S/) {
 		$stat{'dnl'}++;
@@ -497,7 +497,7 @@ sub makebuf {
 	    push(@obuf, $func{DELETE}->($os));
 	    $o = $o2 + 1;
 	}
-	elsif ($ctrl eq 'c') {
+	elsif ($cmd eq 'c') {
 	    my $os = join('', @owlist[$o1 .. $o2]);
 	    my $ns = join('', @nwlist[$n1 .. $n2]);
 	    if (($owlist[$o2] =~ /\S/) || ($nwlist[$n2] =~ /\S/)) {
@@ -510,7 +510,7 @@ sub makebuf {
 	    $o = $o2 + 1;
 	    $n = $n2 + 1;
 	}
-	elsif ($ctrl eq 'a') {
+	elsif ($cmd eq 'a') {
 	    my $ns = join('', @nwlist[$n1 .. $n2]);
 	    if ($nwlist[$n2] =~ /\S/) {
 		$stat{'anl'}++;
