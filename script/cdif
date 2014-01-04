@@ -300,9 +300,9 @@ while (<DIFF>) {
     elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@/)  {
 	print_command($_);
 	my @buf = read_diffu(*DIFF, $2 // 1, $4 // 1);
+	my $tab = $opt_T ? "\t" : "";
 	while (my($same, $old, $new) = splice(@buf, 0, 3)) {
 	    print $same;
-	    my $tab = $opt_T ? "\t" : "";
 	    if ($old and $new) {
 		$old =~ s/^\-$tab//mgo;
 		$new =~ s/^\+$tab//mgo;
@@ -611,6 +611,7 @@ sub colorseq {
 	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
 	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
 	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
+	    $start .= BLACK     if /K/; $start .= ON_BLACK     if /k/;
 	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
 	} $colormode if $colormode;
 	$end = RESET if $start;
@@ -791,6 +792,7 @@ foreground color :
     C  Cyan
     M  Magenta
     Y  Yellow
+    K  Black
     W  White
 
 and corresponding lowercase background color :
