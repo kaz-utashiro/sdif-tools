@@ -20,7 +20,7 @@ $Data::Dumper::Terse = 1;
 ##
 ## Copyright (c) 1992-2014 Kazumasa Utashiro
 ##
-;; my $rcsid = q$Id: cdif,v 2.5.1.1 2014/01/03 14:02:42 utashiro Exp $;
+;; my $rcsid = q$Id: cdif,v 2.6 2014/01/06 00:11:58 utashiro Exp $;
 ## Original: 1992/03/11
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
