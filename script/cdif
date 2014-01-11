@@ -651,6 +651,7 @@ sub colorseq {
 	    $start .= UNDERLINE if /U/;
 	    $start .= REVERSE   if /S/;
 	    $start .= BOLD      if /D/;
+	    $start .= BLINK     if /F/;
 	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
 	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
 	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
@@ -850,6 +851,7 @@ and other effects :
     S  Standout (reverse video)
     U  Underline
     D  Double-struck (boldface)
+    F  Flash (blink)
     E  Expand (only for command line)
 
 When B<E> is specified for command line, the line is expanded to
