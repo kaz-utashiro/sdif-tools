@@ -844,7 +844,7 @@ foreground color :
 
 and corresponding lowercase background color :
 
-    r, g, b, c, m, y, w
+    r, g, b, c, m, y, k, w
 
 and other effects :
 
