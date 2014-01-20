@@ -41,6 +41,7 @@ my $opt_n;
 my $opt_tmp;
 my $opt_mecab;
 
+my $opt_env = 1;
 my $opt_stat;
 my $opt_color = 1;
 my @opt_colormap;
@@ -65,8 +66,14 @@ my @sub_diffopts;
 
 binmode STDOUT, ":encoding(utf8)";
 
-if ($ENV{'CDIFOPTS'}) {
-    unshift(@ARGV, shellwords($ENV{'CDIFOPTS'}));
+##
+## Special treatment --noenv option.
+##
+if (grep { $_ eq '--noenv' } @ARGV) {
+    $opt_env = 0;
+}
+if ($opt_env and my $env = $ENV{'CDIFOPTS'}) {
+    unshift(@ARGV, shellwords($env));
 }
 
 my @optargs = (
@@ -81,6 +88,7 @@ my @optargs = (
     "keeptmpfile" => \$opt_keeptmpfile,
     "h|help" => sub { pod2usage() },
     "man" => sub { pod2usage({-verbose => 2}) },
+    "env!" => \$opt_env,
     "stat" => \$opt_stat,
     "tmp=s" => \$opt_tmp,
     "mecab" => \$opt_mecab,
@@ -120,11 +128,11 @@ push(@sub_diffopts,
     );
 
 my %colormap = (
-    COMMAND => $opt_commandcolor ? "SE" : "",
-    OMARK   => $opt_markcolor    ? "CS" : "",
-    NMARK   => $opt_markcolor    ? "MS" : "",
-    OTEXT   => $opt_textcolor    ? "C"  : "",
-    NTEXT   => $opt_textcolor    ? "M"  : "",
+    COMMAND => "SE" ,
+    OMARK   => "CS" ,
+    NMARK   => "MS" ,
+    OTEXT   => "C"  ,
+    NTEXT   => "M"  ,
     OCHANGE => "BDw",
     NCHANGE => "BDw",
     DELETE  => "RDw",
@@ -142,7 +150,14 @@ if (@opt_colormap) {
     map { split /,/ }
     @opt_colormap;
 }
-print 'colormap = ', Dumper \%colormap if $opt_d;
+
+$opt_commandcolor or $colormap{COMMAND} = "";
+$opt_markcolor    or $colormap{OMARK}   = "";
+$opt_markcolor    or $colormap{NMARK}   = "";
+$opt_textcolor    or $colormap{OTEXT}   = "";
+$opt_textcolor    or $colormap{NTEXT}   = "";
+
+warn 'colormap = ', Dumper \%colormap if $opt_d;
 
 my $opt_expand = $colormap{COMMAND} =~ /E/;
 my $expand_width;
@@ -165,7 +180,7 @@ if ($rcs) {
 } else {
     usage("Arguments error.\n\n") if @ARGV;
 }
-print "DIFF = \"$DIFF\"\n" if $opt_d;
+warn "DIFF = \"$DIFF\"\n" if $opt_d;
 
 my %func = $opt_color ?
     (
@@ -393,7 +408,7 @@ sub context {
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     binmode CDIF, ":encoding(utf8)";
     while (<CDIF>) {
-	print if $opt_d >= 2;
+	warn $_ if $opt_d >= 2;
 	if (/^[\d,]+([adc])[\d,]+$/) {
 	    push @command, $_;
 	    $c{$1}++;
@@ -403,8 +418,9 @@ sub context {
     cleanup() unless $opt_keeptmpfile;
 
     if ($opt_d >= 1) {
-	printf "old=%d new=%d command=%d\n", @owlist+0, @nwlist+0, @command+0;
-	printf "append=$c{a} delete=$c{d} change=$c{c}\n";
+	printf(STDERR "old=%d new=%d command=%d\n",
+	       @owlist+0, @nwlist+0, @command+0);
+	printf(STDERR "append=$c{a} delete=$c{d} change=$c{c}\n");
     }
 
     my($obuf, $nbuf) = makebuf(\@owlist, \@nwlist, \@command);
