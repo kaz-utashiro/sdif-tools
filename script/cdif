@@ -784,7 +784,7 @@ word-by-word.  Option B<-B> option can be used for that purpose.
 If only one file is specified, cdif reads that file (stdin if no file)
 as a output from diff command.
 
-Lines those don’t look like diff output are simply ignored and
+Lines those don't look like diff output are simply ignored and
 printed.
 
 =head1 OPTIONS
