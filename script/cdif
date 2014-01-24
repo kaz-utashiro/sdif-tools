@@ -314,9 +314,9 @@ while (<DIFF>) {
     #
     # diff -u
     #
-    elsif (/^\@\@ -\d+(,(\d+))? \+\d+(,(\d+))? \@\@/)  {
+    elsif (/^\@\@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? \@\@/)  {
 	print_command($_);
-	my @buf = read_diffu(*DIFF, $2 // 1, $4 // 1);
+	my @buf = read_diffu(*DIFF, $1 // 1, $2 // 1);
 	my $tab = $opt_T ? "\t" : "";
 	while (my($same, $old, $new) = splice(@buf, 0, 3)) {
 	    print $same;
