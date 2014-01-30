@@ -67,6 +67,7 @@ my @diffopts;
 my @sub_diffopts;
 
 binmode STDOUT, ":encoding(utf8)";
+binmode STDERR, ":encoding(utf8)";
 
 ##
 ## Special treatment --noenv option.
@@ -895,6 +896,21 @@ and corresponding lowercase background color :
 
     r, g, b, c, m, y, k, w
 
+or RGB value if using ANSI 256 color terminal :
+
+    FORMAT:
+        foreground[/background]
+
+    COLOR:
+        000 .. 555       : 6 x 6 x 6 216 colors
+        000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+
+    Sample:
+        005     0000FF        : blue foreground
+           /505       /FF00FF : magenta background
+        000/555 000000/FFFFFF : black on white
+        500/050 FF0000/00FF00 : red on green
+
 and other effects :
 
     S  Standout (reverse video)
@@ -913,15 +929,15 @@ Defaults are :
     NMARK   => "MS"
     OTEXT   => "C"
     NTEXT   => "M"
-    OCHANGE => "BDw"
-    NCHANGE => "BDw"
-    DELETE  => "RDw"
-    APPEND  => "RDw"
+    OCHANGE => "BD/445"
+    NCHANGE => "BD/445"
+    DELETE  => "RD/544"
+    APPEND  => "RD/544"
 
 This is equivalent to :
 
     cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
-         --cm 'OTEXT=C,NTEXT=M,*CHANGE=BDw,DELETE=APPEND=RDw'
+         --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544'
 
 =item B<-->[B<no>]B<commandcolor>, B<--cc>
 
