@@ -1,3 +1,36 @@
+# CDIF
+
+### is word context visualizer of DIFF output
+
+### for ANSI color terminal
+
+[![cdif](http://cdn-ak.f.st-hatena.com/images/fotolife/u/uta46/20140110/20140110150042.gif)](http://cdn-ak.f.st-hatena.com/images/fotolife/u/uta46/20140110/20140110150042.gif)
+
+# Side-by-side view
+
+### power by SDIF command
+
+[![default](http://kaz-utashiro.github.io/sdif/images/screen-shot-default.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-default.jpg)
+
+# International
+
+### Unicode
+
+### East Asian wide width character
+
+### Japanese Kanji/Hiragana/Katakana separation
+
+[![japanese](http://kaz-utashiro.github.io/sdif/images/screen-shot-japanese.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-japanese.jpg)
+
+
+# Japanese syllable tokenizer
+
+### --mecab morphology
+
+[![mecab](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab.jpg)
+
+[![mecab](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab-comp.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab-comp.jpg)
+
 # NAME
 
 cdif - word context diff
@@ -27,6 +60,7 @@ Options:
         --stat              show statistical information
         --colormap=s        specify color map
         --[no]color         color or not           (default true)
+        --[no]256           ANSI 256 color mode    (default true)
         --[no]commandcolor  color for command line (default true)
         --[no]markcolor     color for diff mark    (default true)
         --[no]textcolor     color for normal text  (default true)
@@ -118,6 +152,21 @@ printed.
 
         r, g, b, c, m, y, k, w
 
+    or RGB value if using ANSI 256 color terminal :
+
+        FORMAT:
+            foreground[/background]
+
+        COLOR:
+            000 .. 555       : 6 x 6 x 6 216 colors
+            000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+
+        Sample:
+            005     0000FF        : blue foreground
+               /505       /FF00FF : magenta background
+            000/555 000000/FFFFFF : black on white
+            500/050 FF0000/00FF00 : red on green
+
     and other effects :
 
         S  Standout (reverse video)
@@ -136,15 +185,15 @@ printed.
         NMARK   => "MS"
         OTEXT   => "C"
         NTEXT   => "M"
-        OCHANGE => "BDw"
-        NCHANGE => "BDw"
-        DELETE  => "RDw"
-        APPEND  => "RDw"
+        OCHANGE => "BD/445"
+        NCHANGE => "BD/445"
+        DELETE  => "RD/544"
+        APPEND  => "RD/544"
 
     This is equivalent to :
 
         cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
-             --cm 'OTEXT=C,NTEXT=M,*CHANGE=BDw,DELETE=APPEND=RDw'
+             --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544'
 
 - __--__\[__no__\]__commandcolor__, __--cc__
 - __--__\[__no__\]__markcolor__, __--mc__
