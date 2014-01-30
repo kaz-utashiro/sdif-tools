@@ -36,7 +36,7 @@ $Data::Dumper::Terse = 1;
 ## options
 ##
 my $opt_B;
-my $opt_d = 0;
+my $opt_d;
 my $opt_q;
 my $opt_n;
 my $opt_tmp;
@@ -80,7 +80,7 @@ if ($opt_env and my $env = $ENV{'CDIFOPTS'}) {
 }
 
 my @optargs = (
-    "d+" => \$opt_d,
+    "d=s" => \$opt_d,
     "B|char" => \$opt_B,
     "diff=s" => \$diff,
     "color!" => \$opt_color,
@@ -114,6 +114,11 @@ my @optargs = (
 
 Getopt::Long::Configure("bundling");
 GetOptions(@optargs) || pod2usage();
+
+my %opt_d;
+if ($opt_d) {
+    map { $opt_d{$_}++ } split //, $opt_d;
+}
 
 $rcs++ if @rcsopt;
 $diff = $rcs ? 'rcsdiff' : 'diff' unless $diff;
@@ -161,7 +166,7 @@ $opt_markcolor    or $colormap{NMARK}   = "";
 $opt_textcolor    or $colormap{OTEXT}   = "";
 $opt_textcolor    or $colormap{NTEXT}   = "";
 
-warn 'colormap = ', Dumper \%colormap if $opt_d;
+warn 'colormap = ', Dumper \%colormap if $opt_d{c};
 
 my $opt_expand = $colormap{COMMAND} =~ /E/;
 my $expand_width;
@@ -184,7 +189,7 @@ if ($rcs) {
 } else {
     usage("Arguments error.\n\n") if @ARGV;
 }
-warn "DIFF = \"$DIFF\"\n" if $opt_d;
+warn "DIFF = \"$DIFF\"\n" if $opt_d{f};
 
 my %func = $opt_color ?
     (
@@ -396,7 +401,7 @@ sub context {
 	$T2 = sprintf("%s_%04d_2", $TBASE, $tmp_sequence);
     }
 
-    if ($opt_d >= 2) {
+    if ($opt_d{s}) {
 	print STDERR "****************************** Comparing ...\n";
 	print STDERR $old;
 	print STDERR "****************************** and\n";
@@ -409,10 +414,18 @@ sub context {
     my @nwlist = &maketmp($T2, $new);
     my @command = ();
 
+    if ($opt_d{w}) {
+	print STDERR "****************************** Comparing ...\n";
+	print STDERR join ',', @owlist;
+	print STDERR "****************************** and\n";
+	print STDERR join ',', @nwlist;
+	print STDERR "****************************** .\n";
+    }
+
     open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
     binmode CDIF, ":encoding(utf8)";
     while (<CDIF>) {
-	warn $_ if $opt_d >= 2;
+	warn $_ if $opt_d{d};
 	if (/^[\d,]+([adc])[\d,]+$/) {
 	    push @command, $_;
 	    $c{$1}++;
@@ -421,7 +434,7 @@ sub context {
     close CDIF;
     cleanup() unless $opt_keeptmpfile;
 
-    if ($opt_d >= 1) {
+    if ($opt_d{d}) {
 	printf(STDERR "old=%d new=%d command=%d\n",
 	       @owlist+0, @nwlist+0, @command+0);
 	printf(STDERR "append=$c{a} delete=$c{d} change=$c{c}\n");
@@ -520,7 +533,7 @@ sub maketmp {
 
     close TMP;
 
-    if ($opt_d && @words != &wc_l($tmp_file)) {
+    if ($opt_d{a} && @words != &wc_l($tmp_file)) {
 	die "Error! (\@words != `wc -l $tmp_file`)\n";
     }
 
@@ -748,7 +761,7 @@ sub wc_l {
 }
 
 sub eval {
-    print STDERR &unctrl($_[0]), "\n" x ($_[0] !~ /\n$/) if $_[1] || $opt_d;
+    print STDERR &unctrl($_[0]), "\n" x ($_[0] !~ /\n$/) if $_[1] || $opt_d{e};
     eval shift;
     die sprintf("eval failed in file %s on line %s\n$@", (caller)[1,2]) if $@;
 }
