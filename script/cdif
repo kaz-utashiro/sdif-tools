@@ -214,9 +214,13 @@ if ($opt_B) {
     $w_pattern = qr/./s;
 } else {
     $w_pattern = qr{
-	\p{Han}+ | \p{InHiragana}+ | \p{InKatakana}+ |
-	\p{Hang}+ |
-	[a-zA-Z0-9_]+ | [ \t\r\f]*\n | \s+ | (.)\g{-1}*
+	\p{Han} | \p{InHiragana}+ | \p{InKatakana}+ |
+	\p{Hang}+     |
+	\p{Cyrillic}+ |
+	\p{Arabic}+   |
+	\p{Thai}+     |
+	[_\d\p{Latin}]+ |
+	[\ \t\r\f]*\n | \s+ | (.)\g{-1}*
     }x;
 }
 my @ul = ("", "_\010", "__\010\010");
