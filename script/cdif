@@ -142,10 +142,10 @@ my %colormap = (
     NMARK   => "MS" ,
     OTEXT   => "C"  ,
     NTEXT   => "M"  ,
-    OCHANGE => $opt_256 ? "BD/445": "BDw",
-    NCHANGE => $opt_256 ? "BD/445": "BDw",
-    DELETE  => $opt_256 ? "RD/544": "RDw",
-    APPEND  => $opt_256 ? "RD/544": "RDw",
+    OCHANGE => $opt_256 ? "/445": "BDw",
+    NCHANGE => $opt_256 ? "/445": "BDw",
+    DELETE  => $opt_256 ? "/544": "RDw",
+    APPEND  => $opt_256 ? "/544": "RDw",
     );
 
 if (@opt_colormap) {
