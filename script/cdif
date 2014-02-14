@@ -51,6 +51,8 @@ my $opt_keeptmpfile;
 my $opt_commandcolor = 1;
 my $opt_markcolor = 1;
 my $opt_textcolor = 1;
+my $opt_old = 1;
+my $opt_new = 1;
 
 my $opt_c;
 my $opt_u;
@@ -96,6 +98,8 @@ my @optargs = (
     "stat" => \$opt_stat,
     "tmp=s" => \$opt_tmp,
     "mecab" => \$opt_mecab,
+    "old!" => \$opt_old,
+    "new!" => \$opt_new,
 
     "i|ignore-case" => \$opt_i,
     "b|ignore-space-change" => \$opt_b,
@@ -277,9 +281,9 @@ while (<DIFF>) {
 	    }mge if $new;
 	}
 
-	print $old if $old;
+	print $old if $old and $opt_old;
 	print $del if $del;
-	print $new if $new;
+	print $new if $new and $opt_new;
     }
     #
     # diff -c
@@ -289,7 +293,7 @@ while (<DIFF>) {
 	my(@old, @new);
 	@old = read_diffc(*DIFF, scalar(range($left)));
 	my $new;
-	if ($old[0] =~ /^--- /) {
+	if (@old and $old[0] =~ /^--- /) {
 	    $new = shift @old;
 	    @old = ("");
 	} else {
@@ -322,7 +326,9 @@ while (<DIFF>) {
 		}
 	    }
 	}
-	print @old, $new, @new;
+	print @old if $opt_old;
+	print $new;
+	print @new if $opt_new;
     }
     #
     # diff -u
@@ -350,8 +356,8 @@ while (<DIFF>) {
 		    color("NMARK", $1) . color("NTEXT", $2)
 		}mge if $new;
 	    }
-	    print $old if $old;
-	    print $new if $new;
+	    print $old if $old and $opt_old;
+	    print $new if $new and $opt_new;
 	}
     }
     else {
@@ -683,8 +689,8 @@ sub colorseq {
     my $colormode = shift;
 
     my($start, $end) = ('', '');
-    if ($colormode =~ /,/) {
-	($start, $end) = split(/,/, $colormode, 2);
+    if ($colormode =~ /:/) {
+	($start, $end) = split(/:/, $colormode, 2);
     } else {
 	map {
 	    if (s/\/((?:[\da-f]{6})|[0-5][0-5][0-5])//i and $opt_256) {
