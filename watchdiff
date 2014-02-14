@@ -1,0 +1,188 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Fcntl;
+use IO::File;
+use IO::Handle;
+use Getopt::Long;
+use Pod::Usage;
+
+my $stdout = new IO::Handle;
+$stdout->fdopen(fileno(STDOUT), "w") or die;
+
+my $opt_d;
+my $opt_diff = 'cdif --noold -U100 --cm=COMMAND=';
+my $opt_date = 1;
+my $opt_refresh = 1;
+my $opt_interval = 2;
+my $opt_count = -1;
+
+my @optargs = (
+    "d=s" => \$opt_d,
+    "date!" => \$opt_date,
+    "diff=s" => \$opt_diff,
+    "refresh!" => \$opt_refresh,
+    "interval|i=i" => \$opt_interval,
+    "count|c=i" => \$opt_count,
+    );
+
+Getopt::Long::Configure("bundling");
+GetOptions(@optargs) || pod2usage();
+
+@ARGV or pod2usage();
+
+my $command;
+$command = join ' ', @ARGV;
+$command = "date; echo; $command" if $opt_date;
+
+my $old = TMPDATA->new($command);
+my $new = TMPDATA->new($command);
+
+my @termcap = qw(home clear el ed);
+my %termcap;
+map { $termcap{$_} = `tput $_` } @termcap;
+
+$stdout->printflush($termcap{clear}) if $opt_refresh;
+my $count = 0;
+while (1) {
+    $old->rewind;
+    $new->exec;
+    $stdout->printflush($termcap{home}) if $opt_refresh;
+    my $exec = sprintf "$opt_diff %s %s", $old->file, $new->file;
+    my $data = `$exec` // die;
+    $data =~ s/^/$termcap{el}/mg;
+    print $data;
+    $stdout->printflush($termcap{ed});
+
+    last if ++$count == $opt_count;
+
+    ($old, $new) = ($new, $old);
+    sleep $opt_interval;
+}
+
+######################################################################
+package TMPDATA;
+
+use strict;
+use warnings;
+
+use Fcntl;
+use IO::File;
+use IO::Handle;
+
+sub new {
+    my $class = shift;
+
+    my $fh = new_tmpfile IO::File;
+    defined $fh or die "new_tmpefile: $!";
+    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD failed: $!\n";
+
+    my $obj = bless {
+	FH => $fh,
+    }, $class;
+    $obj->command(@_) if @_;
+    $obj;
+}
+
+sub command {
+    my $obj = shift;
+    if (@_) {
+	$obj->{COMMAND} = join ' ', @_;
+    } else {
+	$obj->{COMMAND};
+    }
+}
+
+sub exec {
+    my $obj = shift;
+    my $command = $obj->command;
+    my $data = `$command`;
+    $obj->data($data);
+}
+
+sub data {
+    my $obj = shift;
+
+    if (@_) {
+	my $data = shift;
+	my $fh = $obj->fh;
+	$obj->rewind;
+	$fh->truncate(0);
+	$fh->syswrite($data, length $data);
+	$obj->rewind;
+    } else {
+	$obj->rewind;
+	local $/;
+	my $data = $obj->fh->getline();
+	$data;
+    }
+}
+
+sub fh {
+    my $obj = shift;
+    $obj->{FH};
+}
+
+sub fd {
+    my $obj = shift;
+    $obj->fh->fileno;
+}
+
+sub rewind {
+    my $obj = shift;
+    $obj->fh->sysseek(0, 0) or die;
+}
+
+sub file {
+    my $obj = shift;
+    sprintf "/dev/fd/%d", $obj->fd;
+}
+
+1;
+
+######################################################################
+
+=head1 NAME
+
+watchdiff - watch command result difference
+
+=head1 SYNOPSIS
+
+watchdiff command
+
+Options:
+
+	--date		show date
+	--diff=command	specify diff command
+	--[no]refresh	refresh screen (default on)
+	--interval=#	set interval time in second
+	--count		set repeat count
+
+Example:
+
+	watchdiff -- netstat -s -p ip
+
+	watchdiff --diff 'sdif --cdif -U100' -- netstat -s -p ip
+
+=head1 AUTHOR
+
+Kazumasa Utashiro
+
+https://github.com/kaz-utashiro/watchdiff
+
+=head1 SEE ALSO
+
+diff(1), cdif(1), sdif(1)
+
+=head1 COPYRIGHT
+
+Use and redistribution for ANY PURPOSE are granted as long as all
+copyright notices are retained.  Redistribution with modification is
+allowed provided that you make your modified version obviously
+distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
+THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+DISCLAIMED.
+
+=cut
