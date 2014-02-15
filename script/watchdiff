@@ -1,66 +1,176 @@
 #!/usr/bin/perl
 
+=pod
+
+=head1 NAME
+
+watchdiff - repeat command and watch the differences
+
+=head1 SYNOPSIS
+
+watchdiff option -- command
+
+Options:
+
+	--refresh=#	refresh screen count (default 0)
+	--interval=#	interval time between execution in second (default 2)
+	--count=#	command repeat count (default 1000)
+	--[no]date	show date at the beginning (default on)
+	--[no]silent	do not show same result (default off)
+	--[no]newline	print newline after command result (default on)
+	--exec		set executing commands
+	--diff=command	diff command used to compare result
+
+Example:
+
+	watchdiff df
+
+	watchdiff --silent df
+
+	watchdiff --refresh 5 --noclear -- df
+
+	watchdiff --refresh 1 -- netstat -s -p ip
+
+	watchdiff --refresh 1 --exec uptime --exec iostat --exec df
+
+	watchdiff -s --refresh 1 --diff 'sdif --cdif -U100' -- netstat -sp ip
+
+	watchdiff --nodate --nonewline --count=18 --interval=10 date
+
+=head1 DESCRIPTION
+
+Please install cdif(1) command as a default backend.
+
+=head1 AUTHOR
+
+Kazumasa Utashiro
+
+https://github.com/kaz-utashiro/watchdiff
+
+=head1 SEE ALSO
+
+diff(1), cdif(1), sdif(1)
+
+=head1 COPYRIGHT
+
+Use and redistribution for ANY PURPOSE are granted as long as all
+copyright notices are retained.  Redistribution with modification is
+allowed provided that you make your modified version obviously
+distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
+THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+DISCLAIMED.
+
+=cut
+
 use strict;
 use warnings;
 
 use Fcntl;
 use IO::File;
 use IO::Handle;
+use Time::localtime;
 use Getopt::Long;
 use Pod::Usage;
 
-my $stdout = new IO::Handle;
-$stdout->fdopen(fileno(STDOUT), "w") or die;
-
 my $opt_d;
-my $opt_diff = 'cdif --noold -U100 --cm=COMMAND=';
+my $opt_diff;
 my $opt_date = 1;
-my $opt_refresh = 1;
+my $opt_refresh = 0;
 my $opt_interval = 2;
-my $opt_count = -1;
+my $opt_count = 1000;
+my $opt_clear = 1;
+my $opt_silent = 0;
+my $opt_newline = 1;
+my $opt_mark = 0;
+my $opt_old = 0;
+my @opt_exec;
+
+my $default_diff =
+    'cdif --nocommand --nounknown -U100 --cm=COMMAND,OMARK,NMARK=';
 
 my @optargs = (
-    "d=s" => \$opt_d,
+    "d" => \$opt_d,
+    "exec=s" => \@opt_exec,
     "date!" => \$opt_date,
     "diff=s" => \$opt_diff,
-    "refresh!" => \$opt_refresh,
+    "refresh=i" => \$opt_refresh,
     "interval|i=i" => \$opt_interval,
     "count|c=i" => \$opt_count,
+    "clear!" => \$opt_clear,
+    "silent|s!" => \$opt_silent,
+    "mark!" => \$opt_mark,
+    "old!" => \$opt_old,
+    "newline!" => \$opt_newline,
+    "man" => sub { pod2usage({-verbose => 2}) },
     );
 
 Getopt::Long::Configure("bundling");
 GetOptions(@optargs) || pod2usage();
 
-@ARGV or pod2usage();
+if (@ARGV) {
+    push(@opt_exec, join ' ', @ARGV);
+} else {
+    pod2usage() unless @opt_exec;
+}
 
-my $command;
-$command = join ' ', @ARGV;
-$command = "date; echo; $command" if $opt_date;
+my $stdout = new IO::Handle;
+$stdout->fdopen(fileno(STDOUT), "w") or die;
 
-my $old = TMPDATA->new($command);
-my $new = TMPDATA->new($command);
+my $diffcmd;
+if ($opt_diff) {
+    $diffcmd = $opt_diff;
+} else {
+    $diffcmd = join(' ',
+		    $default_diff,
+		    $opt_mark ? () : qw(--nomark),
+		    $opt_old  ? () : qw(--noold),
+	);
+}
+
+my $old = TMPDATA->new(@opt_exec);
+my $new = TMPDATA->new(@opt_exec);
 
 my @termcap = qw(home clear el ed);
 my %termcap;
-map { $termcap{$_} = `tput $_` } @termcap;
+map { $termcap{$_} = `tput $_` } @termcap if $opt_refresh;
 
 $stdout->printflush($termcap{clear}) if $opt_refresh;
 my $count = 0;
+my $displaycount = 0;
 while (1) {
     $old->rewind;
-    $new->exec;
-    $stdout->printflush($termcap{home}) if $opt_refresh;
-    my $exec = sprintf "$opt_diff %s %s", $old->file, $new->file;
+    $new->update;
+    my $exec = sprintf "$diffcmd %s %s", $old->file, $new->file;
     my $data = `$exec` // die;
-    $data =~ s/^/$termcap{el}/mg;
+    my $date = ctime();
+    if ($data eq '') {
+	print "[empty result]\n" if $opt_d;
+	if ($opt_silent) {
+	    $stdout->printflush($date, "\r");
+	    next;
+	}
+	$data = $new->data;
+    }
+    $data .= "\n" if $opt_newline;
+    $data =~ s/^/$termcap{el}/mg if $opt_refresh;
+    if ($opt_refresh and $displaycount++ % $opt_refresh == 0) {
+	$stdout->printflush($termcap{home});
+    }
+    if ($opt_date) {
+	print ctime(), "\n\n";
+    }
     print $data;
-    $stdout->printflush($termcap{ed});
+    if ($opt_refresh and $opt_clear) {
+	$stdout->printflush($termcap{ed});
+    }
 
+} continue {
     last if ++$count == $opt_count;
-
     ($old, $new) = ($new, $old);
     sleep $opt_interval;
 }
+
+exit;
 
 ######################################################################
 package TMPDATA;
@@ -89,34 +199,31 @@ sub new {
 sub command {
     my $obj = shift;
     if (@_) {
-	$obj->{COMMAND} = join ' ', @_;
+	$obj->{COMMAND} = [ @_ ];
     } else {
-	$obj->{COMMAND};
+	@{$obj->{COMMAND}};
     }
 }
 
-sub exec {
+sub update {
     my $obj = shift;
-    my $command = $obj->command;
-    my $data = `$command`;
+    my $data = join "\n", map { scalar `$_` } $obj->command;
     $obj->data($data);
+    $obj;
 }
 
 sub data {
     my $obj = shift;
 
     if (@_) {
-	my $data = shift;
+	$obj->{DATA} = shift;
 	my $fh = $obj->fh;
 	$obj->rewind;
 	$fh->truncate(0);
-	$fh->syswrite($data, length $data);
+	$fh->syswrite($obj->{DATA}, length $obj->{DATA});
 	$obj->rewind;
     } else {
-	$obj->rewind;
-	local $/;
-	my $data = $obj->fh->getline();
-	$data;
+	$obj->{DATA};
     }
 }
 
@@ -141,48 +248,3 @@ sub file {
 }
 
 1;
-
-######################################################################
-
-=head1 NAME
-
-watchdiff - watch command result difference
-
-=head1 SYNOPSIS
-
-watchdiff command
-
-Options:
-
-	--date		show date
-	--diff=command	specify diff command
-	--[no]refresh	refresh screen (default on)
-	--interval=#	set interval time in second
-	--count		set repeat count
-
-Example:
-
-	watchdiff -- netstat -s -p ip
-
-	watchdiff --diff 'sdif --cdif -U100' -- netstat -s -p ip
-
-=head1 AUTHOR
-
-Kazumasa Utashiro
-
-https://github.com/kaz-utashiro/watchdiff
-
-=head1 SEE ALSO
-
-diff(1), cdif(1), sdif(1)
-
-=head1 COPYRIGHT
-
-Use and redistribution for ANY PURPOSE are granted as long as all
-copyright notices are retained.  Redistribution with modification is
-allowed provided that you make your modified version obviously
-distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
-THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
-DISCLAIMED.
-
-=cut
