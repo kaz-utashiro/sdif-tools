@@ -59,11 +59,15 @@ Options:
         --diff=command      specify diff command
         --stat              show statistical information
         --colormap=s        specify color map
-        --[no]color         color or not           (default true)
-        --[no]256           ANSI 256 color mode    (default true)
-        --[no]commandcolor  color for command line (default true)
-        --[no]markcolor     color for diff mark    (default true)
-        --[no]textcolor     color for normal text  (default true)
+        --[no]color         color or not            (default true)
+        --[no]256           ANSI 256 color mode     (default true)
+        --[no]commandcolor  color for command line  (default true)
+        --[no]markcolor     color for diff mark     (default true)
+        --[no]textcolor     color for normal text   (default true)
+        --[no]old           print old text          (default true)
+        --[no]new           print new text          (default true)
+        --[no]command       print diff command line (default true)
+        --[no]unknown       print unknown line      (default true)
 
 # DESCRIPTION
 
@@ -201,6 +205,24 @@ printed.
 
     Enable/Disable using color for the corresponding field.
 
+- __--__\[__no__\]__old__, __--__\[__no__\]__new__
+
+    Print or not old/new text in diff output.
+
+- __--__\[__no__\]__command__
+
+    Print or not command lines preceding diff output.
+
+- __--__\[__no__\]__mark__
+
+    Print or not marks at the top of diff output lines.
+    This option is effective only for unified diff.
+
+    Next example produces the output exactly same as _new_ except visual
+    effects.  These options are used by watchdiff(1) command.
+
+        cdif -u --noold --nocommand --nounknown old new
+
 - __--stat__
 
     Print statistical information at the end of output.  It shows number
@@ -222,7 +244,7 @@ https://github.com/kaz-utashiro/cdif
 
 # SEE ALSO
 
-perl(1), diff(1)
+perl(1), diff(1), sdif(1), watchdiff(1)
 
 # BUGS
 

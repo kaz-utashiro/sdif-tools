@@ -53,6 +53,9 @@ my $opt_markcolor = 1;
 my $opt_textcolor = 1;
 my $opt_old = 1;
 my $opt_new = 1;
+my $opt_unknown = 1;
+my $opt_command = 1;
+my $opt_mark = 1;
 
 my $opt_c;
 my $opt_u;
@@ -100,6 +103,9 @@ my @optargs = (
     "mecab" => \$opt_mecab,
     "old!" => \$opt_old,
     "new!" => \$opt_new,
+    "command!" => \$opt_command,
+    "unknown!" => \$opt_unknown,
+    "mark!" => \$opt_mark,
 
     "i|ignore-case" => \$opt_i,
     "b|ignore-space-change" => \$opt_b,
@@ -338,6 +344,7 @@ while (<DIFF>) {
 	my @buf = read_diffu(*DIFF, $1 // 1, $2 // 1);
 	my $tab = $opt_T ? "\t" : "";
 	while (my($same, $old, $new) = splice(@buf, 0, 3)) {
+	    $same =~ s/^.$tab//mgo if not $opt_mark;
 	    print $same;
 	    if ($old and $new) {
 		$old =~ s/^\-$tab//mgo;
@@ -350,18 +357,23 @@ while (<DIFF>) {
 	    }
 	    if ($opt_color) {
 		$old =~ s{^(\-)($tab.*)}{
-		    color("OMARK", $1) . color("OTEXT", $2)
-		}mge if $old;
+		    ($opt_mark ? color("OMARK", $1) : "") . color("OTEXT", $2)
+		}mgoe if $old;
 		$new =~ s{^(\+)($tab.*)}{
-		    color("NMARK", $1) . color("NTEXT", $2)
-		}mge if $new;
+		    ($opt_mark ? color("NMARK", $1) : "") . color("NTEXT", $2)
+		}mgoe if $new;
+	    } else {
+		if (not $opt_mark) {
+		    $old =~ s/^\-$tab//mgo;
+		    $new =~ s/^\+$tab//mgo;
+		}
 	    }
 	    print $old if $old and $opt_old;
 	    print $new if $new and $opt_new;
 	}
     }
     else {
-	print;
+	print if $opt_unknown;
     }
 }
 close DIFF;
@@ -389,6 +401,7 @@ exit $? >> 8;
 ######################################################################
 
 sub print_command {
+    return unless $opt_command;
     my $line = shift;
     if ($opt_color) {
 	if ($opt_expand and length($line) < $expand_width) {
@@ -823,11 +836,15 @@ Options:
 	--diff=command      specify diff command
 	--stat              show statistical information
 	--colormap=s        specify color map
-	--[no]color         color or not           (default true)
-	--[no]256           ANSI 256 color mode    (default true)
-	--[no]commandcolor  color for command line (default true)
-	--[no]markcolor     color for diff mark    (default true)
-	--[no]textcolor     color for normal text  (default true)
+	--[no]color         color or not            (default true)
+	--[no]256           ANSI 256 color mode     (default true)
+	--[no]commandcolor  color for command line  (default true)
+	--[no]markcolor     color for diff mark     (default true)
+	--[no]textcolor     color for normal text   (default true)
+	--[no]old	    print old text          (default true)
+	--[no]new	    print new text          (default true)
+	--[no]command	    print diff command line (default true)
+	--[no]unknown	    print unknown line      (default true)
 
 
 =head1 DESCRIPTION
@@ -970,6 +987,24 @@ This is equivalent to :
 
 Enable/Disable using color for the corresponding field.
 
+=item B<-->[B<no>]B<old>, B<-->[B<no>]B<new>
+
+Print or not old/new text in diff output.
+
+=item B<-->[B<no>]B<command>
+
+Print or not command lines preceding diff output.
+
+=item B<-->[B<no>]B<mark>
+
+Print or not marks at the top of diff output lines.
+This option is effective only for unified diff.
+
+Next example produces the output exactly same as I<new> except visual
+effects.  These options are used by watchdiff(1) command.
+
+    cdif -u --noold --nocommand --nounknown old new
+
 =item B<--stat>
 
 Print statistical information at the end of output.  It shows number
@@ -993,7 +1028,7 @@ https://github.com/kaz-utashiro/cdif
 
 =head1 SEE ALSO
 
-perl(1), diff(1)
+perl(1), diff(1), sdif(1), watchdiff(1)
 
 =head1 BUGS
 
