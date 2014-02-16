@@ -8,14 +8,15 @@ watchdiff option -- command
 
 Options:
 
-        --refresh=#     refresh screen count (default 0)
-        --interval=#    interval time between execution in second (default 2)
-        --count=#       command repeat count (default 1000)
-        --[no]date      show date at the beginning (default on)
-        --[no]silent    do not show same result (default off)
-        --[no]newline   print newline after command result (default on)
-        --exec          set executing commands
-        --diff=command  diff command used to compare result
+        -r, --refresh:1     refresh screen count (default 0)
+        -i, --interval=i    interval time in second (default 2)
+        -c, --count=i       command repeat count (default 1000)
+        -e, --exec=s        set executing commands
+        -s, --silent        do not show same result
+        -p, --plain         shortcut for --nodate --nonewline
+            --[no]date      show date at the beginning (default on)
+            --[no]newline   print newline result (default on)
+            --diff=command  diff command used to compare result
 
 Example:
 
@@ -25,13 +26,13 @@ Example:
 
         watchdiff --refresh 5 --noclear -- df
 
-        watchdiff --refresh 1 -- netstat -s -p ip
+        watchdiff -sri1 -- netstat -sp ip
 
-        watchdiff --refresh 1 --exec uptime --exec iostat --exec df
+        watchdiff -r -e uptime -e iostat -e df
 
-        watchdiff -s --refresh 1 --diff 'sdif --cdif -U100' -- netstat -sp ip
+        watchdiff -sr1 --diff 'sdif --cdif -U100' -- netstat -sp ip
 
-        watchdiff --nodate --nonewline --count=18 --interval=10 date
+        watchdiff -pc18i10 date; echo ready
 
 # DESCRIPTION
 

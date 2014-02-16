@@ -12,14 +12,15 @@ watchdiff option -- command
 
 Options:
 
-	--refresh=#	refresh screen count (default 0)
-	--interval=#	interval time between execution in second (default 2)
-	--count=#	command repeat count (default 1000)
-	--[no]date	show date at the beginning (default on)
-	--[no]silent	do not show same result (default off)
-	--[no]newline	print newline after command result (default on)
-	--exec		set executing commands
-	--diff=command	diff command used to compare result
+	-r, --refresh:1     refresh screen count (default 0)
+	-i, --interval=i    interval time in second (default 2)
+	-c, --count=i       command repeat count (default 1000)
+	-e, --exec=s        set executing commands
+	-s, --silent        do not show same result
+	-p, --plain         shortcut for --nodate --nonewline
+	    --[no]date      show date at the beginning (default on)
+	    --[no]newline   print newline result (default on)
+	    --diff=command  diff command used to compare result
 
 Example:
 
@@ -29,17 +30,19 @@ Example:
 
 	watchdiff --refresh 5 --noclear -- df
 
-	watchdiff --refresh 1 -- netstat -s -p ip
+	watchdiff -sri1 -- netstat -sp ip
 
-	watchdiff --refresh 1 --exec uptime --exec iostat --exec df
+	watchdiff -r -e uptime -e iostat -e df
 
-	watchdiff -s --refresh 1 --diff 'sdif --cdif -U100' -- netstat -sp ip
+	watchdiff -sr1 --diff 'sdif --cdif -U100' -- netstat -sp ip
 
-	watchdiff --nodate --nonewline --count=18 --interval=10 date
+	watchdiff -pc18i10 date; echo ready
+
 
 =head1 DESCRIPTION
 
 Please install cdif(1) command as a default backend.
+
 
 =head1 AUTHOR
 
@@ -47,9 +50,11 @@ Kazumasa Utashiro
 
 https://github.com/kaz-utashiro/watchdiff
 
+
 =head1 SEE ALSO
 
 diff(1), cdif(1), sdif(1)
+
 
 =head1 COPYRIGHT
 
@@ -68,7 +73,6 @@ use warnings;
 use Fcntl;
 use IO::File;
 use IO::Handle;
-use Time::localtime;
 use Getopt::Long;
 use Pod::Usage;
 
@@ -86,22 +90,24 @@ my $opt_old = 0;
 my @opt_exec;
 
 my $default_diff =
-    'cdif --nocommand --nounknown -U100 --cm=COMMAND,OMARK,NMARK=';
+    'cdif --nocommand --nounknown -U100 --cm=COMMAND=';
 
 my @optargs = (
     "d" => \$opt_d,
-    "exec=s" => \@opt_exec,
-    "date!" => \$opt_date,
     "diff=s" => \$opt_diff,
-    "refresh=i" => \$opt_refresh,
-    "interval|i=i" => \$opt_interval,
-    "count|c=i" => \$opt_count,
+    "e|exec=s" => \@opt_exec,
+    "r|refresh:1" => \$opt_refresh,
+    "i|interval=i" => \$opt_interval,
+    "c|count=i" => \$opt_count,
     "clear!" => \$opt_clear,
-    "silent|s!" => \$opt_silent,
-    "mark!" => \$opt_mark,
-    "old!" => \$opt_old,
-    "newline!" => \$opt_newline,
-    "man" => sub { pod2usage({-verbose => 2}) },
+    "s|silent!" => \$opt_silent,
+    "M|mark!" => \$opt_mark,
+    "O|old!" => \$opt_old,
+    "D|date!" => \$opt_date,
+    "N|newline!" => \$opt_newline,
+    "p|plain" => sub { $opt_date = $opt_newline = 0 },
+    "h|help" => sub { pod2usage() },
+    "H|man" => sub { pod2usage( {-verbose => 2} ) },
     );
 
 Getopt::Long::Configure("bundling");
@@ -127,43 +133,37 @@ if ($opt_diff) {
 	);
 }
 
-my $old = TMPDATA->new(@opt_exec);
-my $new = TMPDATA->new(@opt_exec);
+my $old = new TMPDATA @opt_exec;
+my $new = new TMPDATA @opt_exec;
 
-my @termcap = qw(home clear el ed);
 my %termcap;
-map { $termcap{$_} = `tput $_` } @termcap if $opt_refresh;
+map { $termcap{$_} = `tput $_` } qw(home clear el ed) if $opt_refresh;
 
-$stdout->printflush($termcap{clear}) if $opt_refresh;
+print $termcap{clear} if $opt_refresh;
 my $count = 0;
-my $displaycount = 0;
+my $refresh_count = 0;
 while (1) {
     $old->rewind;
     $new->update;
-    my $exec = sprintf "$diffcmd %s %s", $old->file, $new->file;
+    my $exec = sprintf "%s %s %s", $diffcmd, $old->file, $new->file;
     my $data = `$exec` // die;
-    my $date = ctime();
     if ($data eq '') {
-	print "[empty result]\n" if $opt_d;
 	if ($opt_silent) {
-	    $stdout->printflush($date, "\r");
+	    $stdout->printflush($new->date, "\r");
 	    next;
 	}
 	$data = $new->data;
     }
     $data .= "\n" if $opt_newline;
-    $data =~ s/^/$termcap{el}/mg if $opt_refresh;
-    if ($opt_refresh and $displaycount++ % $opt_refresh == 0) {
-	$stdout->printflush($termcap{home});
+    if ($opt_refresh) {
+	$data =~ s/^/$termcap{el}/mg;
+	print $termcap{home} if $refresh_count++ % $opt_refresh == 0;
     }
-    if ($opt_date) {
-	print ctime(), "\n\n";
-    }
+    print $new->date, "\n\n" if $opt_date;
     print $data;
     if ($opt_refresh and $opt_clear) {
 	$stdout->printflush($termcap{ed});
     }
-
 } continue {
     last if ++$count == $opt_count;
     ($old, $new) = ($new, $old);
@@ -177,7 +177,7 @@ package TMPDATA;
 
 use strict;
 use warnings;
-
+use Carp;
 use Fcntl;
 use IO::File;
 use IO::Handle;
@@ -186,12 +186,10 @@ sub new {
     my $class = shift;
 
     my $fh = new_tmpfile IO::File;
-    defined $fh or die "new_tmpefile: $!";
-    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD failed: $!\n";
+    defined $fh or die "new_tmpefile: $!\n";
+    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD: $!\n";
 
-    my $obj = bless {
-	FH => $fh,
-    }, $class;
+    my $obj = bless { FH => $fh }, $class;
     $obj->command(@_) if @_;
     $obj;
 }
@@ -206,15 +204,16 @@ sub command {
 }
 
 sub update {
+    use Time::localtime;
     my $obj = shift;
     my $data = join "\n", map { scalar `$_` } $obj->command;
     $obj->data($data);
+    $obj->date(ctime());
     $obj;
 }
 
 sub data {
     my $obj = shift;
-
     if (@_) {
 	$obj->{DATA} = shift;
 	my $fh = $obj->fh;
@@ -224,6 +223,15 @@ sub data {
 	$obj->rewind;
     } else {
 	$obj->{DATA};
+    }
+}
+
+sub date {
+    my $obj = shift;
+    if (@_) {
+	$obj->{DATE} = shift;
+    } else {
+	$obj->{DATE};
     }
 }
 
