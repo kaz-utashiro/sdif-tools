@@ -213,15 +213,21 @@ printed.
 
     Print or not command lines preceding diff output.
 
+- __--__\[__no__\]__unknown__
+
+    Print or not lines not look like diff output.
+
 - __--__\[__no__\]__mark__
 
-    Print or not marks at the top of diff output lines.
-    This option is effective only for unified diff.
+    Print or not marks at the top of diff output lines.  At this point,
+    this option is effective only for unified diff.
 
     Next example produces the output exactly same as _new_ except visual
-    effects.  These options are used by watchdiff(1) command.
+    effects.
 
-        cdif -u --noold --nocommand --nounknown old new
+        cdif -U100 --nomark --noold --nocommand --nounknown old new
+
+    These options are prepared for watchdiff(1) command.
 
 - __--stat__
 
