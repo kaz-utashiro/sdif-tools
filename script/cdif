@@ -420,8 +420,8 @@ sub context {
     }
 
     my %c = (a => 0, d => 0, c => 0);
-    my @owlist = &maketmp($T1, $old);
-    my @nwlist = &maketmp($T2, $new);
+    my @owlist = maketmp($T1, $old);
+    my @nwlist = maketmp($T2, $new);
     my @command = ();
 
     if ($opt_d{w}) {
@@ -462,12 +462,12 @@ sub context {
 ## itself is returned as a result of subroutine.
 ##
 sub maketmp {
-    my $tmp_file = shift;
+    my $tmpfile = shift;
     my $text = shift;
     my @words;
     my @notspace = (0);
 
-    $tmp_file->reset;
+    $tmpfile->reset;
 
   MECAB:
 
@@ -482,7 +482,7 @@ sub maketmp {
 	binmode MECAB, ":encoding(utf8)";
 	print MECAB $text;
     } else {
-	open(STDOUT, ">&", $tmp_file->fh) or die;
+	open(STDOUT, ">&", $tmpfile->fh) or die;
 	for ("disabling unreach warning") {
 	    exec('mecab',
 		 '--node-format', '%M\\n', '--eos-format', "$eos\\n");
@@ -490,13 +490,13 @@ sub maketmp {
 	while ($text =~ /($w_pattern)/g) {
 	    my $w = $1;
 	    $w =~ s/^[ \t]*\n/$eos/;
-	    $tmp_file->write($w, "\n");
+	    $tmpfile->write($w, "\n");
 	}
 	exit;
     }
     close MECAB;
-    $tmp_file->rewind;
-    while (my $s = $tmp_file->getline) {
+    $tmpfile->rewind;
+    while (my $s = $tmpfile->getline) {
 	chomp $s;
 	$s =~ s/$eos/\n/;
 	push(@words, $s);
@@ -511,25 +511,25 @@ sub maketmp {
 	    push(@notspace, !/\s/);
 	    if (shift(@notspace) && $notspace[0]) {
 		push(@words, '');
-		$tmp_file->write("\n");
+		$tmpfile->write("\n");
 	    }
 	}
 	if (s/^(\s*)\n/\n/ && (length($1) || $opt_b || $opt_w)) {
 	    #     ^ This have to be *.  Don't change to +.
-	    $tmp_file->write(($opt_b || $opt_w) ? "\n" : "$1\n");
+	    $tmpfile->write(($opt_b || $opt_w) ? "\n" : "$1\n");
 	    push(@words, $1);
 	}
 	push @words, $_;
-	$tmp_file->write($_);
-	$tmp_file->write("\n") unless /\n$/;
+	$tmpfile->write($_);
+	$tmpfile->write("\n") unless /\n$/;
     }
 
   DONE:
 
-    $tmp_file->flush->rewind;
+    $tmpfile->flush->rewind;
 
-    if ($opt_d{a} && @words != &wc_l($tmp_file)) {
-	die "Error! (\@words != `wc -l $tmp_file`)\n";
+    if ($opt_d{a} && @words != wc_l($tmpfile)) {
+	die "Error! (\@words != `wc -l $tmpfile`)\n";
     }
 
     @words;
