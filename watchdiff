@@ -69,6 +69,7 @@ DISCLAIMED.
 
 use strict;
 use warnings;
+require 5.010;
 
 use Fcntl;
 use IO::File;
@@ -136,8 +137,8 @@ if ($opt_diff) {
 my $old = new TMPDATA @opt_exec;
 my $new = new TMPDATA @opt_exec;
 
-my %termcap;
-map { $termcap{$_} = `tput $_` } qw(home clear el ed) if $opt_refresh;
+my @termcap = qw( home clear el ed );
+my %termcap = map { $_ => `tput $_` } @termcap if $opt_refresh;
 
 print $termcap{clear} if $opt_refresh;
 my $count = 0;
@@ -169,6 +170,8 @@ while (1) {
     ($old, $new) = ($new, $old);
     sleep $opt_interval;
 }
+
+$stdout->printflush($termcap{el}) if $opt_refresh;
 
 exit;
 
