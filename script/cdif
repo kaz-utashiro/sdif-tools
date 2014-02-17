@@ -39,7 +39,6 @@ my $opt_B;
 my $opt_d;
 my $opt_q;
 my $opt_n;
-my $opt_tmp;
 my $opt_mecab;
 
 my $opt_env = 1;
@@ -47,7 +46,6 @@ my $opt_stat;
 my $opt_color = 1;
 my $opt_256 = 1;
 my @opt_colormap;
-my $opt_keeptmpfile;
 my $opt_commandcolor = 1;
 my $opt_markcolor = 1;
 my $opt_textcolor = 1;
@@ -94,12 +92,10 @@ my @optargs = (
     "markcolor|mc!" => \$opt_markcolor,
     "textcolor|tc!" => \$opt_textcolor,
     "colormap|cm=s" => \@opt_colormap,
-    "keeptmpfile" => \$opt_keeptmpfile,
     "h|help" => sub { pod2usage() },
     "man" => sub { pod2usage({-verbose => 2}) },
     "env!" => \$opt_env,
     "stat" => \$opt_stat,
-    "tmp=s" => \$opt_tmp,
     "mecab" => \$opt_mecab,
     "old!" => \$opt_old,
     "new!" => \$opt_new,
@@ -239,11 +235,10 @@ my @bs = ("", "\010", "\010\010");
 ##
 ## Temporary file names
 ##
-my $tmp = $opt_tmp || '/tmp';
-my $TBASE = "$tmp/cdif_$$";
-my($T1, $T2) = ("${TBASE}_1", "${TBASE}_2");
-
-@SIG{'INT', 'HUP', 'QUIT', 'TERM'} = ('cleanup') x 4;
+my $T1 = new File::Tmpfile;
+my $T2 = new File::Tmpfile;
+binmode $T1->fh, ":encoding(utf8)";
+binmode $T2->fh, ":encoding(utf8)";
 
 ##
 ## Total statistic info
@@ -412,17 +407,9 @@ sub print_command {
     print $line;
 }
 
-my $tmp_sequence = 0;
-
 sub context {
     my($old, $new) = @_;
     local $_;
-
-    if ($opt_keeptmpfile) {
-	$tmp_sequence++;
-	$T1 = sprintf("%s_%04d_1", $TBASE, $tmp_sequence);
-	$T2 = sprintf("%s_%04d_2", $TBASE, $tmp_sequence);
-    }
 
     if ($opt_d{s}) {
 	print STDERR "****************************** Comparing ...\n";
@@ -445,7 +432,8 @@ sub context {
 	print STDERR "****************************** .\n";
     }
 
-    open(CDIF, "diff @sub_diffopts $T1 $T2 |") || die "diff: $!\n";
+    my $diff = sprintf "diff @sub_diffopts %s %s", $T1->path, $T2->path;
+    open(CDIF, "$diff |") || die "diff: $!\n";
     binmode CDIF, ":encoding(utf8)";
     while (<CDIF>) {
 	warn $_ if $opt_d{d};
@@ -455,7 +443,6 @@ sub context {
 	}
     }
     close CDIF;
-    cleanup() unless $opt_keeptmpfile;
 
     if ($opt_d{d}) {
 	printf(STDERR "old=%d new=%d command=%d\n",
@@ -469,15 +456,6 @@ sub context {
     ($obuf, $nbuf);
 }
 
-sub cleanup {
-    unlink $T1;
-    unlink $T2;
-    if (@_) {
-	warn "\nSignal @_\n";
-	exit 2;
-    }
-}
-
 ##
 ## Divide given text into word list.  Then write them into temporary
 ## file `$file' which include the word list one on each line.  The list
@@ -489,8 +467,7 @@ sub maketmp {
     my @words;
     my @notspace = (0);
 
-    open(TMP, ">$tmp_file") || warn "$tmp_file: $!\n", return 0;
-    binmode TMP, ":encoding(utf8)";
+    $tmp_file->reset;
 
   MECAB:
 
@@ -505,8 +482,7 @@ sub maketmp {
 	binmode MECAB, ":encoding(utf8)";
 	print MECAB $text;
     } else {
-	open(STDOUT, ">&", TMP);
-	close TMP;
+	open(STDOUT, ">&", $tmp_file->fh) or die;
 	for ("disabling unreach warning") {
 	    exec('mecab',
 		 '--node-format', '%M\\n', '--eos-format', "$eos\\n");
@@ -514,20 +490,16 @@ sub maketmp {
 	while ($text =~ /($w_pattern)/g) {
 	    my $w = $1;
 	    $w =~ s/^[ \t]*\n/$eos/;
-	    print $w, "\n";
+	    $tmp_file->write($w, "\n");
 	}
 	exit;
     }
     close MECAB;
-    if (open(MECAB, "<:encoding(utf8)", $tmp_file)) {
-	while (<MECAB>) {
-	    chomp;
-	    s/$eos/\n/;
-	    push(@words, $_);
-	}
-	close MECAB;
-    } else {
-	warn "$tmp_file: $!\n";
+    $tmp_file->rewind;
+    while (my $s = $tmp_file->getline) {
+	chomp $s;
+	$s =~ s/$eos/\n/;
+	push(@words, $s);
     }
     goto DONE;
 
@@ -539,22 +511,22 @@ sub maketmp {
 	    push(@notspace, !/\s/);
 	    if (shift(@notspace) && $notspace[0]) {
 		push(@words, '');
-		print TMP "\n";
+		$tmp_file->write("\n");
 	    }
 	}
 	if (s/^(\s*)\n/\n/ && (length($1) || $opt_b || $opt_w)) {
 	    #     ^ This have to be *.  Don't change to +.
-	    print TMP ($opt_b || $opt_w) ? "\n" : "$1\n";
+	    $tmp_file->write(($opt_b || $opt_w) ? "\n" : "$1\n");
 	    push(@words, $1);
 	}
 	push @words, $_;
-	print TMP $_;
-	print TMP "\n" unless /\n$/;
+	$tmp_file->write($_);
+	$tmp_file->write("\n") unless /\n$/;
     }
 
   DONE:
 
-    close TMP;
+    $tmp_file->flush->rewind;
 
     if ($opt_d{a} && @words != &wc_l($tmp_file)) {
 	die "Error! (\@words != `wc -l $tmp_file`)\n";
@@ -776,10 +748,9 @@ sub color {
 sub wc_l {
     my $file = shift;
     my $line;
-    local *FILE;
-    open(FILE, $file) || die "$file: $!\n";
-    $line++ while <FILE>;
-    close FILE;
+    $file->rewind;
+    $line++ while $file->getline;
+    $file->rewind;
     $line;
 }
 
@@ -1049,3 +1020,73 @@ allowed provided that you make your modified version obviously
 distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
 THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
 DISCLAIMED.
+
+=cut
+
+package File::Tmpfile;
+
+use strict;
+use warnings;
+use Carp;
+use Fcntl;
+use IO::File;
+use IO::Handle;
+
+sub new {
+    my $class = shift;
+    my $fh = new_tmpfile IO::File or die "new_tmpefile: $!\n";
+    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD: $!\n";
+    bless { FH => $fh }, $class;
+}
+
+sub write {
+    my $obj = shift;
+    my $fh = $obj->fh;
+    if (@_) {
+	my $data = join '', @_;
+	$obj->{DATA} .= $data;
+	$fh->print($data);
+    }
+    $obj;
+}
+
+sub flush {
+    my $obj = shift;
+    $obj->fh->flush;
+    $obj;
+}
+
+sub rewind {
+    my $obj = shift;
+    $obj->fh->sysseek(0, 0) or die;
+    $obj;
+}
+
+sub reset {
+    my $obj = shift;
+    $obj->rewind;
+    $obj->fh->truncate(0);
+    $obj;
+}
+
+sub getline {
+    my $obj = shift;
+    $obj->fh->getline;
+}
+
+sub fh {
+    my $obj = shift;
+    $obj->{FH};
+}
+
+sub fd {
+    my $obj = shift;
+    $obj->fh->fileno;
+}
+
+sub path {
+    my $obj = shift;
+    sprintf "/dev/fd/%d", $obj->fd;
+}
+
+1;
