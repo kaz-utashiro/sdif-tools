@@ -20,7 +20,6 @@ $Data::Dumper::Terse = 1;
 ##
 ## Copyright (c) 1992-2014 Kazumasa Utashiro
 ##
-;; my $rcsid = q$Id: cdif,v 2.9 2014/02/01 03:06:39 utashiro Exp $;
 ## Original: 1992/03/11
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
@@ -777,14 +776,10 @@ sub unctrl {
 }
 
 sub terminal_width {
-    my $width = 80;
-    if (-t STDERR) {
-	my $stty = `stty -f /dev/stderr all`; # XXX too easy...
-	if ($stty =~ /(\d+) +columns/) {
-	    $width = $1;
-	}
-    }
-    $width;
+    my $default = 80;
+    my $cols = `tput cols`;
+    chomp $cols;
+    $cols > 0 ? int($cols) : $default;
 }
 
 ######################################################################
