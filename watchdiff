@@ -20,6 +20,7 @@ Options:
 	-p, --plain         shortcut for --nodate --nonewline
 	    --[no]date      show date at the beginning (default on)
 	    --[no]newline   print newline result (default on)
+	    --[no]clear     clear screen after output (default on)
 	    --diff=command  diff command used to compare result
 
 Example:
@@ -122,6 +123,7 @@ if (@ARGV) {
 
 my $stdout = new IO::Handle;
 $stdout->fdopen(fileno(STDOUT), "w") or die;
+sub flush { $stdout->printflush(@_) }
 
 my $diffcmd;
 if ($opt_diff) {
@@ -134,8 +136,8 @@ if ($opt_diff) {
 	);
 }
 
-my $old = new TMPDATA @opt_exec;
-my $new = new TMPDATA @opt_exec;
+my $old = new File::Command @opt_exec;
+my $new = new File::Command @opt_exec;
 
 my @termcap = qw( home clear el ed );
 my %termcap = map { $_ => `tput $_` } @termcap if $opt_refresh;
@@ -146,11 +148,11 @@ my $refresh_count = 0;
 while (1) {
     $old->rewind;
     $new->update;
-    my $exec = sprintf "%s %s %s", $diffcmd, $old->file, $new->file;
+    my $exec = sprintf "%s %s %s", $diffcmd, $old->path, $new->path;
     my $data = `$exec` // die;
     if ($data eq '') {
 	if ($opt_silent) {
-	    $stdout->printflush($new->date, "\r");
+	    flush $new->date, "\r";
 	    next;
 	}
 	$data = $new->data;
@@ -163,7 +165,7 @@ while (1) {
     print $new->date, "\n\n" if $opt_date;
     print $data;
     if ($opt_refresh and $opt_clear) {
-	$stdout->printflush($termcap{ed});
+	flush $termcap{ed};
     }
 } continue {
     last if ++$count == $opt_count;
@@ -171,28 +173,23 @@ while (1) {
     sleep $opt_interval;
 }
 
-$stdout->printflush($termcap{el}) if $opt_refresh;
+flush $termcap{el} if $opt_refresh;
 
 exit;
 
 ######################################################################
-package TMPDATA;
+package File::Command;
 
-use strict;
-use warnings;
 use Carp;
-use Fcntl;
-use IO::File;
-use IO::Handle;
+
+BEGIN {
+    our @ISA = qw( File::Tmpfile );
+}
 
 sub new {
     my $class = shift;
-
-    my $fh = new_tmpfile IO::File;
-    defined $fh or die "new_tmpefile: $!\n";
-    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD: $!\n";
-
-    my $obj = bless { FH => $fh }, $class;
+    my $obj = new File::Tmpfile;
+    bless $obj, $class;
     $obj->command(@_) if @_;
     $obj;
 }
@@ -217,25 +214,72 @@ sub update {
 
 sub data {
     my $obj = shift;
+    my $data;
     if (@_) {
-	$obj->{DATA} = shift;
-	my $fh = $obj->fh;
-	$obj->rewind;
-	$fh->truncate(0);
-	$fh->syswrite($obj->{DATA}, length $obj->{DATA});
-	$obj->rewind;
+	$data = shift;
+	$obj->reset->write($data)->flush->rewind;
     } else {
-	$obj->{DATA};
+	$obj->rewind;
+	$data = do { local $/; $obj->fh->getline } ;
+	$obj->rewind;
     }
+    $data;
 }
 
 sub date {
     my $obj = shift;
     if (@_) {
 	$obj->{DATE} = shift;
-    } else {
-	$obj->{DATE};
     }
+    $obj->{DATE};
+}
+
+1;
+
+######################################################################
+package File::Tmpfile;
+
+use strict;
+use warnings;
+use Carp;
+use Fcntl;
+use IO::File;
+use IO::Handle;
+
+sub new {
+    my $class = shift;
+    my $fh = new_tmpfile IO::File or die "new_tmpefile: $!\n";
+    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD: $!\n";
+    bless { FH => $fh }, $class;
+}
+
+sub write {
+    my $obj = shift;
+    my $fh = $obj->fh;
+    if (@_) {
+	my $data = join '', @_;
+	$fh->print($data);
+    }
+    $obj;
+}
+
+sub flush {
+    my $obj = shift;
+    $obj->fh->flush;
+    $obj;
+}
+
+sub rewind {
+    my $obj = shift;
+    $obj->fh->seek(0, 0) or die;
+    $obj;
+}
+
+sub reset {
+    my $obj = shift;
+    $obj->rewind;
+    $obj->fh->truncate(0);
+    $obj;
 }
 
 sub fh {
@@ -248,12 +292,7 @@ sub fd {
     $obj->fh->fileno;
 }
 
-sub rewind {
-    my $obj = shift;
-    $obj->fh->sysseek(0, 0) or die;
-}
-
-sub file {
+sub path {
     my $obj = shift;
     sprintf "/dev/fd/%d", $obj->fd;
 }
