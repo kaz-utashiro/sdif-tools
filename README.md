@@ -16,6 +16,7 @@ Options:
         -p, --plain         shortcut for --nodate --nonewline
             --[no]date      show date at the beginning (default on)
             --[no]newline   print newline result (default on)
+            --[no]clear     clear screen after output (default on)
             --diff=command  diff command used to compare result
 
 Example:
