@@ -494,7 +494,7 @@ sub maketmp {
     }
     close MECAB;
     $tmpfile->rewind;
-    while (my $s = $tmpfile->getline) {
+    while (my $s = $tmpfile->fh->getline) {
 	chomp $s;
 	$s =~ s/$eos/\n/;
 	push(@words, $s);
@@ -758,7 +758,7 @@ sub wc_l {
     my $file = shift;
     my $line;
     $file->rewind;
-    $line++ while $file->getline;
+    $line++ while $file->fh->getline;
     $file->rewind;
     $line;
 }
@@ -1049,7 +1049,6 @@ sub write {
     my $fh = $obj->fh;
     if (@_) {
 	my $data = join '', @_;
-	$obj->{DATA} .= $data;
 	$fh->print($data);
     }
     $obj;
@@ -1063,7 +1062,7 @@ sub flush {
 
 sub rewind {
     my $obj = shift;
-    $obj->fh->sysseek(0, 0) or die;
+    $obj->fh->seek(0, 0) or die;
     $obj;
 }
 
@@ -1072,11 +1071,6 @@ sub reset {
     $obj->rewind;
     $obj->fh->truncate(0);
     $obj;
-}
-
-sub getline {
-    my $obj = shift;
-    $obj->fh->getline;
 }
 
 sub fh {
