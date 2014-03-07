@@ -624,6 +624,10 @@ sub read_diffc {
     map { $_ // "" } @buf;
 }
 
+my %slot;
+BEGIN {
+    %slot = (" " => 0, "\t" => 0, "-" => 1, "+" => 2);
+}
 sub read_diffu {
     my $FH = shift;
     my @l = (0, @_);
@@ -631,8 +635,7 @@ sub read_diffu {
     my $i = 0;
     my @buf;
     my $slot;
-    my %slot = (" " => 0, "\t" => 0, "-" => 1, "+" => 2);
-    while (2 * $l[0] + $l[1] + $l[2] > 0 && ($_ = <$FH>)) {
+    while (2 * $l[0] + $l[1] + $l[2] > 0 and $_ = <$FH>) {
 	# `git diff' produces message like this:
 	# "\ No newline at end of file"
 	/^[ \t\-\+]/ or next;
