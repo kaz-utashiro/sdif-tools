@@ -290,7 +290,8 @@ while (<DIFF>) {
     elsif (($left) = /^\*\*\* ([\d,]+) \*\*\*\*\r?$/) {
 	print_command($_);
 	my(@old, @new);
-	@old = read_diffc(*DIFF, scalar(range($left)));
+	my $oline = range($left);
+	@old = read_diffc(*DIFF, $oline);
 	my $new;
 	if (@old and $old[0] =~ /^--- /) {
 	    $new = shift @old;
@@ -298,11 +299,14 @@ while (<DIFF>) {
 	} else {
 	    $new = <DIFF>;
 	}
+	my $dline = 0;
+	map { ++$dline while /^-/mg } @old;
 	if (($right) = $new =~ /^--- ([\d,]+) ----$/) {
-	    if (@old == 1 and $old[0] ne "") {
+	    my $nline = range($right);
+	    if (@old == 1 and $old[0] ne "" and $oline - $dline == $nline) {
 		@new = ("");
 	    } else {
-		@new = read_diffc(*DIFF, scalar(range($right)));
+		@new = read_diffc(*DIFF, $nline);
 	    }
 	    for my $i (0 .. $#old) {
 		my $cmark = "! ";
