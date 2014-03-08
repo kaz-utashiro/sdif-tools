@@ -60,6 +60,7 @@ my $opt_b;
 my $opt_w;
 my $opt_t;
 my $opt_T;
+my $opt_W;
 
 my $rcs;
 my @rcsopt;
@@ -100,6 +101,7 @@ my @optargs = (
     "command!" => \$opt_command,
     "unknown!" => \$opt_unknown,
     "mark!" => \$opt_mark,
+    "width|W=i" => \$opt_W,
 
     "i|ignore-case" => \$opt_i,
     "b|ignore-space-change" => \$opt_b,
@@ -175,7 +177,7 @@ warn 'colormap = ', Dumper \%colormap if $opt_d{c};
 my $opt_expand = $colormap{COMMAND} =~ /E/;
 my $expand_width;
 if ($opt_expand) {
-    $expand_width = terminal_width();
+    $expand_width = $opt_W || terminal_width();
 }
 
 my $DIFF;
@@ -820,6 +822,7 @@ Options:
 	-r<rev>, -q	rcs options
 
 	-B                  char-by-char comparison
+	-W                  specify terminal width
 	--diff=command      specify diff command
 	--stat              show statistical information
 	--colormap=s        specify color map
@@ -864,6 +867,10 @@ when B<-r>I<rev> is supplied.
 =item B<-B>, B<--char>
 
 Compare the data character-by-character context.
+
+=item B<-W> I<width>, B<--width>=I<width>
+
+Explicitly specify terminal width.
 
 =item B<--diff>=I<command>
 
