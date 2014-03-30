@@ -212,7 +212,7 @@ my %func = $opt_color ?
     );
 
 my $wchar_re = qr{
-    [ \p{East_Asian_Width=Wide} \p{East_Asian_Width=FullWidth} ]
+    [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
 }x;
 
 my $w_pattern;
