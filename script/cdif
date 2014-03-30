@@ -143,7 +143,7 @@ push(@sub_diffopts,
     );
 
 my %colormap = (
-    COMMAND => "SE" ,
+    COMMAND => $opt_256 ? "222SE" : "SE" ,
     OMARK   => "CS" ,
     NMARK   => "MS" ,
     OTEXT   => "C"  ,
