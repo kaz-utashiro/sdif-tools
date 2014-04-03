@@ -26,4 +26,4 @@
       (message "done.")
       ;; save-excursion doesn't recover the point. why?
       (goto-char opoint)
-      (set-buffer-modified-p modified))))
+      (set-buffer-modified-p modified)))
