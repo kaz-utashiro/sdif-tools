@@ -12,6 +12,7 @@
 
 [![default](http://kaz-utashiro.github.io/sdif/images/screen-shot-default.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-default.jpg)
 
+
 # International
 
 ### Unicode
@@ -31,6 +32,10 @@
 
 [![mecab](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab-comp.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab-comp.jpg)
 
+
+# Using inside Emacs
+
+[![emacs](http://cdn-ak.f.st-hatena.com/images/fotolife/u/uta46/20140403/20140403170919.png)](http://cdn-ak.f.st-hatena.com/images/fotolife/u/uta46/20140403/20140403170919.png)
 # NAME
 
 cdif - word context diff
@@ -56,6 +61,7 @@ Options:
         -r<rev>, -q     rcs options
 
         -B                  char-by-char comparison
+        -W                  specify terminal width
         --diff=command      specify diff command
         --stat              show statistical information
         --colormap=s        specify color map
@@ -97,6 +103,10 @@ printed.
 - __-B__, __--char__
 
     Compare the data character-by-character context.
+
+- __-W__ _width_, __--width__=_width_
+
+    Explicitly specify terminal width.
 
 - __--diff__=_command_
 
