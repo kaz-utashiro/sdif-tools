@@ -404,7 +404,7 @@ sub print_command {
     my $line = shift;
     if ($opt_color) {
 	if ($opt_expand and length($line) < $expand_width) {
-	    $line =~ s/$/' ' x ($expand_width - length($_))/e;
+	    $line =~ s/$/' ' x ($expand_width - mbwidth($_))/e;
 	}
 	$line = color($colormap{COMMAND}, $line);
     }
