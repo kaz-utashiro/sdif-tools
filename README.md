@@ -77,11 +77,11 @@ Options:
 
 # DESCRIPTION
 
-__cdif__ is a post-processor of the Unix diff command.  It highlights
+**cdif** is a post-processor of the Unix diff command.  It highlights
 deleted, changed and added words based on word context.
 
 You may want to compare character-by-character rather than
-word-by-word.  Option __-B__ option can be used for that purpose.
+word-by-word.  Option **-B** option can be used for that purpose.
 
 If only one file is specified, cdif reads that file (stdin if no file)
 as a output from diff command.
@@ -91,32 +91,32 @@ printed.
 
 # OPTIONS
 
-- __-__\[__cCuUibwtT__\]
+- **-**\[**cCuUibwtT**\]
 
-    Almost same as __diff__ command.
+    Almost same as **diff** command.
 
-- __--rcs__, __-r___rev_, __-q__
+- **--rcs**, **-r**_rev_, **-q**
 
-    Use rcsdiff instead of normal diff.  Option __--rcs__ is not required
-    when __-r___rev_ is supplied.
+    Use rcsdiff instead of normal diff.  Option **--rcs** is not required
+    when **-r**_rev_ is supplied.
 
-- __-B__, __--char__
+- **-B**, **--char**
 
     Compare the data character-by-character context.
 
-- __-W__ _width_, __--width__=_width_
+- **-W** _width_, **--width**=_width_
 
     Explicitly specify terminal width.
 
-- __--diff__=_command_
+- **--diff**=_command_
 
     Specify the diff command to use.
 
-- __--__\[__no__\]__color__
+- **--**\[**no**\]**color**
 
     Use ANSI color escape sequence for output.
 
-- __--colormap__=_colormap_, __--cm__=_colormap_
+- **--colormap**=_colormap_, **--cm**=_colormap_
 
     Basic _colormap_ format is :
 
@@ -189,7 +189,7 @@ printed.
         F  Flash (blink)
         E  Expand (only for command line)
 
-    When __E__ is specified for command line, the line is expanded to
+    When **E** is specified for command line, the line is expanded to
     window width filling up by space characters.
 
     Defaults are :
@@ -209,25 +209,25 @@ printed.
         cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
              --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544'
 
-- __--__\[__no__\]__commandcolor__, __--cc__
-- __--__\[__no__\]__markcolor__, __--mc__
-- __--__\[__no__\]__textcolor__, __--tc__
+- **--**\[**no**\]**commandcolor**, **--cc**
+- **--**\[**no**\]**markcolor**, **--mc**
+- **--**\[**no**\]**textcolor**, **--tc**
 
     Enable/Disable using color for the corresponding field.
 
-- __--__\[__no__\]__old__, __--__\[__no__\]__new__
+- **--**\[**no**\]**old**, **--**\[**no**\]**new**
 
     Print or not old/new text in diff output.
 
-- __--__\[__no__\]__command__
+- **--**\[**no**\]**command**
 
     Print or not command lines preceding diff output.
 
-- __--__\[__no__\]__unknown__
+- **--**\[**no**\]**unknown**
 
     Print or not lines not look like diff output.
 
-- __--__\[__no__\]__mark__
+- **--**\[**no**\]**mark**
 
     Print or not marks at the top of diff output lines.  At this point,
     this option is effective only for unified diff.
@@ -239,7 +239,7 @@ printed.
 
     These options are prepared for watchdiff(1) command.
 
-- __--stat__
+- **--stat**
 
     Print statistical information at the end of output.  It shows number
     of total appended/deleted/changed words in the context of cdif.  It's
@@ -247,10 +247,10 @@ printed.
     text filling process.  So normal informaiton is followed by modified
     number which ignores insert/delete newlines.
 
-- __--mecab__
+- **--mecab**
 
-    Experimental option for using __mecab__ as a tokenizer.  To use this
-    option, external command __mecab__ has to be installed.
+    Experimental option for using **mecab** as a tokenizer.  To use this
+    option, external command **mecab** has to be installed.
 
 # AUTHOR
 
@@ -264,7 +264,7 @@ perl(1), diff(1), sdif(1), watchdiff(1)
 
 # BUGS
 
-__cdif__ is naturally not very fast because it uses normal diff command
+**cdif** is naturally not very fast because it uses normal diff command
 as a backend processor to compare words.
 
 # COPYRIGHT
