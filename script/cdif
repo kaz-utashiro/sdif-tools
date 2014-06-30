@@ -648,14 +648,15 @@ sub read_diffu {
     map { $_ // "" } @buf;
 }
 
-## 
-## Copied from MBprintf.pm
-## 
 sub mbwidth {
     my $arg = shift;
-    my $len = length($arg);
-    while ($arg =~ m/($wchar_re+)/go) {
-	$len += length($1);
+    my $len = 0;
+    while ($arg =~ m{
+	( (?: (?! $wchar_re) \P{Mn} ) + )
+	|
+	( (?: (?= $wchar_re) \P{Mn} ) + )
+    }xgo) {
+	$len += defined $1 ? length($1) : length($2) * 2;
     }
     $len;
 }
