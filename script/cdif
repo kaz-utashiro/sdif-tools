@@ -263,7 +263,7 @@ while (<DIFF>) {
 	my $new = read_diff(*DIFF, scalar(range($right))) if $cmd =~ /[ca]/;
 
 	if ($cmd eq 'c') {
-	    my($omark, $nmark) = ("< ", "> ");
+	    my($omark, $nmark) = ("", "");
 	    $old =~ s/^(<[ \t])//mg and $omark = $1;
 	    $new =~ s/^(>[ \t])//mg and $nmark = $1;
 
