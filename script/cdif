@@ -11,6 +11,7 @@ use Encode::Guess;
 
 use Getopt::Long;
 use Pod::Usage;
+use List::Util qw(first);
 use Text::ParseWords qw(shellwords);
 use Data::Dumper;
 $Data::Dumper::Terse = 1;
@@ -29,6 +30,16 @@ $Data::Dumper::Terse = 1;
 ## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
 ## DISCLAIMED.
 ##
+
+sub read_until (&$) {
+    my($sub, $fh) = @_;
+    my @lines;
+    while (<$fh>) {
+	push @lines, $_;
+	return @lines if &$sub;
+    }
+    (@lines, undef);
+}
 
 ##
 ## options
@@ -369,6 +380,38 @@ while (<DIFF>) {
 	    }
 	    print $old if $old and $opt_old;
 	    print $new if $new and $opt_new;
+	}
+    }
+    #
+    # conflict marker
+    #
+    elsif (/^<<<<<<<\s+(.*)/) {
+      CONFLICT:
+	{
+	    my $yours = $1;
+	    my $c1 = $_;
+
+	    my @old = read_until { /^=======$/ } *DIFF;
+	    my $c2 = pop @old // do {
+		print $c1, @old;
+		last;
+	    };
+
+	    my @new = read_until { /^>>>>>>>\s+(.*)/ } *DIFF;
+	    my $theirs = $2;
+	    my $c3 = pop @new // do {
+		print $c1, @old, $c2, @new;
+		last;
+	    };
+
+	    my $i = first { $old[$_] eq "|||||||\n" } 0 .. $#old;
+	    my @org = defined $i ? splice @old, $i : ();
+
+	    my $old = join '', @old;
+	    my $new = join '', @new;
+	    ($old, $new) = context($old, $new);
+
+	    print $c1, $old, @org, $c2, $new, $c3;
 	}
     }
     else {
