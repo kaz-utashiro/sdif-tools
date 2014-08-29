@@ -41,6 +41,8 @@ sub read_until (&$) {
     (@lines, undef);
 }
 
+sub all { $_ || return 0 for @_; 1 }
+
 ##
 ## options
 ##
@@ -155,9 +157,11 @@ push(@sub_diffopts,
 
 my %colormap = (
     COMMAND => $opt_256 ? "222SE" : "SE" ,
+    CMARK   => "GS" ,
     OMARK   => "CS" ,
     NMARK   => "MS" ,
     MMARK   => "YS" ,
+    CTEXT   => "G"  ,
     OTEXT   => "C"  ,
     NTEXT   => "M"  ,
     MTEXT   => "Y"  ,
@@ -180,12 +184,8 @@ if (@opt_colormap) {
 }
 
 $opt_commandcolor or $colormap{COMMAND} = "";
-$opt_markcolor    or $colormap{OMARK}   = "";
-$opt_markcolor    or $colormap{NMARK}   = "";
-$opt_markcolor    or $colormap{MMARK}   = "";
-$opt_textcolor    or $colormap{OTEXT}   = "";
-$opt_textcolor    or $colormap{NTEXT}   = "";
-$opt_textcolor    or $colormap{MTEXT}   = "";
+$opt_markcolor or map { $colormap{$_} = "" } grep /MARK$/, keys %colormap;
+$opt_textcolor or map { $colormap{$_} = "" } grep /TEXT$/, keys %colormap;
 
 warn 'colormap = ', Dumper \%colormap if $opt_d{c};
 
@@ -393,39 +393,42 @@ while (<DIFF>) {
 	print_command($_);
 	my @buf = read_diffu3(*DIFF, $1 // 1, $2 // 1, $3 // 1);
 	my $tab = $opt_T ? "\t" : "";
-	while (my($same, $old, $new, $org) = splice(@buf, 0, 4)) {
-	    $same =~ s/^..$tab//mgo if not $opt_mark;
-	    print $same;
-	    if ($old and $new) {
-		my @omark = $old =~ /^(..)$tab/mg;
-		my @nmark = $new =~ /^(..)$tab/mg;
-		$old =~ s/^..$tab//mgo;
-		$new =~ s/^..$tab//mgo;
+	my $lead_re = qr/..$tab/o;
 
-		($old, $new) = context($old, $new);
+	my %buf;
+	my @keys = ('  ', '--', '- ', '+ ', ' -', ' +', '++');
+	while (@buf{@keys} = splice @buf, 0, scalar @keys) {
 
-		$old =~ s/^/shift @omark/mge;
-		$new =~ s/^/shift @nmark/mge;
+	    compare(\@buf{q/--/, q/++/}, $lead_re);
+
+	    if ((all @buf{q/- /, q/+ /}) or (all @buf{q/ -/, q/ +/})) {
+		compare(\@buf{q/- /, q/+ /}, $lead_re);
+		compare(\@buf{q/ -/, q/ +/}, $lead_re);
 	    }
+	    else {
+		compare(\@buf{q/- /, q/ -/}, $lead_re);
+	    }
+
 	    if ($opt_color) {
-		$old =~ s{^(..)($tab.*)}{
-		    ($opt_mark ? color("OMARK", $1) : "") . color("OTEXT", $2)
-		}mgoe if $old;
-		$new =~ s{^(..)($tab.*)}{
-		    ($opt_mark ? color("NMARK", $1) : "") . color("NTEXT", $2)
-		}mgoe if $new;
-		$org =~ s{^(..)($tab.*)}{
-		    ($opt_mark ? color("MMARK", $1) : "") . color("MTEXT", $2)
-		}mgoe if $org;
+		$buf{q/  /} =~ s/^..$tab//mgo if not $opt_mark;
+		map {
+		    my($s, $mark, $text) = @$_;
+		    $$s =~ s{^(..)($tab.*)}{
+			($opt_mark ? color($mark, $1) : '') . color($text, $2)
+		    }mgoe if $$s;
+		}
+		[ \$buf{q/--/}, 'CMARK', 'CTEXT' ],
+		[ \$buf{q/- /}, 'OMARK', 'OTEXT' ],
+		[ \$buf{q/ -/}, 'NMARK', 'NTEXT' ],
+		[ \$buf{q/+ /}, 'MMARK', 'MTEXT' ],
+		[ \$buf{q/ +/}, 'MMARK', 'MTEXT' ],
+		[ \$buf{q/++/}, 'MMARK', 'MTEXT' ];
 	    } else {
 		if (not $opt_mark) {
-		    $old =~ s/^..$tab//mgo;
-		    $new =~ s/^..$tab//mgo;
+		    s/^..$tab//mgo for @buf{@keys};
 		}
 	    }
-	    print $old if $old and $opt_old;
-	    print $new if $new and $opt_new;
-	    print $org if $org;
+	    print @buf{@keys};
 	}
     }
     #
@@ -498,6 +501,21 @@ sub print_command {
 	$line = color($colormap{COMMAND}, $line);
     }
     print $line;
+}
+
+sub compare {
+    my($old, $new, $lead_re) = @_;
+    $$old && $$new or return;
+
+    my @omark = $$old =~ /^($lead_re)/mg;
+    my @nmark = $$new =~ /^($lead_re)/mg;
+    $$old =~ s/^$lead_re//mg;
+    $$new =~ s/^$lead_re//mg;
+
+    ($$old, $$new) = context($$old, $$new);
+
+    $$old =~ s/^/shift @omark/mge if @omark;
+    $$new =~ s/^/shift @nmark/mge if @nmark;
 }
 
 sub context {
@@ -737,14 +755,12 @@ sub read_diffu {
     map { $_ // "" } @buf;
 }
 
+my @keys3;
 my %slot3;
 my %lines3;
 BEGIN {
-    %slot3  = ("  " => 0, "\t" => 0,
-	       "--" => 0,
-	       "- " => 1,
-	       " -" => 2,
-	       "++" => 3, "+ " => 3, " +" => 3);
+    @keys3 = ("  ", "--", "- ", "+ ", " -", " +", "++");
+    @slot3{@keys3} = 0 .. @keys3 - 1;
     %lines3 = ("  " => 3,
 	       "--" => 2, "+ " => 2, " +" => 2,
 	       "++" => 1, "- " => 1, " -" => 1);
@@ -758,12 +774,13 @@ sub read_diffu3 {
     while (<$FH>) {
 	# `git diff' produces message like this:
 	# "\ No newline at end of file"
-	/^[ \t\-\+]/ or next;
+	/^[ \-\+]{2}/ or next;
 	my $mark = substr $_, 0, 2;
-	$i++ while ($i % 4) != $slot3{$mark};
+	$i++ while ($i % @keys3) != $slot3{$mark};
 	$buf[$i] .= $_;
 	last if ($lines -= $lines3{$mark}) <= 0;
     }
+    push @buf, "" while @buf % @keys3;
     map { $_ // "" } @buf;
 }
 
@@ -1018,8 +1035,11 @@ where the FIELD is one from these :
     APPEND   Appended part
     DELETE   Deleted part
 
-and additional I<merged> FIELD for git-diff combined format.
+and additional I<Common> and I<Merged> FIELDs for git-diff combined
+format.
 
+    CMARK    Common mark
+    CTEXT    Common text
     MMARK    Merged mark
     MTEXT    Merged text
 
@@ -1086,19 +1106,23 @@ Defaults are :
     COMMAND => "SE"
     OMARK   => "CS"
     NMARK   => "MS"
-    MMARK   => "YS"
     OTEXT   => "C"
     NTEXT   => "M"
-    MTEXT   => "Y"
     OCHANGE => "BD/445"
     NCHANGE => "BD/445"
     DELETE  => "RD/544"
     APPEND  => "RD/544"
 
+    CMARK   => "GS"
+    MMARK   => "YS"
+    CTEXT   => "G"
+    MTEXT   => "Y"
+
 This is equivalent to :
 
-    cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS,MMARK=YS' \
-         --cm 'OTEXT=C,NTEXT=M,MTEXT=Y,*CHANGE=BD/445,DELETE=APPEND=RD/544'
+    cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
+         --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
+         --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
 =item B<-->[B<no>]B<commandcolor>, B<--cc>
 
