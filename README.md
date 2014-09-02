@@ -134,6 +134,14 @@ printed.
         APPEND   Appended part
         DELETE   Deleted part
 
+    and additional _Common_ and _Merged_ FIELDs for git-diff combined
+    format.
+
+        CMARK    Common mark
+        CTEXT    Common text
+        MMARK    Merged mark
+        MTEXT    Merged text
+
     You can make multiple filelds same color joining them by = :
 
         FIELD1=FIELD2=...=COLOR
@@ -204,10 +212,16 @@ printed.
         DELETE  => "RD/544"
         APPEND  => "RD/544"
 
+        CMARK   => "GS"
+        MMARK   => "YS"
+        CTEXT   => "G"
+        MTEXT   => "Y"
+
     This is equivalent to :
 
         cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
-             --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544'
+             --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
+             --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
 - **--**\[**no**\]**commandcolor**, **--cc**
 - **--**\[**no**\]**markcolor**, **--mc**
