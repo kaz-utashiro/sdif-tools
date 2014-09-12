@@ -382,11 +382,18 @@ while (<DIFF>) {
 
 	while (@buf{@keys} = splice @buf, 0, scalar @keys) {
 
-	    compare(\@buf{q/--/, q/++/}, $mark_re);
-
-	    if (compare(\@buf{q/- /, q/ -/}, $mark_re) == 0) {
-		compare(\@buf{q/- /, q/+ /}, $mark_re);
-		compare(\@buf{q/ -/, q/ +/}, $mark_re);
+	    my @r;
+	    $r[0] =     compare(\@buf{q/--/, q/++/}, $mark_re);
+	    $r[1] =     compare(\@buf{q/- /, q/ -/}, $mark_re);
+	    if ($r[1] == 0) {
+		$r[2] = compare(\@buf{q/- /, q/+ /}, $mark_re);
+		$r[3] = compare(\@buf{q/ -/, q/ +/}, $mark_re);
+	    }
+	    if (sum(@r) == 0) {
+		$r[4] = compare(\@buf{q/- /, q/++/}, $mark_re);
+		$r[5] = compare(\@buf{q/ -/, q/++/}, $mark_re) unless $r[4];
+		$r[6] = compare(\@buf{q/--/, q/+ /}, $mark_re);
+		$r[7] = compare(\@buf{q/--/, q/ +/}, $mark_re) unless $r[6];
 	    }
 
 	    if ($opt_color) {
