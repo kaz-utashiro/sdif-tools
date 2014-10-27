@@ -8,7 +8,7 @@ watchdiff option -- command
 
 Options:
 
-        -r, --refresh:1     refresh screen count (default 0)
+        -r, --refresh:1     refresh screen count (default 1)
         -i, --interval=i    interval time in second (default 2)
         -c, --count=i       command repeat count (default 1000)
         -e, --exec=s        set executing commands
@@ -29,11 +29,11 @@ Example:
 
         watchdiff -sri1 -- netstat -sp ip
 
-        watchdiff -r -e uptime -e iostat -e df
+        watchdiff -e uptime -e iostat -e df
 
-        watchdiff -sr1 --diff 'sdif --cdif -U100' -- netstat -sp ip
+        watchdiff -sr --diff 'sdif --cdif -U100' -- netstat -sp ip
 
-        watchdiff -pc18i10 date; echo ready
+        watchdiff -pc18i10r0 date; say tea is ready
 
 # DESCRIPTION
 
