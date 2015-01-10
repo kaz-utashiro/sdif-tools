@@ -490,17 +490,15 @@ sub print_command {
 
 sub compare {
     my($old, $new) = splice @_, 0, 2;
-    $old && $new && $$old && $$new or return 0;
+    return 0 unless $old && $new && $$old && $$new;
 
     my $omark_re = shift || undef;
     my $nmark_re = shift || $omark_re;
 
     my(@omark, @nmark);
     if ($omark_re) {
-	@omark = $$old =~ /^($omark_re)/mg;
-	@nmark = $$new =~ /^($nmark_re)/mg;
-	$$old =~ s/^$omark_re//mg;
-	$$new =~ s/^$nmark_re//mg;
+	$$old =~ s/^($omark_re)/push(@omark, $1), ""/mge;
+	$$new =~ s/^($nmark_re)/push(@nmark, $1), ""/mge;
     }
 
     ($$old, $$new) = context($$old, $$new);
