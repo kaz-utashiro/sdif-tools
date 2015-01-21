@@ -9,12 +9,21 @@ use Carp;
 use Encode;
 use Encode::Guess;
 
-use Getopt::Long;
 use Pod::Usage;
 use List::Util qw(first sum);
 use Text::ParseWords qw(shellwords);
 use Data::Dumper;
 $Data::Dumper::Terse = 1;
+
+eval {
+    require Getopt::EX::Long;
+    import  Getopt::EX::Long;
+    1;
+} or do {
+    die if $! !~ /^No such file/;
+    require Getopt::Long;
+    import  Getopt::Long;
+};
 
 ##
 ## cdif: word context diff
