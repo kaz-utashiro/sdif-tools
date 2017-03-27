@@ -170,11 +170,12 @@ printed.
         K  Black
         W  White
 
-    and corresponding lowercase background color :
+    and alternative (usually brighter) colors in lowercase :
 
         r, g, b, c, m, y, k, w
 
-    or RGB value if using ANSI 256 color terminal :
+    or RGB values and 24 grey levels if using ANSI 256 or full color
+    terminal :
 
         FORMAT:
             foreground[/background]
@@ -182,6 +183,7 @@ printed.
         COLOR:
             000 .. 555       : 6 x 6 x 6 216 colors
             000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+            L00 .. L23       : 24 grey levels
 
         Sample:
             005     0000FF        : blue foreground
