@@ -2,7 +2,7 @@ title: Cdif
 description: cdif - context diff command
 google_analytics: UA-47549010-1
 show_downloads: true
-theme: jekyll-theme-modernist
+theme: jekyll-theme-dinky
 
 gems:
   - jekyll-mentions
