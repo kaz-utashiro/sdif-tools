@@ -418,10 +418,28 @@ while (<DIFF>) {
     # normal diff
     #
     if (($left, $cmd, $right) = /^([\d,]+)([adc])([\d,]+)\r?$/) {
-	print_command($_);
-	my $old = read_diff(*DIFF, scalar(range($left)))  if $cmd =~ /[cd]/;
-	my $del = read_diff(*DIFF, 1)                     if $cmd =~ /[c]/;
-	my $new = read_diff(*DIFF, scalar(range($right))) if $cmd =~ /[ca]/;
+	my $command_line = $_;
+	my($old, $del, $new);
+	eval {
+	    if ($cmd =~ /[cd]/) {
+		$old =  read_diff(*DIFF, scalar(range($left)));
+		$old =~ /^(?!<)/m and die;
+	    }
+	    if ($cmd =~ /[c]/) {
+		$del =  read_diff(*DIFF, 1);
+		$del =~ /^(?!---)/m and die;
+	    }
+	    if ($cmd =~ /[ca]/) {
+		$new =  read_diff(*DIFF, scalar(range($right)));
+		$new =~ /^(?!>)/m and die;
+	    }
+	}
+	or do {
+	    defined and print for ($command_line, $old, $del, $new);
+	    next;
+	};
+
+	print_command($command_line);
 
 	if ($cmd eq 'c') {
 	    compare(\$old, \$new, qr/<[ \t]/, qr/>[ \t]/);
