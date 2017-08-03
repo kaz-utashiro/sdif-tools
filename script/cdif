@@ -647,7 +647,7 @@ sub print_command {
     my $line = shift;
     if ($opt_color) {
 	if ($opt_expand and length($line) < $expand_width) {
-	    $line =~ s/$/' ' x ($expand_width - mbwidth($_))/e;
+	    $line =~ s/$/' ' x ($expand_width - vwidth($_))/e;
 	}
 	$line = color($colormap{COMMAND}, $line);
     }
@@ -944,27 +944,39 @@ sub read_diffu3 {
     map { $_ // "" } @buf;
 }
 
-sub mbwidth {
-    my $arg = shift;
+sub IsWideSpacing {
+    return <<'END';
++utf8::East_Asian_Width=Wide
++utf8::East_Asian_Width=FullWidth
+-utf8::Nonspacing_Mark
+END
+}
+
+sub IsNarrowSpacing {
+    return <<'END';
++utf8::All
+-utf8::East_Asian_Width=Wide
+-utf8::East_Asian_Width=FullWidth
+-utf8::Nonspacing_Mark
+END
+}
+
+sub vwidth {
+    local $_ = shift;
     my $len = 0;
-    while ($arg =~ m{
-	( (?: (?! $wchar_re) \P{Mn} ) + )
-	|
-	( (?: (?= $wchar_re) \P{Mn} ) + )
-    }xgo) {
-	$len += defined $1 ? length($1) : length($2) * 2;
-    }
+    $len ++   while m/\p{IsNarrowSpacing}/gp;
+    $len += 2 while m/\p{IsWideSpacing}/gp;
     $len;
 }
 
 sub ul {
     local $_ = join '', @_;
-    s/(.)/$ul[mbwidth($1)].$1/ge;
+    s/(.)/$ul[vwidth($1)].$1/ge;
     $_;
 }
 sub bd {
     local $_ = join '', @_;
-    s/(\S)/$1.$bs[mbwidth($1)].$1/ge;
+    s/(\S)/$1.$bs[vwidth($1)].$1/ge;
     $_;
 }
 
