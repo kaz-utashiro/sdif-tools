@@ -433,6 +433,7 @@ while (<DIFF>) {
 		$new =  read_diff(*DIFF, scalar(range($right)));
 		$new =~ /^(?!>)/m and die;
 	    }
+	    1;
 	}
 	or do {
 	    defined and print for ($command_line, $old, $del, $new);
