@@ -395,7 +395,7 @@ my @ul = ("", "_\010", "__\010\010");
 my @bs = ("", "\010", "\010\010");
 
 ##
-## Temporary file names
+## Temporary files
 ##
 my $T1 = new File::Tmpfile;
 my $T2 = new File::Tmpfile;
@@ -474,8 +474,7 @@ while (<DIFF>) {
 	} else {
 	    $new = <DIFF>;
 	}
-	my $dline = 0;
-	map { ++$dline while /^-/mg } @old;
+	my $dline = map { /^-/mg } @old;
 	if (($right) = $new =~ /^--- ([\d,]+) ----$/) {
 	    my $nline = range($right);
 	    if (@old == 1 and $old[0] ne "" and $oline - $dline == $nline) {
@@ -1158,7 +1157,7 @@ format.
     MMARK    Merged mark
     MTEXT    Merged text
 
-You can make multiple filelds same color joining them by = :
+You can make multiple fields same color joining them by = :
 
     FIELD1=FIELD2=...=COLOR
 
@@ -1209,7 +1208,7 @@ terminal :
 
 and other effects :
 
-    S  Standout (reverse video)
+    S  Stand-out (reverse video)
     U  Underline
     D  Double-struck (boldface)
     F  Flash (blink)
@@ -1277,8 +1276,8 @@ These options are prepared for watchdiff(1) command.
 
 Print statistical information at the end of output.  It shows number
 of total appended/deleted/changed words in the context of cdif.  It's
-common to have many insertions and deletions of newlines becuase of
-text filling process.  So normal informaiton is followed by modified
+common to have many insertions and deletions of newlines because of
+text filling process.  So normal information is followed by modified
 number which ignores insert/delete newlines.
 
 =item B<--mecab>
@@ -1301,7 +1300,7 @@ perl(1), diff(1), sdif(1), watchdiff(1)
 =head1 BUGS
 
 B<cdif> is naturally not very fast because it uses normal diff command
-as a backend processor to compare words.
+as a back-end processor to compare words.
 
 =head1 COPYRIGHT
 

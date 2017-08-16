@@ -142,7 +142,7 @@ printed.
         MMARK    Merged mark
         MTEXT    Merged text
 
-    You can make multiple filelds same color joining them by = :
+    You can make multiple fields same color joining them by = :
 
         FIELD1=FIELD2=...=COLOR
 
@@ -193,7 +193,7 @@ printed.
 
     and other effects :
 
-        S  Standout (reverse video)
+        S  Stand-out (reverse video)
         U  Underline
         D  Double-struck (boldface)
         F  Flash (blink)
@@ -259,8 +259,8 @@ printed.
 
     Print statistical information at the end of output.  It shows number
     of total appended/deleted/changed words in the context of cdif.  It's
-    common to have many insertions and deletions of newlines becuase of
-    text filling process.  So normal informaiton is followed by modified
+    common to have many insertions and deletions of newlines because of
+    text filling process.  So normal information is followed by modified
     number which ignores insert/delete newlines.
 
 - **--mecab**
@@ -281,7 +281,7 @@ perl(1), diff(1), sdif(1), watchdiff(1)
 # BUGS
 
 **cdif** is naturally not very fast because it uses normal diff command
-as a backend processor to compare words.
+as a back-end processor to compare words.
 
 # COPYRIGHT
 
