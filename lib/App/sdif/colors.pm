@@ -27,18 +27,18 @@ define :CDIF      APPEND=DELETE=K/545,*CHANGE=K/455
 define :DARK_CDIF APPEND=DELETE=555/311,*CHANGE=555/113
 
 option	--green \
-	--cm ?COMMAND=010/555;SE	\
-	--cm    ?FILE=010/555;SED	\
+	--cm ?COMMAND=010/555;S		\
+	--cm    ?FILE=010/555;SD	\
 	--cm    ?MARK=010/444		\
 	--cm    UMARK=			\
 	--cm    ?LINE=220		\
-	--cm    ?TEXT=K/454;E		\
+	--cm    ?TEXT=K/454		\
 	--cm    UTEXT=			\
 	--cdifopts '--cm :CDIF'
 
 option	--dark_green \
-	--cm ?COMMAND=555/121;E		\
-	--cm    ?FILE=555/121;ED	\
+	--cm ?COMMAND=555/121;		\
+	--cm    ?FILE=555/121;D		\
 	--cm    ?MARK=333/L05		\
 	--cm    UMARK=			\
 	--cm    ?LINE=220		\
@@ -47,38 +47,38 @@ option	--dark_green \
 	--cdifopts '--cm :DARK_CDIF'
 
 option	--cmy \
-	--cm OCOMMAND=C/555;SE		\
-	--cm NCOMMAND=M/555;SE		\
-	--cm MCOMMAND=Y/555;SE		\
-	--cm    OFILE=C/555;SED		\
-	--cm    NFILE=M/555;SED		\
-	--cm    MFILE=Y/555;SED		\
+	--cm OCOMMAND=C/555;S		\
+	--cm NCOMMAND=M/555;S		\
+	--cm MCOMMAND=Y/555;S		\
+	--cm    OFILE=C/555;SD		\
+	--cm    NFILE=M/555;SD		\
+	--cm    MFILE=Y/555;SD		\
 	--cm    OMARK=C/444		\
 	--cm    NMARK=M/444		\
 	--cm    MMARK=Y/444		\
 	--cm    UMARK=/444		\
 	--cm    ?LINE=Y			\
-	--cm    ?TEXT=KE/554		\
+	--cm    ?TEXT=K/554		\
 	--cm    UTEXT=			\
 	--cdifopts '--cm :CDIF'
 
 option	--dark_cmy \
-	--cm OCOMMAND=555/011;E		\
-	--cm NCOMMAND=555/202;E		\
-	--cm MCOMMAND=555/110;E		\
-	--cm    OFILE=555/011;ED	\
-	--cm    NFILE=555/202;ED	\
-	--cm    MFILE=555/K;ED		\
+	--cm OCOMMAND=555/011		\
+	--cm NCOMMAND=555/202		\
+	--cm MCOMMAND=555/110		\
+	--cm    OFILE=555/011;D		\
+	--cm    NFILE=555/202;D		\
+	--cm    MFILE=555/K;D		\
 	--cm    ?MARK=333/L05		\
 	--cm    UMARK=			\
 	--cm    ?LINE=110		\
-	--cm    ?TEXT=555/L03;E		\
+	--cm    ?TEXT=555/L03		\
 	--cm    UTEXT=			\
 	--cdifopts '--cm :DARK_CDIF'
 
 option	--mono \
-	--cm ?COMMAND=111;SE	\
-	--cm    ?FILE=111;DSE	\
+	--cm ?COMMAND=111;S	\
+	--cm    ?FILE=111;DS	\
 	--cm    ?MARK=000/333	\
 	--cm    UMARK=		\
 	--cm    ?LINE=222	\
@@ -87,8 +87,8 @@ option	--mono \
 	--cdifopts '--cm APPEND=DELETE=555/333,*CHANGE=000/444'
 
 option	--dark_mono \
-	--cm ?COMMAND=333;SE	\
-	--cm    ?FILE=333;DSE	\
+	--cm ?COMMAND=333;S	\
+	--cm    ?FILE=333;DS	\
 	--cm    ?MARK=000/333	\
 	--cm    UMARK=		\
 	--cm    ?LINE=333	\

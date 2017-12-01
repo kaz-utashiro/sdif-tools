@@ -1,0 +1,8 @@
+name = "App-sdif"
+readme_from = "script/sdif"
+script_files = [ "script/sdif" ]
+# badges = ["travis"]
+authority="cpan:UTASHIRO"
+
+module_maker="ModuleBuildTiny"
+
