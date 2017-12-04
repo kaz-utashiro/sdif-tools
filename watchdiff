@@ -140,7 +140,7 @@ my $old = new File::Command @opt_exec;
 my $new = new File::Command @opt_exec;
 
 my @termcap = qw( home clear el ed );
-my %termcap = map { $_ => `tput $_` } @termcap if $opt_refresh;
+my %termcap = map { $_ => `tput $_` // '' } @termcap if $opt_refresh;
 
 print $termcap{clear} if $opt_refresh;
 my $count = 0;
