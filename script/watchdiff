@@ -1,0 +1,295 @@
+#!/usr/bin/perl
+
+=pod
+
+=head1 NAME
+
+watchdiff - repeat command and watch the differences
+
+=head1 SYNOPSIS
+
+watchdiff option -- command
+
+Options:
+
+	-r, --refresh:1     refresh screen count (default 1)
+	-i, --interval=i    interval time in second (default 2)
+	-c, --count=i       command repeat count (default 1000)
+	-e, --exec=s        set executing commands
+	-s, --silent        do not show same result
+	-p, --plain         shortcut for --nodate --nonewline
+	    --[no]date      show date at the beginning (default on)
+	    --[no]newline   print newline result (default on)
+	    --[no]clear     clear screen after output (default on)
+	    --diff=command  diff command used to compare result
+
+Example:
+
+	watchdiff df
+
+	watchdiff --silent df
+
+	watchdiff --refresh 5 --noclear -- df
+
+	watchdiff -sri1 -- netstat -sp ip
+
+	watchdiff -e uptime -e iostat -e df
+
+	watchdiff -sr --diff 'sdif --cdif -U100' -- netstat -sp ip
+
+	watchdiff -pc18i10r0 date; say tea is ready
+
+
+=head1 DESCRIPTION
+
+Please install cdif(1) command as a default backend.
+
+
+=head1 AUTHOR
+
+Kazumasa Utashiro
+
+https://github.com/kaz-utashiro/watchdiff
+
+
+=head1 SEE ALSO
+
+diff(1), cdif(1), sdif(1)
+
+
+=head1 COPYRIGHT
+
+Use and redistribution for ANY PURPOSE are granted as long as all
+copyright notices are retained.  Redistribution with modification is
+allowed provided that you make your modified version obviously
+distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
+THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+DISCLAIMED.
+
+=cut
+
+use strict;
+use warnings;
+require 5.010;
+
+use Fcntl;
+use IO::File;
+use IO::Handle;
+use Getopt::Long;
+use Pod::Usage;
+
+my $opt_d;
+my $opt_diff;
+my $opt_date = 1;
+my $opt_refresh = 1;
+my $opt_interval = 2;
+my $opt_count = 1000;
+my $opt_clear = 1;
+my $opt_silent = 0;
+my $opt_newline = 1;
+my $opt_mark = 0;
+my $opt_old = 0;
+my @opt_exec;
+
+my $default_diff =
+    'cdif --nocommand --nounknown -U100';
+
+my @optargs = (
+    "d" => \$opt_d,
+    "diff=s" => \$opt_diff,
+    "e|exec=s" => \@opt_exec,
+    "r|refresh:1" => \$opt_refresh,
+    "i|interval=i" => \$opt_interval,
+    "c|count=i" => \$opt_count,
+    "clear!" => \$opt_clear,
+    "s|silent!" => \$opt_silent,
+    "M|mark!" => \$opt_mark,
+    "O|old!" => \$opt_old,
+    "D|date!" => \$opt_date,
+    "N|newline!" => \$opt_newline,
+    "p|plain" => sub { $opt_date = $opt_newline = 0 },
+    "h|help" => sub { pod2usage() },
+    "H|man" => sub { pod2usage( {-verbose => 2} ) },
+    );
+
+Getopt::Long::Configure("bundling");
+GetOptions(@optargs) || pod2usage();
+
+if (@ARGV) {
+    push(@opt_exec, join ' ', @ARGV);
+} else {
+    pod2usage() unless @opt_exec;
+}
+
+my $stdout = new IO::Handle;
+$stdout->fdopen(fileno(STDOUT), "w") or die;
+sub flush { $stdout->printflush(@_) }
+
+my $diffcmd;
+if ($opt_diff) {
+    $diffcmd = $opt_diff;
+} else {
+    $diffcmd = join(' ',
+		    $default_diff,
+		    $opt_mark ? () : qw(--nomark),
+		    $opt_old  ? () : qw(--noold),
+	);
+}
+
+my $old = new File::Command @opt_exec;
+my $new = new File::Command @opt_exec;
+
+my @termcap = qw( home clear el ed );
+my %termcap = map { $_ => `tput $_` // '' } @termcap if $opt_refresh;
+
+print $termcap{clear} if $opt_refresh;
+my $count = 0;
+my $refresh_count = 0;
+while (1) {
+    $old->rewind;
+    $new->update;
+    my $exec = sprintf "%s %s %s", $diffcmd, $old->path, $new->path;
+    my $data = `$exec` // die;
+    if ($data eq '') {
+	if ($opt_silent) {
+	    flush $new->date, "\r";
+	    next;
+	}
+	$data = $new->data;
+    }
+    $data .= "\n" if $opt_newline;
+    if ($opt_refresh) {
+	$data =~ s/^/$termcap{el}/mg;
+	print $termcap{home} if $refresh_count++ % $opt_refresh == 0;
+    }
+    print $new->date, "\n\n" if $opt_date;
+    print $data;
+    if ($opt_refresh and $opt_clear) {
+	flush $termcap{ed};
+    }
+} continue {
+    last if ++$count == $opt_count;
+    ($old, $new) = ($new, $old);
+    sleep $opt_interval;
+}
+
+flush $termcap{el} if $opt_refresh;
+
+exit;
+
+######################################################################
+package File::Command;
+
+use Carp;
+
+BEGIN {
+    our @ISA = qw( File::Tmpfile );
+}
+
+sub new {
+    my $class = shift;
+    my $obj = new File::Tmpfile;
+    bless $obj, $class;
+    $obj->command(@_) if @_;
+    $obj;
+}
+
+sub command {
+    my $obj = shift;
+    if (@_) {
+	$obj->{COMMAND} = [ @_ ];
+    } else {
+	@{$obj->{COMMAND}};
+    }
+}
+
+sub update {
+    use Time::localtime;
+    my $obj = shift;
+    $obj->data(join "\n", map { scalar `$_` } $obj->command);
+    $obj->date(ctime());
+    $obj;
+}
+
+sub data {
+    my $obj = shift;
+    if (@_) {
+	$obj->reset->write(shift)->flush->rewind;
+	$obj;
+    } else {
+	$obj->rewind;
+	my $data = do { local $/; $obj->fh->getline } ;
+	$obj->rewind;
+	$data;
+    }
+}
+
+sub date {
+    my $obj = shift;
+    @_ ? $obj->{DATE} = shift : $obj->{DATE};
+}
+
+1;
+
+######################################################################
+package File::Tmpfile;
+
+use strict;
+use warnings;
+use Carp;
+use Fcntl;
+use IO::File;
+use IO::Handle;
+
+sub new {
+    my $class = shift;
+    my $fh = new_tmpfile IO::File or die "new_tmpfile: $!\n";
+    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD: $!\n";
+    bless { FH => $fh }, $class;
+}
+
+sub write {
+    my $obj = shift;
+    my $fh = $obj->fh;
+    if (@_) {
+	my $data = join '', @_;
+	$fh->print($data);
+    }
+    $obj;
+}
+
+sub flush {
+    my $obj = shift;
+    $obj->fh->flush;
+    $obj;
+}
+
+sub rewind {
+    my $obj = shift;
+    $obj->fh->seek(0, 0) or die;
+    $obj;
+}
+
+sub reset {
+    my $obj = shift;
+    $obj->rewind;
+    $obj->fh->truncate(0);
+    $obj;
+}
+
+sub fh {
+    my $obj = shift;
+    $obj->{FH};
+}
+
+sub fd {
+    my $obj = shift;
+    $obj->fh->fileno;
+}
+
+sub path {
+    my $obj = shift;
+    sprintf "/dev/fd/%d", $obj->fd;
+}
+
+1;
