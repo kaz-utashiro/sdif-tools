@@ -1,5 +1,5 @@
 {
-   "abstract" : "side-by-side diff viewer for ANSI terminal",
+   "abstract" : "sdif and family tools, cdif and watchdiff",
    "author" : [
       "Kaz Utashiro <kaz@utashiro.com>"
    ],
@@ -57,13 +57,13 @@
    "release_status" : "unstable",
    "resources" : {
       "bugtracker" : {
-         "web" : "https://github.com/kaz-utashiro/sdif/issues"
+         "web" : "https://github.com/kaz-utashiro/sdif-tools/issues"
       },
-      "homepage" : "https://github.com/kaz-utashiro/sdif",
+      "homepage" : "https://github.com/kaz-utashiro/sdif-tools",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/kaz-utashiro/sdif.git",
-         "web" : "https://github.com/kaz-utashiro/sdif"
+         "url" : "git://github.com/kaz-utashiro/sdif-tools.git",
+         "web" : "https://github.com/kaz-utashiro/sdif-tools"
       }
    },
    "version" : "3.1.1",

@@ -1,6 +1,5 @@
 name = "App-sdif"
-readme_from = "script/sdif"
-script_files = [ "script/sdif" ]
+script_files = [ "script/sdif", "script/cdif", "script/watchdiff" ]
 # badges = ["travis"]
 authority="cpan:UTASHIRO"
 

@@ -3,16 +3,9 @@
 ##
 ## sdif: sdiff clone
 ##
-## Copyright (c) 1992-2017 Kazumasa Utashiro
+## Copyright (c) 1992- Kazumasa Utashiro
 ##
 ## Original version on Jul 24 1991
-##
-## Use and redistribution for ANY PURPOSE are granted as long as all
-## copyright notices are retained.  Redistribution with modification
-## is allowed provided that you make your modified version obviously
-## distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
-## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
-## DISCLAIMED.
 ##
 
 =pod
@@ -484,10 +477,12 @@ sub read_diffu {
     my $column = @_;
     my $total = sum @_;
 
+    use App::sdif::LabelStack;
+
     my $mark_length = $column - 1;
     my $start_label = ' ' x $mark_length;
     my @lsopt = (START => $start_label);
-    my @stack = (new LabelStack @lsopt);
+    my @stack = (new App::sdif::LabelStack @lsopt);
     while (<$FH>) {
 	# `git diff' produces message like this:
 	# "\ No newline at end of file"
@@ -497,7 +492,7 @@ sub read_diffu {
 	};
 	my $mark = substr $_, 0, $mark_length;
 	if ($mark ne $stack[-1]->lastlabel and $stack[-1]->exists($mark)) {
-	    push @stack, new LabelStack @lsopt;
+	    push @stack, new App::sdif::LabelStack @lsopt;
 	}
 	$stack[-1]->append($mark, $_);
 	last if ($total -= marklines($mark)) <= 0;
@@ -1234,35 +1229,15 @@ This is equivalent to :
 
 =item Kazumasa Utashiro
 
-=item L<https://github.com/kaz-utashiro/>
+=item L<https://github.com/kaz-utashiro/sdif-tools>
 
 =back
 
 
 =head1 SEE ALSO
 
-=over
+L<cdif(1)>, L<watchdiff(1)>
 
-=item sdif
-
-=over
-
-=item L<https://github.com/kaz-utashiro/sdif>
-
-=item L<http://kaz-utashiro.github.io/sdif/>
-
-=back
-
-=item cdif
-
-=over
-
-=item L<https://github.com/kaz-utashiro/cdif>
-
-=item L<http://kaz-utashiro.github.io/cdif/>
-
-=back
-
-=back
+L<Getopt::EX::Colormap>
 
 =cut
