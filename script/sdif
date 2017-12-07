@@ -39,7 +39,7 @@ diff ... | sdif
     --diff=s		set diff command
     --diffopts=s	set diff command options
 
-    --cdif		use ``cdif'' as word context diff backend
+    --[no]cdif		use ``cdif'' as word context diff backend
     --cdifopts=s	set cdif command options
     --mecab		pass --mecab option to cdif
 
@@ -82,7 +82,7 @@ my $opt_C;
 my $opt_U;
 my $opt_truncate;
 my $opt_onword;
-my $opt_cdif;
+my $opt_cdif = 0;
 my @opt_cdifopts = qw(--nocc --nomc --notc);
 my $opt_env = 1;
 my @opt_colormap;
@@ -139,7 +139,7 @@ my @optargs = (
     "u|unified" => \$opt_u,
     "C=i" => \$opt_C,
     "U=i" => \$opt_U,
-    "cdif" => \$opt_cdif,
+    "cdif!" => \$opt_cdif,
     "cdifopts=s" => \@opt_cdifopts,
     "colortable" => \$opt_colortable,
 
@@ -1068,7 +1068,7 @@ Truncate lines if they are longer than printing width.
 
 Fold long line at word boundaries.
 
-=item B<--cdif>
+=item B<-->[B<no>]B<cdif>
 
 Use B<cdif> command instead of normal diff command.
 

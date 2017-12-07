@@ -35,7 +35,7 @@ my $opt_old = 0;
 my @opt_exec;
 
 my $default_diff =
-    'cdif --nocommand --nounknown -U100';
+    'cdif --no-command --no-unknown -U100';
 
 my @optargs = (
     "d" => \$opt_d,
