@@ -45,7 +45,7 @@ diff ... | sdif
 
 =cut
 
-require 5.010;
+require 5.014;
 use strict;
 use warnings;
 use utf8;

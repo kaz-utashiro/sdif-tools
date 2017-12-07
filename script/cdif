@@ -10,7 +10,7 @@
 
 use strict;
 use warnings;
-require 5.010;
+require 5.014;
 
 use utf8;
 use Carp;
