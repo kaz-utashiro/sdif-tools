@@ -34,6 +34,7 @@ diff ... | sdif
     --[no]256		on/off ANSI 256 color mode (default on)
     --mark=position	mark position (right, left, center, side) or no
     --view, -v		viewer mode
+    --ambiguous=s       ambiguous character width (detect, wide, narrow)
 
     --man		display manual page
     --diff=s		set diff command
@@ -54,7 +55,6 @@ use Carp;
 use List::Util qw(min max reduce sum);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use Text::VisualWidth::PP qw(vwidth);
 use Data::Dumper;
 $Data::Dumper::Terse = 1;
 
@@ -90,6 +90,7 @@ my @opt_diffopts;
 my $opt_diff = 'diff';
 my $opt_digit = 4;
 my $opt_view;
+my $opt_ambiguous = 'detect';
 my $screen_width;
 my $column_width;
 my @column_width;
@@ -124,6 +125,7 @@ my @optargs = (
     "s" => \$opt_s,
     "width|W=i" => \$opt_W,
     "view|v" => \$opt_view,
+    "ambiguous=s" => \$opt_ambiguous,
 
     "d+" => \$opt_d,
     "h|help" => sub { usage() },
@@ -152,6 +154,16 @@ Getopt::Long::Configure("bundling");
 GetOptions(@optargs) || usage();
 
 warn "\@ARGV = (@SAVEDARGV)\n" if $opt_d;
+
+if ($opt_ambiguous =~ /^(?:detect|auto)$/) {
+    use Unicode::EastAsianWidth::Detect qw(is_cjk_lang);
+    $opt_ambiguous = is_cjk_lang ? 'wide' : 'narrow';
+}
+
+use Text::VisualWidth::PP qw(vwidth);
+if ($opt_ambiguous =~ /^(?:wide|full)/) {
+    $Text::VisualWidth::PP::EastAsian = 1;
+}
 
 my %colormap =
     $opt_256 ? (
@@ -756,19 +768,11 @@ sub print_field_n {
     print "\n";
 }
 
-my($wide_props, $wide_props_posi, $wide_props_nega);
 my $alphanum;
 my $reset_re;
 my $color_re;
 my $control_re;
 BEGIN {
-    my $wide      = "utf8::East_Asian_Width=Wide";
-    my $fullwidth = "utf8::East_Asian_Width=FullWidth";
-    my $ambiguous = "utf8::East_Asian_Width=Ambiguous";
-    $wide_props  = "${wide}\n${fullwidth}";
-    $wide_props .= "\n${ambiguous}" if 0; # XXX hard coded
-    $wide_props_posi = $wide_props =~ s/^/+/mgr;
-    $wide_props_nega = $wide_props =~ s/^/-/mgr;
     $alphanum = '_\d\p{Latin}';
     $reset_re = qr/\e\[[0;]*m/;
     $color_re = qr{ \e \[ [\d;]* m }x;
@@ -777,17 +781,28 @@ BEGIN {
 
 sub IsWideSpacing {
     return <<"END";
-${wide_props_posi}
++utf8::East_Asian_Width=Wide
++utf8::East_Asian_Width=FullWidth
 -utf8::Nonspacing_Mark
 END
 }
 
-sub IsNarrowSpacing {
+sub IsWideAmbiguousSpacing {
     return <<"END";
-+utf8::All
-${wide_props_nega}
++utf8::East_Asian_Width=Wide
++utf8::East_Asian_Width=FullWidth
++utf8::East_Asian_Width=Ambiguous
 -utf8::Nonspacing_Mark
 END
+}
+
+sub _startWideSpacing {
+    # look at $_
+    if ($Text::VisualWidth::PP::EastAsian) {
+	/^\p{IsWideAmbiguousSpacing}/;
+    } else {
+	/^\p{IsWideSpacing}/;
+    }
 }
 
 sub fold {
@@ -818,7 +833,7 @@ sub fold {
 	}
 
 	last if $room < 1;
-	last if $room != $width and /^\p{IsWideSpacing}/ and $room < 2;
+	last if $room != $width and &_startWideSpacing and $room < 2;
 
 	if (s/^($color_re)//) {
 	    $folded .= $1;
@@ -870,7 +885,7 @@ sub fold {
 	$_ = join '', @color_stack, $_ if $_ ne '';
     }
 
-    $folded .= ' ' x $room if $opt{pad};
+    $folded .= ' ' x $room if $room > 0 and $opt{pad};
 
     ($folded, $_);
 }
@@ -1110,6 +1125,27 @@ Show table of ANSI 216 colors.
 =item B<--view>, B<-v>
 
 Viewer mode.  Display two files side-by-side in straightforward order.
+
+=item B<--ambiguous>
+
+This is experimental option to specify how to treat Unicode ambiguous
+width characters.  Default value is 'detect'.
+
+=over 4
+
+=item B<detect> or B<auto>
+
+Detect from user's locate.  Set 'wide' when used in CJK enviroment.
+
+=item B<wide> or B<full>
+
+Treat ambiguous characters as wide.
+
+=item B<narrow> or B<half>
+
+Treat ambiguous characters as narrow.
+
+=back
 
 =item B<--colormap>=I<colormap>, B<--cm>=I<colormap>
 
