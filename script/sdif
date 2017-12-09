@@ -212,7 +212,7 @@ my $color_handler = new Getopt::EX::Colormap
     HASH => \%colormap;
 $color_handler->load_params(@opt_colormap);
 
-my $colorize = do {
+my $painter = do {
     if ($opt_color) {
 	sub { $color_handler->color(@_) };
     } else {
@@ -703,16 +703,16 @@ sub print_column_23 {
 	    if $column >= 3;
 
 	my @f;
-	$f[0]{MARK} = $colorize->($OMARK, $omark);
-	$f[0]{LINE} = $colorize->($OLINE, $onum) . $nspace if $print_number;
-	$f[0]{TEXT} = $colorize->($OTEXT, $o) if $o ne "";
-	$f[1]{MARK} = $colorize->($NMARK, $nmark);
-	$f[1]{LINE} = $colorize->($NLINE, $nnum) . $nspace if $print_number;
-	$f[1]{TEXT} = $colorize->($NTEXT, $n) if $n ne "";
+	$f[0]{MARK} = $painter->($OMARK, $omark);
+	$f[0]{LINE} = $painter->($OLINE, $onum) . $nspace if $print_number;
+	$f[0]{TEXT} = $painter->($OTEXT, $o) if $o ne "";
+	$f[1]{MARK} = $painter->($NMARK, $nmark);
+	$f[1]{LINE} = $painter->($NLINE, $nnum) . $nspace if $print_number;
+	$f[1]{TEXT} = $painter->($NTEXT, $n) if $n ne "";
 	if ($column >= 3) {
-	    $f[2]{MARK} = $colorize->($MMARK, $mmark);
-	    $f[2]{LINE} = $colorize->($MLINE, $mnum) . $nspace if $print_number;
-	    $f[2]{TEXT} = $colorize->($MTEXT, $m) if $m ne "";
+	    $f[2]{MARK} = $painter->($MMARK, $mmark);
+	    $f[2]{LINE} = $painter->($MLINE, $mnum) . $nspace if $print_number;
+	    $f[2]{TEXT} = $painter->($MTEXT, $m) if $m ne "";
 	}
 	print_field_n(@f);
 
@@ -748,7 +748,7 @@ sub print_command_n {
 	($_) = fold($_, $width, pad => 1);
 	my %f;
 	my $color = $i < @color ? $color[$i] : $color[-1];
-	$f{TEXT} = $colorize->($color, $_);
+	$f{TEXT} = $painter->($color, $_);
 	$f{MARK} = ' ';
 	push @f, \%f;
     }
@@ -984,7 +984,7 @@ sub color_table {
 	    for my $format (@format) {
 		for my $a (0..5) {
 		    my $rgb = sprintf $format, $a;
-		    print color("$rgb/$rgb", " $rgb");
+		    print $painter->("$rgb/$rgb", " $rgb");
 		}
 	    }
 	    print "\n";
@@ -992,23 +992,23 @@ sub color_table {
     }
     for my $g (0..5) {
 	my $grey = $g x 3;
-	print color("$grey/$grey", sprintf(" %-19s", $grey));
+	print $painter->("$grey/$grey", sprintf(" %-19s", $grey));
     }
     print "\n";
     for my $g (0..23) {
 	my $grey = sprintf "L%02d", $g;
-	print color("$grey/$grey", " $grey");
+	print $painter->("$grey/$grey", " $grey");
     }
     print "\n";
     for my $alt (0, 1) {
 	for my $C (split //, "RGBCMYKW") {
 	    my $c = $alt ? lc $C : $C;
-	    print color("$c/$c", "  $c ");
+	    print $painter->("$c/$c", "  $c ");
 	}
 	print "\n";
     }
     for my $rgb (qw(500 050 005 055 505 550 000 555)) {
-	print color("$rgb/$rgb", " $rgb");
+	print $painter->("$rgb/$rgb", " $rgb");
     }
     print "\n";
 }
@@ -1126,7 +1126,7 @@ Show table of ANSI 216 colors.
 
 Viewer mode.  Display two files side-by-side in straightforward order.
 
-=item B<--ambiguous>
+=item B<--ambiguous>=I<width_spec>
 
 This is experimental option to specify how to treat Unicode ambiguous
 width characters.  Default value is 'detect'.
