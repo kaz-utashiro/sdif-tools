@@ -55,7 +55,7 @@ my @optargs = (
     "H|man" => sub { pod2usage( {-verbose => 2} ) },
     );
 
-Getopt::Long::Configure("bundling");
+Getopt::Long::Configure(qw(bundling require_order));
 GetOptions(@optargs) || pod2usage();
 
 if (@ARGV) {
