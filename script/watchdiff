@@ -17,6 +17,7 @@ use IO::File;
 use IO::Handle;
 use Getopt::Long;
 use Pod::Usage;
+use Data::Dumper;
 
 use App::sdif;
 my $version = $App::sdif::VERSION;
@@ -83,8 +84,9 @@ use App::cdif::Command;
 my $old = new App::cdif::Command @opt_exec;
 my $new = new App::cdif::Command @opt_exec;
 
-my @termcap = qw( home clear el ed );
+my @termcap = qw( home clear el ed cd );
 my %termcap = map { $_ => `tput $_` // '' } @termcap if $opt_refresh;
+$termcap{ed} ||= $termcap{cd};
 
 print $termcap{clear} if $opt_refresh;
 my $count = 0;
