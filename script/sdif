@@ -157,7 +157,7 @@ warn "\@ARGV = (@SAVEDARGV)\n" if $opt_d;
 
 if ($opt_ambiguous =~ /^(?:detect|auto)$/) {
     use Unicode::EastAsianWidth::Detect qw(is_cjk_lang);
-    $opt_ambiguous = is_cjk_lang ? 'wide' : 'narrow';
+    $opt_ambiguous = is_cjk_lang() ? 'wide' : 'narrow';
 }
 
 use Text::VisualWidth::PP qw(vwidth);
