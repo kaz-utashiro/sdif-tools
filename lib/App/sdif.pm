@@ -11,7 +11,7 @@ our $VERSION = "3.2.2";
 
 =head1 NAME
 
-sdif-tools - sdif and family tools, cdif and watchdiff
+App::sdif - sdif and family tools, cdif and watchdiff
 
 =head1 SYNOPSIS
 
