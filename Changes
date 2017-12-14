@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+3.2.3 2017-12-14T17:30:39Z
+
+    - Update to the latest Getopt::EX.
+
 3.2.2 2017-12-11T03:59:41Z
 
     watchdiff:
