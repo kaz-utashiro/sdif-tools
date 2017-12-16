@@ -42,7 +42,7 @@
       },
       "runtime" : {
          "requires" : {
-            "Getopt::EX" : "v1.2.1",
+            "Getopt::EX" : "v1.4.2",
             "List::Util" : "1.33",
             "Text::VisualWidth::PP" : "0.05",
             "Unicode::EastAsianWidth::Detect" : "0",
@@ -67,6 +67,6 @@
          "web" : "https://github.com/kaz-utashiro/sdif-tools"
       }
    },
-   "version" : "3.2.3",
+   "version" : "3.3.1",
    "x_authority" : "cpan:UTASHIRO"
 }

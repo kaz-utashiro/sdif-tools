@@ -2,6 +2,12 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+3.3.1 2017-12-16T18:44:27Z
+
+    watchdiff:
+    - Improve watchdiff look'n'feel using new Colormap interface.
+
+
 3.2.3 2017-12-14T17:30:39Z
 
     - Update to the latest Getopt::EX.
