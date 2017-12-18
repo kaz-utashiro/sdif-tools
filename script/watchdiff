@@ -12,9 +12,12 @@ use strict;
 use warnings;
 require 5.014;
 
+use open ":std" => ":encoding(utf8)";
 use Fcntl;
 use Pod::Usage;
 use Data::Dumper;
+
+use List::Util qw(pairmap);
 
 use App::sdif;
 my $version = $App::sdif::VERSION;
@@ -56,24 +59,25 @@ use Getopt::EX::Long;
 Getopt::Long::Configure(qw(bundling require_order));
 GetOptions(@optargs) || pod2usage();
 
-my %colormap = qw(
-    NEW		K/544
-    CHANGE	K/445
-    TEXT	K/554E
-);
+my %colormap;
+pairmap { $colormap{$a} = $b } qw(
+    APPEND	K/544
+    DELETE	K/544
+    OCHANGE	K/445
+    NCHANGE	K/445
+    OTEXT	K/455E
+    NTEXT	K/554E
+    );
 
 use Getopt::EX::Colormap;
 my $cm = Getopt::EX::Colormap
     ->new(HASH => \%colormap)
     ->load_params(@opt_colormap);
 
-my @default_diff = <<"EOS" =~ /\S+/g;
-    cdif --no-command --no-unknown -U100
-    --cm APPEND=DELETE=$colormap{NEW}
-    --cm *CHANGE=$colormap{CHANGE}
-    --cm *TEXT=$colormap{TEXT}
-EOS
-my $default_diff = join ' ', @default_diff;
+my @default_diff = (
+    qw(cdif --no-command --no-unknown -U100),
+    map { ('--cm', "$_=$colormap{$_}") } sort keys %colormap
+    );
 
 if (@ARGV) {
     push @opt_exec, [ @ARGV ];
@@ -85,23 +89,23 @@ use IO::Handle;
 (my $stdout = new IO::Handle)->fdopen(fileno(STDOUT), "w") or die;
 sub flush { $stdout->printflush(@_) }
 
-my $diffcmd = do {
-    if ($opt_diff) {
-	$opt_diff;
-    } else {
-	join(' ',
-	     $default_diff,
-	     $opt_mark ? () : qw(--nomark),
-	     $opt_old  ? () : qw(--noold),
-	    );
-    }
-};
-
 use App::cdif::Command;
 my $old = new App::cdif::Command @opt_exec;
 my $new = new App::cdif::Command @opt_exec;
 
-use List::Util qw(pairmap);
+my @diffcmd = do {
+    if ($opt_diff) {
+	use Text::ParseWords;
+	shellwords $opt_diff;
+    } else {
+	(
+	 @default_diff,
+	 $opt_mark ? () : qw(--no-mark),
+	 $opt_old  ? () : qw(--no-old),
+	);
+    }
+};
+
 use Getopt::EX::Colormap qw(ansi_code);
 my %termcap = pairmap { $a => ansi_code($b) } qw(
     home	{CUP}
@@ -110,20 +114,37 @@ my %termcap = pairmap { $a => ansi_code($b) } qw(
     ed		{ED}
     );
 
+sub run {
+    use IO::File;
+    my $pid = (my $fh = new IO::File)->open('-|') // die "open: $@\n";
+    if ($pid == 0) {
+	open STDERR, ">&STDOUT" or die "dup: $!";
+	close STDIN;
+	exec @_ or warn "$_[0]: $!\n";
+	exit 3;
+    }
+    binmode $fh, ':encoding(utf8)';
+    my $result = do { local $/; <$fh> };
+    for my $child (wait) {
+	$child != $pid and die "child = $child, pid = $pid";
+    }
+    ($? >> 8) == 3 ? undef : $result;
+}
+
 print $termcap{clear} if $opt_refresh;
 my $count = 0;
 my $refresh_count = 0;
 while (1) {
     $old->rewind;
     $new->update;
-    my $exec = sprintf "%s %s %s", $diffcmd, $old->path, $new->path;
-    my $data = `$exec` // die;
+    my $data = run(@diffcmd, $old->path, $new->path) // die "diff: $!\n";
     if ($data eq '') {
 	if ($opt_silent) {
 	    flush $new->date, "\r";
 	    next;
 	}
 	$data = $new->data;
+	$data =~ s/^/ /mg if $opt_mark;
     }
     $data .= "\n" if $opt_newline;
     if ($opt_refresh) {

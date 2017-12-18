@@ -2,6 +2,7 @@ package App::cdif::Command;
 
 use strict;
 use warnings;
+use utf8;
 use Carp;
 use Data::Dumper;
 
@@ -38,9 +39,11 @@ sub execute {
     use IO::File;
     my $pid = (my $fh = new IO::File)->open('-|') // die "open: $@\n";
     if ($pid == 0) {
+	open STDERR, ">&STDOUT";
 	exec @command;
 	die "exec: $@\n";
     }
+    binmode $fh, ':encoding(utf8)';
     do { local $/; <$fh> };
 }
 
