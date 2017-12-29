@@ -27,6 +27,12 @@ with visual effect to emphasize modified part.
 
 See individual manual of each command for detail.
 
+# INSTALL
+
+## CPANM
+
+    $ cpanm App::sdif
+
 # SEE ALSO
 
 [sdif](https://metacpan.org/pod/sdif), [cdif](https://metacpan.org/pod/cdif), [watchdiff](https://metacpan.org/pod/watchdiff)
