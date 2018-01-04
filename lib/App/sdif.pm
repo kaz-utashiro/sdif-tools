@@ -3,7 +3,7 @@ use 5.014;
 use strict;
 use warnings;
 
-our $VERSION = "3.4.1";
+our $VERSION = "4.1.0";
 
 1;
 
