@@ -68,7 +68,7 @@ option	--mono \
 	--cm    ?LINE=222	\
 	--cm    ?TEXT=000/L23	\
 	--cm    UTEXT=111	\
-	--cdifopts ' --mono '
+	--cdifopts='--mono'
 
 define {DARK_BG1} L10
 define {DARK_BG2} L04
@@ -84,7 +84,7 @@ option	--dark-green \
 	--cm ?COMMAND=K/232;		\
 	--cm    ?FILE=K/232;D		\
 	--cm    ?LINE=220		\
-	--cdifopts ' --dark-green '
+	--cdifopts='--dark-green'
 
 option	--dark-cmy \
 	--dark-screen			\
@@ -95,14 +95,14 @@ option	--dark-cmy \
 	--cm MCOMMAND=K/332		\
 	--cm    MFILE=K/332;D		\
 	--cm    ?LINE=220		\
-	--cdifopts ' --dark-cmy '
+	--cdifopts='--dark-cmy'
 
 option	--dark-mono \
 	--dark-screen			\
 	--cm ?COMMAND=/{DARK_BG1}	\
 	--cm    ?FILE=D/{DARK_BG1}	\
 	--cm    ?LINE=111		\
-	--cdifopts ' --dark-mono '
+	--cdifopts='--dark-mono'
 
 ##
 ## for backward compatinbility
