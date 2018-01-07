@@ -15,9 +15,8 @@ equation.
 
     Y = 0.30 * R + 0.59 * G + 0.11 * B
 
-When the result is greater than 0.5, set B<--LIGHT-SCREEN> option,
-otherwise B<--DARK-SCREEN>.  You can override default setting in your
-F<~/.sdifrc>.
+When the result is greater than 0.5, set B<--light> option, otherwise
+B<--dark>.  You can override default setting in your F<~/.sdifrc>.
 
 =head1 SEE ALSO
 
@@ -30,21 +29,33 @@ package App::sdif::autocolor::Apple_Terminal;
 use strict;
 use warnings;
 
+use Data::Dumper;
 use App::sdif::autocolor;
 
-sub brightness {
+sub rgb {
     my $app = "Terminal";
     my $do = "background color of first window";
     my $bg = qx{osascript -e \'tell application \"$app\" to $do\'};
-    my($r, $g, $b) = $bg =~ /(\d+)/g;
-    App::sdif::autocolor::rgb_to_brightness($r, $g, $b);
+    $bg =~ /(\d+)/g;
+}
+
+sub brightness {
+    my(@rgb) = rgb;
+    @rgb == 3 or return undef;
+    if (grep { not /^\d+$/ } @rgb) {
+	undef;
+    } else {
+	App::sdif::autocolor::rgb_to_brightness(@rgb);
+    }
 }
 
 sub initialize {
     my $rc = shift;
-    $rc->setopt(
-	default =>
-	brightness > 50 ? '--LIGHT-SCREEN' : '--DARK-SCREEN');
+    if (defined (my $brightness = brightness)) {
+	$rc->setopt(
+	    default =>
+	    $brightness > 50 ? '--light' : '--dark');
+    }
 }
 
 1;

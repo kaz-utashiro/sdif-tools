@@ -1057,27 +1057,29 @@ B<no-color> option to disable it.  Each text segment has own labels,
 and color for them can be specified by B<--colormap> option.  Read
 `perldoc Getopt::EX::Colormap` for detail.
 
-Standard module B<-Mcolors> define several colormaps for light and
-dark screen.  If you want to use CMY colors in dark screen, place
-following line in your F<~/.sdifrc>.
+Standard module B<-Mcolors> is loaded by default, and define several
+colormaps for light and dark screen.  If you want to use CMY colors in
+dark screen, place following line in your F<~/.sdifrc>.
 
-    option default -Mcolors --dark-cmy
+    option default --dark-cmy
 
-Option B<--autocolor> is defined in default module to load
-B<-Mautocolor> module.  If B<sdif> is running on macOS Terminal.app,
-B<-Mautocolor::Apple_Terminal> module is loaded and set
-B<--LIGHT-SCREEN> or B<--DARK-SCREEN> according to the brightness of
-the terminal screen.  You can set preferred color in your F<~/.sdifrc>
+Option B<--autocolor> is defined to load B<-Mautocolor> module.  It
+sets B<--light> or B<--dark> option according to the brightness of the
+terminal screen.  You can set preferred color in your F<~/.sdifrc>
 like:
 
-    option --LIGHT-SCREEN --cmy
-    option --DARK-SCREEN  --dark-cmy
+    option --light --cmy
+    option --dark  --dark-cmy
 
-If you are using terminal other than Terminal.app, define
-B<BRIGHTNESS> environment variable in 0 to 100 digit, or write a
-module.
+If the B<BRIGHTNESS> environment variable is set in a range of 0 to
+100 digit, it is used as a screen brightness.
 
-Override B<--autocolor> to do nothing to disable this behavior.
+Currently automatic setting by B<-Mautocolor> module works only on
+macOS Terminal.app.  If you are using other terminal application, set
+the B<BRIGHTNESS> or write a module.
+
+Option B<--autocolor> is set by default, so override it to do nothing
+to disable.
 
     option --autocolor --nop
 
@@ -1315,10 +1317,15 @@ This is equivalent to :
 
 =head1 MODULE OPTIONS
 
+=head2 default
+
+  default      --autocolor
+  --autocolor  -Mautocolor
+  --nop        do nothing
+
 =head2 -Mcolors
 
-Defined in default module and following options are available by
-default.
+Following options are available by default.
 
   --light
   --green

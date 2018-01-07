@@ -11,8 +11,8 @@ sdif -Mautocolor
 This is a module for L<sdif(1)> command to set operating system
 dependent autocolor option.
 
-Each module is expected to set B<--LIGHT-SCREEN> or B<--DARK-SCREEN>
-option according to the brightness of a terminal program.
+Each module is expected to set B<--light> or B<--dark> option
+according to the brightness of a terminal program.
 
 If the environment variable C<BRIGHTNESS> is defined, its value is
 used as a brightness without calling submodules.  The value of
@@ -35,17 +35,21 @@ sub rgb_to_brightness {
     int(($r * 30 + $g * 59 + $b * 11) / 65535); # 0 .. 100
 }
 
+my %TERM_PROGRAM = qw(
+    Apple_Terminal	Apple_Terminal
+    );
+
 sub initialize {
     my $mod = shift;
 
     if ((my $brightness = $ENV{BRIGHTNESS} // '') =~ /^\d+$/) {
 	$mod->setopt(default =>
-		     $brightness > 50 ? '--LIGHT-SCREEN' : '--DARK-SCREEN');
+		     $brightness > 50 ? '--light' : '--dark');
     }
     elsif (my $term_program = $ENV{TERM_PROGRAM}) {
 
-	if ($term_program eq "Apple_Terminal") {
-	    $mod->setopt(default => '-Mautocolor::Apple_Terminal');
+	if (defined (my $module = $TERM_PROGRAM{$term_program})) {
+	    $mod->setopt(default => "-Mautocolor::${module}");
 	}
 
     }
@@ -54,6 +58,3 @@ sub initialize {
 1;
 
 __DATA__
-
-option --LIGHT-SCREEN --light
-option  --DARK-SCREEN --dark

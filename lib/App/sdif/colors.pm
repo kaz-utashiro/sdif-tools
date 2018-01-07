@@ -18,6 +18,13 @@ App::sdif::colors
 
 Read `perldoc -m App::sdif::colors` to see the actual definition.
 
+Option B<--light> or B<--dark> is set by B<-Mautocolor> module
+according to the brightness of the terminal screen.  You can override
+them in your F<~/.sdifrc> like:
+
+    option --light --cmy
+    option --dark  --dark-cmy
+
 =head1 SEE ALSO
 
 L<App::sdif::autocolor>,
