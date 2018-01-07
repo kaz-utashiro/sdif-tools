@@ -2,6 +2,12 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.2.0 2018-01-07T01:57:46Z
+
+    - Remove unnecessarily indirect --{LIGHT,DARK}-SCREEN option.
+
+    Use --light and --dark instead.
+
 4.1.0 2018-01-04T12:35:22Z
 
     Now --autocolor is defined as default in sdif/default.pm.
