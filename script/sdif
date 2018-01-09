@@ -52,7 +52,7 @@ use warnings;
 use utf8;
 use open IO => ':utf8';
 use Carp;
-use List::Util qw(min max reduce sum);
+use List::Util qw(min max reduce sum pairmap);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 use Data::Dumper;
@@ -165,52 +165,40 @@ if ($opt_ambiguous =~ /^(?:wide|full)/) {
     $Text::VisualWidth::PP::EastAsian = 1;
 }
 
-my %colormap =
-    $opt_256 ? (
-	OCOMMAND => "555/010",
-	NCOMMAND => "555/010",
-	MCOMMAND => "555/010",
-	OFILE => "555/010D",
-	NFILE => "555/010D",
-	MFILE => "555/010D",
-	OMARK => "010/444",
-	NMARK => "010/444",
-	MMARK => "010/444",
-	UMARK => "",
-	OLINE => "220",
-	NLINE => "220",
-	MLINE => "220",
-	ULINE => "",
-	OTEXT => "K/454",
-	NTEXT => "K/454",
-	MTEXT => "K/454",
-	UTEXT => "",
-    ) : (
-	OCOMMAND => "GS",
-	NCOMMAND => "GS",
-	MCOMMAND => "GS",
-	OFILE => "GDS",
-	NFILE => "GDS",
-	MFILE => "GDS",
-	OMARK => "G/W",
-	NMARK => "G/W",
-	MMARK => "G/W",
-	UMARK => "",
-	OLINE => "Y",
-	NLINE => "Y",
-	MLINE => "Y",
-	ULINE => "",
-	OTEXT => "G",
-	NTEXT => "G",
-	MTEXT => "G",
-	UTEXT => "",
+my %colormap = do {
+    my $col = $opt_256 ? 0 : 1;
+    pairmap { $a => (ref $b eq 'ARRAY') ? $b->[$col] : $b } (
+	OCOMMAND =>  [ "555/010"  , "GS"  ],
+	NCOMMAND =>  [ "555/010"  , "GS"  ],
+	MCOMMAND =>  [ "555/010"  , "GS"  ],
+	OFILE    =>  [ "555/010D" , "GDS" ],
+	NFILE    =>  [ "555/010D" , "GDS" ],
+	MFILE    =>  [ "555/010D" , "GDS" ],
+	OMARK    =>  [ "010/444"  , "G/W" ],
+	NMARK    =>  [ "010/444"  , "G/W" ],
+	MMARK    =>  [ "010/444"  , "G/W" ],
+	UMARK    =>    ""         ,
+	OLINE    =>  [ "220"      , "Y"   ],
+	NLINE    =>  [ "220"      , "Y"   ],
+	MLINE    =>  [ "220"      , "Y"   ],
+	ULINE    =>    ""         ,
+	OTEXT    =>  [ "K/454"    , "G"   ],
+	NTEXT    =>  [ "K/454"    , "G"   ],
+	MTEXT    =>  [ "K/454"    , "G"   ],
+	UTEXT    =>    ""         ,
     );
+};
 
 use Getopt::EX::Colormap;
 use constant SGR_RESET => "\e[m";
 my $color_handler = new Getopt::EX::Colormap
     HASH => \%colormap;
 $color_handler->load_params(@opt_colormap);
+
+$colormap{OUMARK} ||= $colormap{UMARK} || $colormap{OMARK};
+$colormap{NUMARK} ||= $colormap{UMARK} || $colormap{NMARK};
+$colormap{OULINE} ||= $colormap{ULINE} || $colormap{OLINE};
+$colormap{NULINE} ||= $colormap{ULINE} || $colormap{NLINE};
 
 my $painter = do {
     if ($opt_color) {
@@ -219,11 +207,6 @@ my $painter = do {
 	sub { $_[1] } ;
     }
 };
-
-$colormap{OUMARK} ||= $colormap{UMARK} || $colormap{OMARK};
-$colormap{NUMARK} ||= $colormap{UMARK} || $colormap{NMARK};
-$colormap{OULINE} ||= $colormap{ULINE} || $colormap{OLINE};
-$colormap{NULINE} ||= $colormap{ULINE} || $colormap{NLINE};
 
 ##
 ## setup cdifopts
@@ -255,8 +238,8 @@ sub usage {
 
 use constant {
     RIGHT => 'right',
-    LEFT => 'left',
-    NO => 'no',
+    LEFT  => 'left',
+    NO    => 'no',
 };
 my %markpos = (
     center => [ RIGHT , LEFT  , LEFT  ],
@@ -284,12 +267,11 @@ sub column_width {
     };
 }
 
-my $oline = 1;
-my $nline = 1;
-my $mline = 1;
-
+##
+## --colortable
+##
 if ($opt_colortable) {
-    color_table();
+    color_table($screen_width);
     exit;
 }
 
@@ -330,7 +312,9 @@ if ($opt_cdif) {
     open(DIFF, $DIFF) || die "cannot open diff: $!\n";
 }
 
-my $column = 2;
+my $oline = 1;
+my $nline = 1;
+my $mline = 1;
 
 while (<DIFF>) {
     my @old;
@@ -970,11 +954,12 @@ sub match_glob {
 }
 
 sub color_table {
+    my $width = shift || 80;
     for my $c (0..5) {
 	for my $b (0..5) {
 	    my @format =
 		("%d$b$c", "$c%d$b", "$b$c%d", "$b%d$c", "$c$b%d", "%d$c$b")
-		[0 .. min(5, $screen_width / (4 * 6) - 1)];
+		[0 .. min(5, $width / (4 * 6) - 1)];
 	    for my $format (@format) {
 		for my $a (0..5) {
 		    my $rgb = sprintf $format, $a;
@@ -1053,13 +1038,13 @@ Read `perldoc Getopt::EX::Module` for detail.
 =head2 COLOR
 
 Each lines are displayed in different colors by default.  Use
-B<no-color> option to disable it.  Each text segment has own labels,
+B<--no-color> option to disable it.  Each text segment has own labels,
 and color for them can be specified by B<--colormap> option.  Read
 `perldoc Getopt::EX::Colormap` for detail.
 
 Standard module B<-Mcolors> is loaded by default, and define several
-colormaps for light and dark screen.  If you want to use CMY colors in
-dark screen, place following line in your F<~/.sdifrc>.
+color maps for light and dark screen.  If you want to use CMY colors in
+dark screen, place next line in your F<~/.sdifrc>.
 
     option default --dark-cmy
 
