@@ -28,7 +28,8 @@ diff ... | sdif
     --unified, -u, -U#	unified diff
 
     --width=#, -W#	specify width of output (default 80)
-    --[no]color		use color or not (default on)
+    --color=when	'always' (default), 'never' or 'auto'
+    --nocolor		--color=never
     --colormap, --cm	specify color map
     --colortable	show color table
     --[no]256		on/off ANSI 256 color mode (default on)
@@ -93,7 +94,7 @@ my $screen_width;
 my $column_width;
 my @column_width;
 
-my $opt_color = 1;
+my $opt_color = 'always';
 my $opt_256 = 1;
 my $opt_mark = "center";
 my $opt_W;
@@ -133,7 +134,8 @@ my @optargs = (
     "env!" => \$opt_env,
     "diff=s" => \$opt_diff,
     "diffopts=s" => \@opt_diffopts,
-    "color!" => \$opt_color,
+    "color=s" => \$opt_color,
+    "nocolor|no-color" => sub { $opt_color = 'never' },
     "colormap|cm=s" => \@opt_colormap,
     "256!" => \$opt_256,
     "b|ignore-space-change" => sub { push @opt_diffopts, '-b' },
@@ -203,7 +205,8 @@ $colormap{OULINE} ||= $colormap{ULINE} || $colormap{OLINE};
 $colormap{NULINE} ||= $colormap{ULINE} || $colormap{NLINE};
 
 my $painter = do {
-    if ($opt_color) {
+    if (($opt_color eq 'always')
+	or (($opt_color eq 'auto') and (-t STDOUT))) {
 	sub { $color_handler->color(@_) };
     } else {
 	sub { $_[1] } ;
