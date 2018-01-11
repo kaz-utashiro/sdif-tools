@@ -20,7 +20,11 @@ sdif file_1 file_2
 
 diff ... | sdif
 
-    --number, -n	print line number
+    -b, --ignore-space-change
+    -w, --ignore-all-space
+    -B, --ignore-blank-lines
+
+    --[no]number, -n	print line number
     --digit=#		set the line number digits (default 4)
     --truncate, -t	truncate long line
     --[no]onword	fold line on word boundaries
@@ -34,6 +38,7 @@ diff ... | sdif
     --colortable	show color table
     --[no]256		on/off ANSI 256 color mode (default on)
     --mark=position	mark position (right, left, center, side) or no
+    --column=order	set column order (default ONM)
     --view, -v		viewer mode
     --ambiguous=s       ambiguous character width (detect, wide, narrow)
 
