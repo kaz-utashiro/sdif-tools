@@ -598,9 +598,9 @@ sub flush_buffer_3 {
 	    my $old = shift @{$d[0]};
 	    my $new = shift @{$d[1]};
 	    my $mrg = shift @{$d[2]};
-	    my $om = $old ? $old =~ s/^(.).// && $1  : ' ';
-	    my $nm = $new ? $new =~ s/^.(.)// && $1  : ' ';
-	    my $mm = $mrg ? $mrg =~ s/^..//   && '+' : ' ';
+	    my $om = $old ? $old =~ s/^(?|(\S).|\s(.))// && $1 : ' ';
+	    my $nm = $new ? $new =~ s/^(?|(\S).|\s(.))// && $1 : ' ';
+	    my $mm = $mrg ? $mrg =~ s/^(?|(\S).|\s(.))// && $1 : ' ';
 
 	    $om = $nm = $mm = ' ' if $opt_view;
 
