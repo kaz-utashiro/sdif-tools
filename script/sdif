@@ -995,9 +995,8 @@ sub color_table {
 	print $painter->("$grey/$grey", sprintf(" %-19s", $grey));
     }
     print "\n";
-    for my $g (0..23) {
-	my $grey = sprintf "L%02d", $g;
-	print $painter->("$grey/$grey", " $grey");
+    for ('000', 'L00' .. 'L23', '555') {
+	print $painter->("$_/$_", " $_");
     }
     print "\n";
     for my $alt (0, 1) {
