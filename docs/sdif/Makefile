@@ -1,4 +1,6 @@
-index.md: ../sdif HEAD.md Makefile
+SCRIPT=../../script/sdif
+
+index.md: $(SCRIPT) HEAD.md Makefile
 	cat HEAD.md > $@
-	cat < ../sdif | \
+	cat < $(SCRIPT) | \
 	pod2markdown >> $@

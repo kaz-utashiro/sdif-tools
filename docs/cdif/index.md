@@ -61,7 +61,6 @@ Options:
         -r<rev>, -q     rcs options
 
         -B                  char-by-char comparison
-        -W                  specify terminal width
         --diff=command      specify diff command
         --stat              show statistical information
         --colormap=s        specify color map
@@ -103,10 +102,6 @@ printed.
 - **-B**, **--char**
 
     Compare the data character-by-character context.
-
-- **-W** _width_, **--width**=_width_
-
-    Explicitly specify terminal width.
 
 - **--diff**=_command_
 
@@ -197,22 +192,19 @@ printed.
         U  Underline
         D  Double-struck (boldface)
         F  Flash (blink)
-        E  Expand (only for command line)
-
-    When **E** is specified for command line, the line is expanded to
-    window width filling up by space characters.
+        E  Erase Line
 
     Defaults are :
 
-        COMMAND => "SE"
+        COMMAND => "555/222E"
         OMARK   => "CS"
         NMARK   => "MS"
         OTEXT   => "C"
         NTEXT   => "M"
-        OCHANGE => "BD/445"
-        NCHANGE => "BD/445"
-        DELETE  => "RD/544"
-        APPEND  => "RD/544"
+        OCHANGE => "K/445"
+        NCHANGE => "K/445"
+        DELETE  => "K/544"
+        APPEND  => "K/544"
 
         CMARK   => "GS"
         MMARK   => "YS"
@@ -221,7 +213,7 @@ printed.
 
     This is equivalent to :
 
-        cdif --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
+        cdif --cm 'COMMAND=555/222E,OMARK=CS,NMARK=MS' \
              --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
              --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
@@ -270,24 +262,16 @@ printed.
 
 # AUTHOR
 
-Kazumasa Utashiro
-
-https://github.com/kaz-utashiro/cdif
+- Kazumasa Utashiro
+- [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
 # SEE ALSO
 
-perl(1), diff(1), sdif(1), watchdiff(1)
+[sdif(1)](http://man.he.net/man1/sdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
+
+[Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)
 
 # BUGS
 
 **cdif** is naturally not very fast because it uses normal diff command
 as a back-end processor to compare words.
-
-# COPYRIGHT
-
-Use and redistribution for ANY PURPOSE are granted as long as all
-copyright notices are retained.  Redistribution with modification is
-allowed provided that you make your modified version obviously
-distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
-THE AUTHOR \`\`AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
-DISCLAIMED.

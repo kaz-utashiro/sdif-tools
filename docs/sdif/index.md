@@ -53,26 +53,33 @@ sdif file\_1 file\_2
 
 diff ... | sdif
 
-    --number, -n        print line number
+    -b, --ignore-space-change
+    -w, --ignore-all-space
+    -B, --ignore-blank-lines
+
+    --[no]number, -n    print line number
     --digit=#           set the line number digits (default 4)
     --truncate, -t      truncate long line
-    --onword            fold line on word boundaries
+    --[no]onword        fold line on word boundaries
     --context, -c, -C#  context diff
     --unified, -u, -U#  unified diff
 
     --width=#, -W#      specify width of output (default 80)
-    --[no]color         use color or not (default on)
+    --color=when        'always' (default), 'never' or 'auto'
+    --nocolor           --color=never
     --colormap, --cm    specify color map
     --colortable        show color table
     --[no]256           on/off ANSI 256 color mode (default on)
     --mark=position     mark position (right, left, center, side) or no
+    --column=order      set column order (default ONM)
     --view, -v          viewer mode
+    --ambiguous=s       ambiguous character width (detect, wide, narrow)
 
     --man               display manual page
     --diff=s            set diff command
     --diffopts=s        set diff command options
 
-    --cdif              use ``cdif'' as word context diff backend
+    --[no]cdif          use ``cdif'' as word context diff backend
     --cdifopts=s        set cdif command options
     --mecab             pass --mecab option to cdif
 
@@ -81,9 +88,9 @@ diff ... | sdif
 **sdif** is inspired by System V [sdiff(1)](http://man.he.net/man1/sdiff) command.  The basic
 feature of sdif is making a side-by-side listing of two different
 files.  All contents of two files are listed on left and right sides.
-Center column is used to indicate how different those lines.  No mark
-means no difference.  Added, deleted and modified lines are marked
-with \`-' and \`+' character.
+Center column is used to indicate how different those lines are.  No
+mark means no difference.  Added, deleted and modified lines are
+marked with \`-' and \`+' character.
 
     1 deleted  -
     2 same          1 same
@@ -96,17 +103,67 @@ standard input.  Besides normal diff output, context diff _-c_ and
 unified diff _-u_ output will be handled properly.  Combined diff
 format is also supported, but currently limited up to three files.
 
-Each lines can be displayed in different colors.  Read **--colormap**
-section in this manual for detail.
+## STARTUP and MODULE
+
+**sdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, and reads _~/.sdifrc_
+file if available when starting up.  You can define original and
+default option there.  To show the line number always, define like
+this:
+
+    option default -n
+
+Modules under **App::sdif** can be loaded by **-M** option without
+prefix.  Next command load **App::sdif::colors** module.
+
+    $ sdif -Mcolors
+
+You can also define options in module file.  Read \`perldoc
+Getopt::EX::Module\` for detail.
+
+## COLOR
+
+Each lines are displayed in different colors by default.  Use
+**--no-color** option to disable it.  Each text segment has own labels,
+and color for them can be specified by **--colormap** option.  Read
+\`perldoc Getopt::EX::Colormap\` for detail.
+
+Standard module **-Mcolors** is loaded by default, and define several
+color maps for light and dark screen.  If you want to use CMY colors in
+dark screen, place next line in your `~/.sdifrc`.
+
+    option default --dark-cmy
+
+Option **--autocolor** is defined to load **-Mautocolor** module.  It
+sets **--light** or **--dark** option according to the brightness of the
+terminal screen.  You can set preferred color in your `~/.sdifrc`
+like:
+
+    option --light --cmy
+    option --dark  --dark-cmy
+
+If the **BRIGHTNESS** environment variable is set in a range of 0 to
+100 digit, it is used as a screen brightness.
+
+Currently automatic setting by **-Mautocolor** module works only on
+macOS Terminal.app.  If you are using other terminal application, set
+the **BRIGHTNESS** or write a module.
+
+Option **--autocolor** is set by default, so override it to do nothing
+to disable.
+
+    option --autocolor --nop
+
+## CDIF
 
 While **sdif** doesn't care about the contents of each modified lines,
 it can read the output from **cdif** command which show the word
 context differences of each lines.  Option **--cdif** set the
-appropriate options for **cdif**.  Set _--nocc_, _--nomc_ options at
-least when invoking **cdif** manually.  Option _--notc_ is preferable
-because text color can be handled by **sdif**.
+appropriate options for **cdif**.  Set _--no-cc_, _--no-mc_ options
+at least when invoking **cdif** manually.  Option _--no-tc_ is
+preferable because text color can be handled by **sdif**.
 
-Environment valuable **SDIFOPTS** is used to set default options.
+From version 4.1.0, option **--cdif** is set by default, so use
+**--no-cdif** option to disable it.
 
 # OPTIONS
 
@@ -116,32 +173,39 @@ Environment valuable **SDIFOPTS** is used to set default options.
     standard error is assigned to a terminal, the width is taken from it
     if possible.
 
-- **--number**, **-n**
+- **--**\[**no**\]**number**, **-n**
 
     Print line number on each lines.
+    Default false.
 
 - **--digit**=_n_
 
     Line number is displayed in 4 digits by default.  Use this option to
     change it.
 
+- **-b**, **--ignore-space-change**
+- **-w**, **--ignore-all-space**
+- **-B**, **--ignore-blank-lines**
 - **-c**, **-C**_n_, **-u**, **-U**_n_
 
     Passed through to the back-end diff command.  Sdif can interpret the
     output from normal, context (_diff -c_) and unified diff (_diff
     \-u_).
 
-- **--truncate**, **-t**
+- **--**\[**no**\]**truncate**, **-t**
 
     Truncate lines if they are longer than printing width.
+    Default false.
 
-- **--onword**
+- **--**\[**no**\]**onword**
 
     Fold long line at word boundaries.
+    Default true.
 
-- **--cdif**
+- **--**\[**no**\]**cdif**
 
     Use **cdif** command instead of normal diff command.
+    Default true.
 
 - **--cdifopts**=_option_
 
@@ -166,6 +230,18 @@ Environment valuable **SDIFOPTS** is used to set default options.
     Specify the position for a mark.  Choose from _left_, _right_,
     _center_, _side_ or _no_.  Default is _center_.
 
+- **--column**=_order_
+
+    Specify the order of each column by **O** (old), **N** (new) and **M**
+    (merge).  Default order is **ONM**.  If you want to show new file on
+    left side and old file in right side, use like:
+
+        $ sdif --column NO
+
+    Next example show merged file on left-most column for diff3 data.
+
+        $ sdif --column MON
+
 - **--**\[**no**\]**color**
 
     Use ANSI color escape sequence for output.  Default is true.
@@ -181,6 +257,23 @@ Environment valuable **SDIFOPTS** is used to set default options.
 - **--view**, **-v**
 
     Viewer mode.  Display two files side-by-side in straightforward order.
+
+- **--ambiguous**=_width\_spec_
+
+    This is an experimental option to specify how to treat Unicode
+    ambiguous width characters.  Default value is 'narrow'.
+
+    - **detect** or **auto**
+
+        Detect from user's locate.  Set 'wide' when used in CJK environment.
+
+    - **wide** or **full**
+
+        Treat ambiguous characters as wide.
+
+    - **narrow** or **half**
+
+        Treat ambiguous characters as narrow.
 
 - **--colormap**=_colormap_, **--cm**=_colormap_
 
@@ -291,16 +384,44 @@ Environment valuable **SDIFOPTS** is used to set default options.
              --cm '?LINE=220,ULINE=' \
              --cm '?TEXT=KE/454,UTEXT='
 
+# MODULE OPTIONS
+
+## default
+
+    default      --autocolor
+    --autocolor  -Mautocolor
+    --nop        do nothing
+
+## -Mcolors
+
+Following options are available by default.  Use \`perldoc -m
+App::sdif::colors\` to see actual setting.
+
+    --light
+    --green
+    --cmy
+    --mono
+
+    --dark
+    --dark-green
+    --dark-cmy
+    --dark-mono
+
+# ENVIRONMENT
+
+Environment variable **SDIFOPTS** is used to set default options.
+
 # AUTHOR
 
 - Kazumasa Utashiro
-- [https://github.com/kaz-utashiro/](https://github.com/kaz-utashiro/)
+- [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
 # SEE ALSO
 
-- sdif
-    - [https://github.com/kaz-utashiro/sdif](https://github.com/kaz-utashiro/sdif)
-    - [http://kaz-utashiro.github.io/sdif/](http://kaz-utashiro.github.io/sdif/)
-- cdif
-    - [https://github.com/kaz-utashiro/cdif](https://github.com/kaz-utashiro/cdif)
-    - [http://kaz-utashiro.github.io/cdif/](http://kaz-utashiro.github.io/cdif/)
+[cdif(1)](http://man.he.net/man1/cdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
+
+[Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)
+
+[App::sdif::colors](https://metacpan.org/pod/App::sdif::colors),
+[App::sdif::autocolor](https://metacpan.org/pod/App::sdif::autocolor),
+[App::sdif::autocolor::Apple\_Terminal](https://metacpan.org/pod/App::sdif::autocolor::Apple_Terminal)
