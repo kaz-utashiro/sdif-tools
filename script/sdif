@@ -85,7 +85,7 @@ my $opt_d;
 my $opt_truncate = 0;
 my $opt_onword = 1;
 my $opt_cdif = 1;
-my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc);
+my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc --no-uc);
 my @opt_cdifopts;
 my $opt_env = 1;
 my @opt_colormap;
@@ -177,6 +177,7 @@ if ($opt_ambiguous =~ /^(?:wide|full)/) {
 my %colormap = do {
     my $col = $opt_256 ? 0 : 1;
     pairmap { $a => (ref $b eq 'ARRAY') ? $b->[$col] : $b } (
+	UNKNOWN  =>    ""         ,
 	OCOMMAND =>  [ "555/010"  , "GS"  ],
 	NCOMMAND =>  [ "555/010"  , "GS"  ],
 	MCOMMAND =>  [ "555/010"  , "GS"  ],
@@ -448,7 +449,7 @@ while (<DIFF>) {
 	flush_buffer_3(@buf);
     }
     else {
-	print;
+	print $painter->('UNKNOWN', $_);
     }
 }
 

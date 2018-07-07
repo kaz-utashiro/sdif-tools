@@ -55,6 +55,7 @@ my @opt_colormap;
 my $opt_commandcolor = 1;
 my $opt_markcolor = 1;
 my $opt_textcolor = 1;
+my $opt_unknowncolor = 1;
 my $opt_old = 1;
 my $opt_new = 1;
 my $opt_unknown = 1;
@@ -97,6 +98,7 @@ my @optargs = (
     "commandcolor|cc!" => \$opt_commandcolor,
     "markcolor|mc!" => \$opt_markcolor,
     "textcolor|tc!" => \$opt_textcolor,
+    "unknowncolor|uc!" => \$opt_unknowncolor,
     "colormap|cm=s" => \@opt_colormap,
     "h|help" => sub { usage() },
     "man" => sub { pod2usage({-verbose => 2}) },
@@ -152,6 +154,7 @@ push @sub_diffopts, map { $_->[1] } grep { $_->[0] } (
 my %colormap = do {
     my $col = $opt_256 ? 0 : 1;
     pairmap { $a => (ref $b eq 'ARRAY') ? $b->[$col] : $b } (
+	UNKNOWN =>   ""   ,
 	CMARK   =>   "GS" ,
 	OMARK   =>   "CS" ,
 	NMARK   =>   "MS" ,
@@ -173,10 +176,14 @@ my $color_handler = new Getopt::EX::Colormap
     HASH => \%colormap;
 $color_handler->load_params(@opt_colormap);
 
-map { $colormap{$_} = "" } (
-    $opt_commandcolor ? () : 'COMMAND',
-    $opt_markcolor    ? () : grep(/MARK$/, keys %colormap),
-    $opt_textcolor    ? () : grep(/TEXT$/, keys %colormap),
+map  { $colormap{$_} = "" }
+map  { splice @$_, 1 }
+grep { not $_->[0] }
+(
+    [ $opt_unknowncolor => 'UNKNOWN' ],
+    [ $opt_commandcolor => 'COMMAND' ],
+    [ $opt_markcolor    =>  grep /MARK$/, keys %colormap ],
+    [ $opt_textcolor    =>  grep /TEXT$/, keys %colormap ],
 );
 
 warn 'colormap = ', Dumper \%colormap if $opt_d{c};
@@ -459,7 +466,13 @@ while (<DIFF>) {
 	}
     }
     else {
-	print if $opt_unknown;
+	if ($opt_unknown) {
+	    if ($opt_color) {
+		print color $colormap{UNKNOWN}, $_;
+	    } else {
+		print;
+	    }
+	}
     }
 }
 close DIFF;
@@ -884,6 +897,7 @@ Options:
 	--[no]commandcolor  color for command line  (default true)
 	--[no]markcolor     color for diff mark     (default true)
 	--[no]textcolor     color for normal text   (default true)
+	--[no]unknowncolor  color for unknown text  (default true)
 	--[no]old	    print old text          (default true)
 	--[no]new	    print new text          (default true)
 	--[no]command	    print diff command line (default true)
@@ -1040,6 +1054,8 @@ This is equivalent to :
 =item B<-->[B<no>]B<markcolor>, B<--mc>
 
 =item B<-->[B<no>]B<textcolor>, B<--tc>
+
+=item B<-->[B<no>]B<unknowncolor>, B<--uc>
 
 Enable/Disable using color for the corresponding field.
 
