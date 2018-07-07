@@ -209,40 +209,31 @@ if ($rcs) {
 }
 warn "DIFF = \"$DIFF\"\n" if $opt_d{f};
 
-my %func = $opt_color ?
-    (
-     DELETE => sub { color("DELETE",  @_) },
-     APPEND => sub { color("APPEND",  @_) },
-     OLD    => sub { color("OCHANGE", @_) },
-     NEW    => sub { color("NCHANGE", @_) },
-    ) :
-    (
-     DELETE => \&bd,
-     APPEND => \&bd,
-     OLD    => \&ul,
-     NEW    => \&ul,
+my %func = do {
+    my $col = $opt_color ? 0 : 1;
+    pairmap { $a => $b->[$col] } (
+	DELETE => [ sub { color("DELETE",  @_) }, \&bd ],
+	APPEND => [ sub { color("APPEND",  @_) }, \&bd ],
+	OLD    => [ sub { color("OCHANGE", @_) }, \&ul ],
+	NEW    => [ sub { color("NCHANGE", @_) }, \&ul ],
     );
+};
 
-my $wchar_re = qr{
-    [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
-}x;
-
-my $w_pattern;
-if ($opt_B) {
-    $w_pattern = qr/./s;
-} else {
-    $w_pattern = qr{
-	\p{Han} | \p{InHiragana}+ | \p{InKatakana}+ |
-	\p{Hang}+     |
-	\p{Cyrillic}+ |
-	\p{Arabic}+   |
-	\p{Thai}+     |
-	[_\d\p{Latin}]+ |
-	[\ \t\r\f]*\n | \s+ | (.)\g{-1}*
-    }x;
-}
-my @ul = ("", "_\010", "__\010\010");
-my @bs = ("", "\010", "\010\010");
+my $w_pattern = do {
+    if ($opt_B) {
+	qr/./s;
+    } else {
+	qr{
+	    \p{Han} | \p{InHiragana}+ | \p{InKatakana}+ |
+	    \p{Hang}+     |
+	    \p{Cyrillic}+ |
+	    \p{Arabic}+   |
+	    \p{Thai}+     |
+	    [_\d\p{Latin}]+ |
+	    [\ \t\r\f]*\n | \s+ | (.)\g{-1}*
+	}x;
+    }
+};
 
 ##
 ## Temporary files
@@ -815,12 +806,12 @@ sub read_diffu3 {
 
 sub ul {
     local $_ = join '', @_;
-    s/(.)/$ul[vwidth($1)].$1/ge;
+    s/(.)/["", "_\010", "__\010\010"]->[vwidth($1)].$1/ge;
     $_;
 }
 sub bd {
     local $_ = join '', @_;
-    s/(\S)/$1.$bs[vwidth($1)].$1/ge;
+    s/(\S)/$1.["", "\010", "\010\010"]->[vwidth($1)].$1/ge;
     $_;
 }
 
