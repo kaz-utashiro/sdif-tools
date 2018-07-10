@@ -1089,6 +1089,10 @@ option, external command B<mecab> has to be installed.
 
 =back
 
+=head1 ENVIRONMENT
+
+Environment variable B<CDIFOPTS> is used to set default options.
+
 =head1 AUTHOR
 
 =over
