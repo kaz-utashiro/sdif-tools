@@ -74,6 +74,7 @@ my $rcs;
 my @rcsopt;
 my $diff;
 my @diffopts;
+my $sub_diff = 'diff';
 my @sub_diffopts;
 
 binmode STDOUT, ":encoding(utf8)";
@@ -93,6 +94,7 @@ my @optargs = (
     "d=s" => \$opt_d,
     "B|char" => \$opt_B,
     "diff=s" => \$diff,
+    "subdiff=s" => \$sub_diff,
     "color!" => \$opt_color,
     "256!" => \$opt_256,
     "commandcolor|cc!" => \$opt_commandcolor,
@@ -553,11 +555,21 @@ sub context {
 	print STDERR "****************************** .\n";
     }
 
-    my $diff = sprintf "diff @sub_diffopts %s %s", $T1->path, $T2->path;
+    my $diff = sprintf "$sub_diff @sub_diffopts %s %s", $T1->path, $T2->path;
     open(CDIF, "$diff |") || die "diff: $!\n";
     binmode CDIF, ":encoding(utf8)";
     while (<CDIF>) {
 	warn $_ if $opt_d{d};
+
+	## Quick hack to read `git diff` unified output
+	if (/^\@\@ \s+ \-(\d+)(?:,(\d+))? \s+ \+(\d+)(?:,(\d+))? \s+ \@\@/x) {
+	    my($o, $ol, $n, $nl) = ($1, $2//1, $3, $4//1);
+	    my $cmd = ($ol == 0) ? "a" : ($nl == 0) ? "d" : "c";
+	    my $old = ($ol <= 1) ? $o  : sprintf "%d,%d", $o, $o + $ol - 1;
+	    my $new = ($nl <= 1) ? $n  : sprintf "%d,%d", $n, $n + $nl - 1;
+	    $_ = sprintf "%s%s%s\n", $old, $cmd, $new;
+	}
+
 	if (/^[\d,]+([adc])[\d,]+$/) {
 	    push @command, $_;
 	    $c{$1}++;
@@ -929,6 +941,16 @@ Compare the data character-by-character context.
 =item B<--diff>=I<command>
 
 Specify the diff command to use.
+
+=item B<--subdiff>=I<command>
+
+Specify the backend diff command to get word differences.  Accept
+normal and unified diff format.
+
+If you want to use B<git diff> command, don't forget to set I<-U0>
+option.
+
+    --subdiff="git diff -U0 --no-index --histogram"
 
 =item B<-->[B<no>]B<color>
 
