@@ -639,7 +639,6 @@ sub maketmp {
 	warn "MECAB: $s" if $opt_d{m};
 	chomp $s;
 	$s =~ s/$eos/\n/;
-	$s =~ s/(\s+)(?=\S)// and push @words, $1;
 	push @words, $s;
     }
     goto DONE;
