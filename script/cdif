@@ -600,8 +600,6 @@ sub maketmp {
     my @words;
     my @notspace = (0);
 
-    $tmpfile->reset;
-
   MECAB:
 
     goto NORMAL unless $opt_mecab;
@@ -616,7 +614,7 @@ sub maketmp {
 	binmode MECAB, ":encoding(utf8)";
 	print MECAB $text;
     } else {
-	open(STDOUT, ">&", $tmpfile->fh) or die;
+	open(STDOUT, ">&", $tmpfile->reset->fh) or die;
 	for ("disabling unreach warning") {
 	    my @mecab = (
 		'mecab',
@@ -634,13 +632,16 @@ sub maketmp {
 	exit;
     }
     close MECAB;
+
     $tmpfile->rewind;
     while (my $s = $tmpfile->fh->getline) {
 	warn "MECAB: $s" if $opt_d{m};
 	chomp $s;
 	$s =~ s/$eos/\n/;
+	$s =~ s/(\s+)(?=\S)// and push @words, $1;
 	push @words, $s;
     }
+
     goto DONE;
 
   NORMAL:
@@ -660,17 +661,16 @@ sub maketmp {
 	    push @words, $1;
 	}
 	push @words, $_;
-	$tmpfile->write($_);
-	$tmpfile->write("\n") unless /\n$/;
     }
 
   DONE:
 
-    $tmpfile->flush->rewind;
-
-    if ($opt_d{a} && @words != wc_l($tmpfile)) {
-	die "Error! (\@words != `wc -l $tmpfile`)\n";
+    $tmpfile->reset;
+    for (@words) {
+	$tmpfile->write($_);
+	$tmpfile->write("\n") unless /\n\z/;
     }
+    $tmpfile->flush->rewind;
 
     @words;
 }
@@ -893,6 +893,7 @@ Options:
 
 	-B                  char-by-char comparison
 	--diff=command      specify diff command
+	--subdiff=command   specify backend diff command
 	--stat              show statistical information
 	--colormap=s        specify color map
 	--[no]color         color or not            (default true)

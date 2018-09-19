@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.5.2 2018-09-19T11:28:47Z
+
+    - Implement mecab whitespace handling properly.
+
 4.5.1 2018-09-19T05:04:39Z
 
     - Cancel wrong mecab whitespace handling.
