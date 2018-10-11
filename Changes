@@ -2,6 +2,12 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.5.5 2018-10-11T09:05:41Z
+
+    - Fixed bug when data include Unicode space character with --mecab.
+    - Use \X to express character with -B option.
+    - Re-enable -dm (mecab) debug option.
+
 4.5.4 2018-10-04T09:15:29Z
 
     - Introduce App::cdif::Command::Mecab.
