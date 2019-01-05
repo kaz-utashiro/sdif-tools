@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.7.1 2019-01-05T14:48:14Z
+
+    - Update lib/sdif/colors.pm for dark screen.
+    - Document update.
+
 4.7.0 2019-01-02T03:01:12Z
 
     - Mecab command ignores trailing spaces.
