@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.7.2 2019-01-06T00:14:27Z
+
+    - Update colors.
+    - Introduce --colordump option to sdif/cdif.
+
 4.7.1 2019-01-05T14:48:14Z
 
     - Update lib/sdif/colors.pm for dark screen.

@@ -90,6 +90,7 @@ my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc --no-uc);
 my @opt_cdifopts;
 my $opt_env = 1;
 my @opt_colormap;
+my $opt_colordump;
 my @opt_diffopts;
 my $opt_diff = 'diff';
 my $opt_digit = 4;
@@ -143,6 +144,7 @@ my @optargs = (
     "color=s" => \$opt_color,
     "nocolor|no-color" => sub { $opt_color = 'never' },
     "colormap|cm=s" => \@opt_colormap,
+    "colordump" => \$opt_colordump,
     "256!" => \$opt_256,
     "i|ignore-case"         => sub { push @opt_diffopts, '-i'; push @opt_cdifopts, '-i' },
     "b|ignore-space-change" => sub { push @opt_diffopts, '-b'; push @opt_cdifopts, '-w' },
@@ -211,6 +213,12 @@ $colormap{OUMARK} ||= $colormap{UMARK} || $colormap{OMARK};
 $colormap{NUMARK} ||= $colormap{UMARK} || $colormap{NMARK};
 $colormap{OULINE} ||= $colormap{ULINE} || $colormap{OLINE};
 $colormap{NULINE} ||= $colormap{ULINE} || $colormap{NLINE};
+
+if ($opt_colordump) {
+    print $color_handler->colormap(
+	name => '--changeme', option => '--colormap');
+    exit;
+}
 
 my $painter = do {
     if (($opt_color eq 'always')

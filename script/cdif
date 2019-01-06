@@ -54,6 +54,7 @@ my $opt_stat;
 my $opt_color = 1;
 my $opt_256 = 1;
 my @opt_colormap;
+my $opt_colordump;
 my $opt_commandcolor = 1;
 my $opt_markcolor = 1;
 my $opt_textcolor = 1;
@@ -104,6 +105,7 @@ my @optargs = (
     "textcolor|tc!" => \$opt_textcolor,
     "unknowncolor|uc!" => \$opt_unknowncolor,
     "colormap|cm=s" => \@opt_colormap,
+    "colordump" => \$opt_colordump,
     "h|help" => sub { usage() },
     "man" => sub { pod2usage({-verbose => 2}) },
     "env!" => \$opt_env,
@@ -193,6 +195,12 @@ grep { not $_->[0] }
 );
 
 warn 'colormap = ', Dumper \%colormap if $opt_d{c};
+
+if ($opt_colordump) {
+    print $color_handler->colormap(
+	name => '--changeme', option => '--colormap');
+    exit;
+}
 
 sub color {
     $color_handler->color(@_);
