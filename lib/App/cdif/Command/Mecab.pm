@@ -22,7 +22,7 @@ sub wordlist {
 	return sub { 0 } unless /[ \t]+$/m;
 	my $magic = "15570"."67583";
 	$magic++ while /$magic/;
-	$_ .= $magic if /[ \t]+$/;
+	s/[ \t]+\K$/$magic/mg;
 	sub { $_ eq $magic };
     }->(\$text);
 
