@@ -8,7 +8,7 @@ our @EXPORT      = qw(usage);
 our %EXPORT_TAGS = ();
 our @EXPORT_OK   = qw();
 
-our $VERSION = "4.7.3";
+our $VERSION = "4.7.4";
 
 use Pod::Usage;
 
