@@ -24,14 +24,13 @@ sub mecab {
     is_deeply (	[ mecab_words $text ], $expect, $name );
 }
 
-SKIP: {
-
+my $mecab = "mecab";
 eval {
-     system "mecab --version";
+     system "$mecab --version";
      $? == 0;
 }
 or do {
-    skip "No mecab command.";
+    plan skip_all => "No `$mecab' command available.";
 };
 
 mecab "a b c\n",
@@ -53,7 +52,5 @@ mecab "私の名前は中野です\n",
 mecab "私の名前は中野です  \n",
     [ "私", "の", "名前", "は", "中野", "です", "  ", "\n" ],
     "Japanese with trailing space";
-
-}
 
 done_testing;
