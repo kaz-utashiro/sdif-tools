@@ -2,6 +2,8 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.8.0 2019-01-10T03:34:45Z
+
     - Implement lib/sdif/autocolor/iTerm.pm
 
 4.7.4 2019-01-08T09:28:04Z
