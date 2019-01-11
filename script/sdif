@@ -460,17 +460,16 @@ while (<DIFF>) {
 
 	use App::sdif::Divert;
 	local $screen_width = $screen_width;
-	my($divert, %opt);
+	my($divert, %read_opt);
 	if ($prefix) {
 	    $screen_width -= length $prefix;
-	    $opt{prefix} = $prefix;
-	    $divert = new App::sdif::Divert FINAL => sub {
-		s/^/$prefix/mg;
-	    };
+	    $read_opt{prefix} = $prefix;
+	    $divert = new App::sdif::Divert
+		FINAL => sub { s/^/$prefix/mg };
 	};
 
-	print_command_n(\%opt, $command, $command);
-	my @stack = read_diffu({prefix => $prefix}, *DIFF, $o, $n);
+	print_command_n({ type => 'COMMAND' }, $command, $command);
+	my @stack = read_diffu(\%read_opt, *DIFF, $o, $n);
 	my @buf = map {
 	    [ collect $_ qr/^\ $/ ],	# common
 	    [ collect $_ qr/^\-$/ ],	# old

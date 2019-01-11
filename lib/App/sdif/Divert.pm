@@ -20,7 +20,7 @@ sub DESTROY {
     close $obj->{FH};
     select $obj->{STDOUT};
     if (my $final = $obj->{FINAL}) {
-	$final->() for $obj->{BUFFER};
+	do { $final->() } for $obj->{BUFFER};
     }
     if (defined $obj->{BUFFER}) {
 	print decode 'utf8', $obj->{BUFFER};
