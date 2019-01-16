@@ -373,7 +373,7 @@ while (<DIFF>) {
     # diff -u
     #
     elsif (m{^
-	   (?<prefix> $graph_prefix_re )
+	   (?<prefix> $graph_prefix_re)
 	   (?<command>
 	     \@\@[ ]-\d+(?:,(?<o>\d+))?[ ]\+\d+(?:,(?<n>\d+))?[ ]\@\@
 	     (?s:.*)
@@ -381,16 +381,16 @@ while (<DIFF>) {
 	   }x) {
 	my($prefix, $command, $o, $n) = @+{qw(prefix command o n)};
 
-	use App::sdif::Divert;
-	my($divert, %opt);
+	my($divert, %read_opt);
 	if ($prefix) {
-	    $opt{prefix} = $prefix;
+	    $read_opt{prefix} = $prefix;
+	    use App::sdif::Divert;
 	    $divert = new App::sdif::Divert
 		FINAL => sub { s/^/$prefix/mg };
-	};
+	}
 
 	print_command($command);
-	my @buf = read_diffu(\%opt, *DIFF, $o // 1, $n // 1);
+	my @buf = read_diffu(\%read_opt, *DIFF, $o // 1, $n // 1);
 	my $tab = $opt_T ? "\t" : "";
 	my $mark_re = qr/[\-\+]$tab/;
 	while (my($same, $old, $new) = splice(@buf, 0, 3)) {
@@ -828,17 +828,6 @@ sub range {
     local $_ = shift;
     my($from, $to) = /,/ ? split(/,/) : ($_, $_);
     wantarray ? ($from, $to) : $to == 0 ? 0 : $to - $from + 1;
-}
-
-##
-## Implement minimum function because Text::Glob is not in standard library
-##
-sub match_glob {
-    local $_ = shift;
-    s/\?/./g;
-    s/\*/.*/g;
-    my $regex = qr/^$_$/;
-    grep { $_ =~ $regex } @_;
 }
 
 sub wc_l {

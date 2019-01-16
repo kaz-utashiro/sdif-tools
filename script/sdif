@@ -54,7 +54,7 @@ diff ... | sdif
 
 =cut
 
-require 5.014;
+use v5.14;
 use strict;
 use warnings;
 use utf8;
@@ -99,7 +99,6 @@ my $opt_digit = 4;
 my $opt_column;
 my $opt_view;
 my $opt_ambiguous = 'narrow';
-my %column_width;
 our $screen_width;
 
 my $opt_color = 'always';
@@ -278,10 +277,12 @@ $screen_width = $opt_W || &terminal_width;
 
 sub column_width {
     my $column = shift;
+    state %column_width;
     $column_width{$screen_width, $column} //= do {
+	use integer;
 	my $w = $screen_width;
 	$w -= $column if $opt_mark;
-	max(1, int($w / $column));
+	max 1, $w / $column;
     };
 }
 
@@ -458,12 +459,12 @@ while (<DIFF>) {
 	my($o, $n) = ($+{o}//1, $+{n}//1);
 	my($prefix, $command) = @+{qw(prefix command)};
 
-	use App::sdif::Divert;
 	local $screen_width = $screen_width;
 	my($divert, %read_opt);
 	if ($prefix) {
 	    $screen_width -= length $prefix;
 	    $read_opt{prefix} = $prefix;
+	    use App::sdif::Divert;
 	    $divert = new App::sdif::Divert
 		FINAL => sub { s/^/$prefix/mg };
 	};
@@ -874,17 +875,6 @@ sub unesc {
     local $_ = shift;
     s/\e/\\e/g;
     $_;
-}
-
-##
-## Implement minimum function because Text::Glob is not in standard library
-##
-sub match_glob {
-    local $_ = shift;
-    s/\?/./g;
-    s/\*/.*/g;
-    my $regex = qr/^$_$/;
-    grep { $_ =~ $regex } @_;
 }
 
 sub color_table {
