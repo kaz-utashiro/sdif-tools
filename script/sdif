@@ -87,7 +87,7 @@ my $opt_q;
 my $opt_d;
 my $opt_truncate = 0;
 my $opt_onword = 1;
-my $opt_cdif = 1;
+my $opt_cdif = 'cdif';
 my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc --no-uc);
 my @opt_cdifopts;
 my $opt_env = 1;
@@ -156,7 +156,8 @@ my @optargs = (
     "u|unified"             => sub { push @opt_diffopts, '-u' },
     "C=i"                   => sub { push @opt_diffopts, '-C' . $_[1] },
     "U=i"                   => sub { push @opt_diffopts, '-U' . $_[1] },
-    "cdif!" => \$opt_cdif,
+    "cdif:s" => \$opt_cdif,
+    "nocdif|no-cdif" => sub { $opt_cdif = undef },
     "cdifopts=s" => \@opt_cdifopts,
     "colortable" => \$opt_colortable,
 
@@ -337,7 +338,7 @@ if ($opt_cdif) {
 	if ($DIFF ne '-') {
 	    open(STDIN, $DIFF) || die "cannot open diff: $!\n";
 	}
-	do { exec join ' ', 'cdif', @opt_cdifopts } ;
+	do { exec join ' ', $opt_cdif, @opt_cdifopts } ;
 	warn "exec failed: $!";
 	print while <>;
 	exit;
@@ -1048,10 +1049,11 @@ Default false.
 Fold long line at word boundaries.
 Default true.
 
-=item B<-->[B<no>]B<cdif>
+=item B<-->[B<no>]B<cdif>[=I<command>]
 
-Use B<cdif> command instead of normal diff command.
-Default true.
+Use B<cdif> command instead of normal diff command.  Enabled by
+default and use B<--no-cdif> option explicitly to disable it.  This
+option accepts optional parameter as an actual B<cdif> command.
 
 =item B<--cdifopts>=I<option>
 
