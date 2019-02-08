@@ -390,7 +390,7 @@ while (<DIFF>) {
 	    @new = read_line(*DIFF, $n);
 	    $readfile and read_line(*NEW, $n);
 	}
-	map { s/^..// } @old, @new;
+	map { s/^[<>] ?// } @old, @new;
 	flush_buffer([], \@old, \@new);
     }
     #
@@ -431,7 +431,7 @@ while (<DIFF>) {
 	($nline) = $right =~ /^(\d+)/;
 
 	my @buf = merge_diffc(\@old, \@new);
-	map { map { s/^..// } @$_ } @buf;
+	map { map { s/^[-+! ] ?// } @$_ } @buf;
 	flush_buffer(@buf);
     }
     #
@@ -475,7 +475,7 @@ while (<DIFF>) {
 	print_command_n({ type => 'COMMAND' }, $command, $command);
 	my @buf = read_unified_2 \%read_opt, *DIFF, $o, $n;
 
-	map { map { s/^.// } @$_ } @buf;
+	map { map { s/^[-+ ]// } @$_ } @buf;
 	flush_buffer(@buf);
     }
     #
@@ -524,33 +524,33 @@ sub merge_diffc {
     my @n = @{+shift};
     my @buf;
 
-    die if grep { not /^[ \-\+\!] / } @o, @n;
+    die if grep { not /^[ \-\+\!][\t ]/ } @o, @n;
 
     while (@o or @n) {
 	my @slot = ([], [], []);
 	push @buf, @slot;
 
 	if (@o and @n) {
-	    while (@o and @n and $o[0] =~ /^  / and $n[0] =~ /^  /) {
+	    while (@o and @n and $o[0] =~ /^ [\t ]/ and $n[0] =~ /^ [\t ]/) {
 		push @{$slot[0]}, shift @o;
 		shift @n;
 	    }
 	}
 	elsif (@o) {
-	    push(@{$slot[0]}, shift @o) while @o and $o[0] =~ /^  /;
+	    push(@{$slot[0]}, shift @o) while @o and $o[0] =~ /^ [\t ]/;
 	}
 	elsif (@n) {
-	    push(@{$slot[0]}, shift @n) while @n and $n[0] =~ /^  /;
+	    push(@{$slot[0]}, shift @n) while @n and $n[0] =~ /^ [\t ]/;
 	}
 
-	push(@{$slot[1]}, shift @o) while @o and $o[0] =~ /^\- /;
+	push(@{$slot[1]}, shift @o) while @o and $o[0] =~ /^\-[\t ]/;
 	next if @{$slot[1]};
 
-	push(@{$slot[2]}, shift @n) while @n and $n[0] =~ /^\+ /;
+	push(@{$slot[2]}, shift @n) while @n and $n[0] =~ /^\+[\t ]/;
 	next if @{$slot[2]};
 
-	push(@{$slot[1]}, shift @o) while @o and $o[0] =~ /^! /;
-	push(@{$slot[2]}, shift @n) while @n and $n[0] =~ /^! /;
+	push(@{$slot[1]}, shift @o) while @o and $o[0] =~ /^![\t ]/;
+	push(@{$slot[2]}, shift @n) while @n and $n[0] =~ /^![\t ]/;
     }
 
     @buf;

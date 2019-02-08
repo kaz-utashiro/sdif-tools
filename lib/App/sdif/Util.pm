@@ -20,7 +20,7 @@ use List::Util qw(sum);
 
 sub read_unified_2 {
     map {
-	[ collect $_ ' ' ], # common
+	[ collect $_ qr/[\t ]/ ], # common
 	[ collect $_ '-' ], # old
 	[ collect $_ '+' ], # new
     } &read_unified;
