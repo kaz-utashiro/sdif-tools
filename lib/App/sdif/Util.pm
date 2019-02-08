@@ -75,9 +75,8 @@ sub read_unified {
 	  [ ORDER => $opt->{ORDER} ] );
     };
 
-    my $marklines = sub {
+    state $marklines = sub {
 	local $_ = shift;
-	return $column if /^\t/;
 	/-/ ? tr/-/-/ : tr/ / / + 1;
     };
 
@@ -102,7 +101,8 @@ sub read_unified {
 	    push @stack, new App::sdif::LabelStack @lsopt;
 	}
 	$stack[-1]->append($mark, $_);
-	last if ($total -= $marklines->($mark)) <= 0;
+	$total -= $mark =~ /^\t/ ? $column : $marklines->($mark);
+	last if $total <= 0;
     }
     @stack;
 }

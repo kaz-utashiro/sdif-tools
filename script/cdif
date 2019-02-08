@@ -73,7 +73,6 @@ my $opt_i;
 my $opt_b;
 my $opt_w;
 my $opt_t;
-my $opt_T;
 
 my $rcs;
 my @rcsopt;
@@ -124,7 +123,6 @@ my @optargs = (
     "b|ignore-space-change" => \$opt_b,
     "w|ignore-all-space" => \$opt_w,
     "t|expand-tabs" => \$opt_t,
-    "T|initial-tab" => \$opt_T,
     "c|context" => sub { push(@diffopts, "-c") },
     "u|unified" => sub { push(@diffopts, "-u") },
     "C=i" => sub { push(@diffopts, "-C" . ($_[1] > 0 ? $_[1] : '')) },
@@ -374,28 +372,19 @@ while (<DIFF>) {
     #
     elsif (m{^
 	   (?<prefix> $graph_prefix_re)
-	   (?<command> (?<mark> \@{2,} ) [ ] (?s:.*) )
+	   (?<command>
+	     (?<mark> \@{2,} ) [ ]
+	     (?<lines> (?: [-+]\d+(?:,\d+)? [ ] ){2,} )
+	     \g{mark}
+	     (?s:.*)
+	   )
 	   }x) {
-	my $prefix = $+{prefix};
-	my $command = $+{command};
+	my($prefix, $command, $lines) = @+{qw(prefix command lines)};
 	my $column = length $+{mark};
-	state @pattern;
-	my $pattern = $pattern[$column] //= do {
-	    my $regex = join( '[ ]',
-			      "^\\\@{$column}",
-			      ( '[-+]\\d+(?:,(\\d+))?' ) x $column,
-			      "\\\@{$column}" );
-	    qr/$regex/;
-	};
-	$command =~ /$pattern/ or do { print; next };
-
 	my @lines = map {
-	    if (defined $+[$_]) {
-		int substr $command, $-[$_], ( $+[$_] - $-[$_] );
-	    } else {
-		1;
-	    }
-	} 1 .. $column;
+	    $_ eq ' ' ? 1 : int $_
+	} $lines =~ /\d+(?|,(\d+)|( ))/g;
+	@lines == $column or do { print; next };
 
 	my($divert, %read_opt);
 	if ($prefix) {
@@ -838,7 +827,6 @@ Options:
 	-b		ignore space change
 	-w		ignore whitespace
 	-t		expand tabs
-	-T		initial tabs
 	--rcs		use rcsdiff
 	-r<rev>, -q	rcs options
 
