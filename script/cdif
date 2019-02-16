@@ -509,7 +509,7 @@ sub compare_unified_generic {
 sub compare_unified_3 {
     my($buf, $mark_re) = @_;
 
-    state @mark = ( "  ", "--", "- ", " -", "+ ", " +", "++" );
+    my @mark = ( "  ", "--", "- ", " -", "+ ", " +", "++" );
     my %buf = map { $_ => scalar($buf->collect($_)) } @mark;
 
     my @r;
