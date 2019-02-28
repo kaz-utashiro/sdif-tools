@@ -91,7 +91,7 @@ my $opt_command = 1;
 my $opt_truncate = 0;
 my $opt_onword = 1;
 my $opt_cdif = 'cdif';
-my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc --no-uc);
+my @default_opt_cdifopts = qw(--no-cc --no-mc --no-uc);
 my @opt_cdifopts;
 my $opt_env = 1;
 my @opt_colormap;
@@ -239,9 +239,10 @@ my $painter = do {
 ##
 ## setup cdifopts
 ##
-push @opt_cdifopts,
+unshift @opt_cdifopts,
     $opt_256   ? qw(--256)   : qw(--no-256)  ,
     $opt_graph ? qw(--graph) : qw(--no-graph),
+    $opt_view  ? qw(--tc)    : qw(--no-tc),
     @default_opt_cdifopts;
 
 my($OLD, $NEW, $DIFF);
