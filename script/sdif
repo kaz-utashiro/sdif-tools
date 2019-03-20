@@ -90,7 +90,8 @@ my $opt_d;
 my $opt_command = 1;
 my $opt_truncate = 0;
 my $opt_onword = 1;
-my $opt_cdif = 'cdif';
+my $default_opt_cdif = 'cdif';
+my $opt_cdif = '';
 my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc --no-uc);
 my @opt_cdifopts;
 my $opt_env = 1;
@@ -237,8 +238,11 @@ my $painter = do {
 };
 
 ##
-## setup cdifopts
+## setup cdif command and option
 ##
+if (defined $opt_cdif and $opt_cdif eq '') {
+    $opt_cdif = $default_opt_cdif;
+}
 unshift @opt_cdifopts,
     $opt_256   ? qw(--256)   : qw(--no-256)  ,
     $opt_graph ? qw(--graph) : qw(--no-graph),
