@@ -353,7 +353,7 @@ if ($opt_cdif) {
 
 if ($readfile) {
 
-    my $DIFFOUT = do { local $/; <DIFF> };
+    my $DIFFOUT = encode('utf8', do { local $/; <DIFF> });
     close DIFF;
     open  DIFF, '<', \$DIFFOUT or die;
 

@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.10.8 2019-04-04T09:03:04Z
+
+    - Fix bug of code handling of in-memory file.
+
 4.10.7 2019-04-04T07:07:56Z
 
     - Fix problem when comparing /dev/fd/* files.
