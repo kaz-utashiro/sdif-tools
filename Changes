@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.11.1 2019-06-22T21:07:23Z
+
+    - Fix normal diff to produce colored text.
+
 4.11.0 2019-06-20T22:48:25Z
 
     - cdif: Convert carriage-return to visible code.
