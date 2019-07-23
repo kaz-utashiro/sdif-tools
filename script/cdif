@@ -388,7 +388,11 @@ while (<DIFF>) {
 	my @lines = map {
 	    $_ eq ' ' ? 1 : int $_
 	} $lines =~ /\d+(?|,(\d+)|( ))/g;
-	@lines == $column or do { print; next };
+
+	if (@lines != $column) {
+	    print;
+	    next;
+	}
 
 	my($divert, %read_opt);
 	if ($prefix) {
