@@ -67,6 +67,7 @@ my $opt_command = 1;
 my $opt_mark = 1;
 my $opt_graph = 1;
 my $opt_visible_cr = 1;
+my $opt_visible_esc = 1;
 
 my $opt_c;
 my $opt_u;
@@ -120,6 +121,7 @@ my @optargs = (
     "mark!" => \$opt_mark,
     "graph!" => \$opt_graph,
     "visible-cr|vcr!" => \$opt_visible_cr,
+    "visible-esc|vesc!" => \$opt_visible_esc,
 
     "i|ignore-case" => \$opt_i,
     "b|ignore-space-change" => \$opt_b,
@@ -575,7 +577,10 @@ sub compare {
     }
 
     if ($opt_visible_cr) {
-	s/\r/\x{240D}/g for $$old, $$new;
+	s/\r/\N{SYMBOL FOR CARRIAGE RETURN}/g for $$old, $$new;
+    }
+    if ($opt_visible_esc) {
+	s/\e/\N{SYMBOL FOR ESCAPE}/g for $$old, $$new;
     }
 
     ($$old, $$new) = context($$old, $$new);
@@ -858,6 +863,7 @@ Options:
 	--[no]mark	    print mark or not       (default true)
 	--[no]graph	    read git --graph output (default true)
 	--[no]visible-cr    visible carriage return (default true)
+	--[no]visible-esc   visible escape          (default true)
 	--[no]mecab	    use mecab tokenizer     (default false)
 
 
@@ -1085,10 +1091,17 @@ These options are prepared for watchdiff(1) command.
 =item B<-->[B<no>]B<graph>
 
 Process B<git> B<--graph> option.
+False by default.
 
 =item B<-->[B<no>]B<visible-cr>
 
-Convert carriage-return to visible code.
+Convert CARRIAGE-RETURN to visible code.
+True by default.
+
+=item B<-->[B<no>]B<visible-esc>
+
+Convert ESCAPE to visible code.
+True by default.
 
 =item B<-->[B<no>]B<mecab>
 
