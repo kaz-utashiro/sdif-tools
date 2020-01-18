@@ -1,6 +1,6 @@
 name = "App-sdif"
 script_files = [ "script/sdif", "script/cdif", "script/watchdiff" ]
-badges = ['travis-ci.org', 'metacpan']
+badges = ['travis-ci.com', 'metacpan']
 authority="cpan:UTASHIRO"
 module_maker="ModuleBuildTiny"
 [unsupported]
