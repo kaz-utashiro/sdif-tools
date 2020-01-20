@@ -65,7 +65,7 @@ See individual manual of each command for detail.
 =head2 GIT
 
 Those are sample configurations using B<sdif> family in git
-environment.  You need install B<mecab> command to use B<--mecab>
+environment.  You need to install B<mecab> command to use B<--mecab>
 option.
 
 	~/.gitconfig
