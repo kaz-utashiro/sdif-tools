@@ -1,6 +1,8 @@
 dist: trusty
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq mecab mecab-ipadic-utf8 libmecab-dev
 language: perl
-sudo: false
 matrix:
   include:
     - perl: "5.30"
