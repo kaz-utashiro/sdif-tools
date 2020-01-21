@@ -84,6 +84,11 @@ option.
 		export LESS="-cR"
 		export LESSANSIENDCHARS="mK"
 
+You can write everything in ~/.gitconfig:
+
+        log  = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
+        show = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
+        diff = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
 
 =head1 SEE ALSO
 

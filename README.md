@@ -39,7 +39,7 @@ See individual manual of each command for detail.
 ## GIT
 
 Those are sample configurations using **sdif** family in git
-environment.  You need install **mecab** command to use **--mecab**
+environment.  You need to install **mecab** command to use **--mecab**
 option.
 
         ~/.gitconfig
@@ -57,6 +57,12 @@ option.
         ~/.profile
                 export LESS="-cR"
                 export LESSANSIENDCHARS="mK"
+
+You can write everything in ~/.gitconfig:
+
+        log  = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
+        show = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
+        diff = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
 
 # SEE ALSO
 
