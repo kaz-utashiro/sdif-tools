@@ -86,9 +86,9 @@ option.
 
 You can write everything in ~/.gitconfig:
 
-        log  = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
-        show = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
-        diff = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK -cR less
+        log  = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK less -cR
+        show = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK less -cR
+        diff = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK less -cR
 
 =head1 SEE ALSO
 
