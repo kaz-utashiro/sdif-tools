@@ -1161,6 +1161,8 @@ L<sdif(1)>, L<watchdiff(1)>
 
 L<Getopt::EX::Colormap>
 
+L<https://taku910.github.io/mecab/>
+
 =head1 BUGS
 
 B<cdif> is naturally not very fast because it uses normal diff command
