@@ -42,7 +42,7 @@
       },
       "runtime" : {
          "requires" : {
-            "Getopt::EX" : "v1.15.3",
+            "Getopt::EX" : "v1.15.6",
             "List::Util" : "1.45",
             "Text::ANSI::Fold" : "1.02",
             "Text::VisualWidth::PP" : "0.05",
@@ -68,10 +68,10 @@
          "web" : "https://github.com/kaz-utashiro/sdif-tools"
       }
    },
-   "version" : "4.13.5",
+   "version" : "4.13.6",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
-      "Kaz Utashiro <kaz@utashiro.com>",
+      "Kazumasa Utashiro <kaz@utashiro.com>",
       "Mohammad S Anwar <mohammad.anwar@yahoo.com>"
    ],
    "x_static_install" : 0

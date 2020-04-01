@@ -307,7 +307,7 @@ sub column_width {
 ## --colortable
 ##
 if ($opt_colortable) {
-    color_table($screen_width);
+    Getopt::EX::Colormap::colortable $screen_width;
     exit;
 }
 
@@ -861,44 +861,6 @@ sub unesc {
     local $_ = shift;
     s/\e/\\e/g;
     $_;
-}
-
-sub color_table {
-    my $width = shift || 80;
-    for my $c (0..5) {
-	for my $b (0..5) {
-	    my @format =
-		("%d$b$c", "$c%d$b", "$b$c%d", "$b%d$c", "$c$b%d", "%d$c$b")
-		[0 .. min(5, $width / (4 * 6) - 1)];
-	    for my $format (@format) {
-		for my $a (0..5) {
-		    my $rgb = sprintf $format, $a;
-		    print $painter->("$rgb/$rgb", " $rgb");
-		}
-	    }
-	    print "\n";
-	}
-    }
-    for my $g (0..5) {
-	my $grey = $g x 3;
-	print $painter->("$grey/$grey", sprintf(" %-19s", $grey));
-    }
-    print "\n";
-    for ('L00' .. 'L25') {
-	print $painter->("$_/$_", " $_");
-    }
-    print "\n";
-    for my $alt (0, 1) {
-	for my $C (split //, "RGBCMYKW") {
-	    my $c = $alt ? lc $C : $C;
-	    print $painter->("$c/$c", "  $c ");
-	}
-	print "\n";
-    }
-    for my $rgb (qw(500 050 005 055 505 550 000 555)) {
-	print $painter->("$rgb/$rgb", " $rgb");
-    }
-    print "\n";
 }
 
 __END__
