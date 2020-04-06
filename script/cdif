@@ -85,6 +85,7 @@ my %opt_visible = do {
     map { $_ => splice @{$visible{$_}}, 0, 1 }
     keys %visible;
 };
+my @opt_visible;
 
 my $opt_c;
 my $opt_u;
@@ -138,7 +139,7 @@ my @optargs = (
     "mark!" => \$opt_mark,
     "prefix!" => \$opt_prefix,
     "prefix-pattern=s" => \$opt_prefix_pattern,
-    "visible=s" => \%opt_visible,
+    "visible=s" => \@opt_visible,
     "visible-cr|vcr!" => sub { $opt_visible{cr} = $_[1] },
     "visible-esc|vesc!" => sub { $opt_visible{esc} = $_[1] },
 
@@ -286,8 +287,12 @@ my $w_pattern = do {
 ##
 ## Converter function for visible characters
 ##
+use Getopt::EX::LabeledParam;
+Getopt::EX::LabeledParam
+    ->new(HASH => \%opt_visible)
+    ->load_params (@opt_visible);
 my $converter = do {
-    my $chars = join "",  do {
+    my $chars = join "", do {
 	map  {
 	    my $v = $visible{$_} // die "Unknown charname: \"$_\"\n";
 	    $v->[0];
@@ -1151,6 +1156,11 @@ output.
 Set visible attribute for specified characters.  Default visible: nul,
 bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.  See
 L<ascii(7)> for name representation.
+
+Multiple characters can be specified at once, by assembling them by
+commna (C<,>) like C<--visible ht=1,sp=1>; or connecting them by equal
+sign (C<=>) like C<--visible ht=sp=1>.  Character name accept
+wildcard; C<--visible '*=1'>.
 
 Currently this option is effective only for modified lines.
 
