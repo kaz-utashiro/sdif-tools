@@ -4,13 +4,13 @@
       "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.9, CPAN::Meta::Converter version 2.143240",
+   "generated_by" : "Minilla/v3.1.10, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "App-sdif",
    "no_index" : {
@@ -42,7 +42,8 @@
       },
       "runtime" : {
          "requires" : {
-            "Getopt::EX" : "v1.15.6",
+            "Getopt::EX" : "v1.16.0",
+            "Getopt::EX::termcolor" : "1.01",
             "List::Util" : "1.45",
             "Text::ANSI::Fold" : "1.02",
             "Text::VisualWidth::PP" : "0.05",
@@ -74,5 +75,6 @@
       "Kazumasa Utashiro <kaz@utashiro.com>",
       "Mohammad S Anwar <mohammad.anwar@yahoo.com>"
    ],
+   "x_serialization_backend" : "JSON::PP version 4.04",
    "x_static_install" : 0
 }
