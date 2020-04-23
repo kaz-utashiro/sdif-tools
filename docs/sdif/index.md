@@ -53,6 +53,7 @@ sdif file\_1 file\_2
 
 diff ... | sdif
 
+    -i, --ignore-case
     -b, --ignore-space-change
     -w, --ignore-all-space
     -B, --ignore-blank-lines
@@ -65,6 +66,7 @@ diff ... | sdif
     --unified, -u, -U#  unified diff
 
     --width=#, -W#      specify width of output (default 80)
+    --margin=#          specify margin column number (default 0)
     --color=when        'always' (default), 'never' or 'auto'
     --nocolor           --color=never
     --colormap, --cm    specify color map
@@ -74,6 +76,8 @@ diff ... | sdif
     --column=order      set column order (default ONM)
     --view, -v          viewer mode
     --ambiguous=s       ambiguous character width (detect, wide, narrow)
+    --[no]prefix        process git --graph output (default on)
+    --prefix-pattern    prefix pattern
 
     --man               display manual page
     --diff=s            set diff command
@@ -90,11 +94,13 @@ feature of sdif is making a side-by-side listing of two different
 files.  All contents of two files are listed on left and right sides.
 Center column is used to indicate how different those lines are.  No
 mark means no difference.  Added, deleted and modified lines are
-marked with \`-' and \`+' character.
+marked with minus (\`-') and plus (\`+') character, and wrapped line is
+marked with period (\`.').
 
     1 deleted  -
     2 same          1 same
     3 changed  -+   2 modified
+      wrapped  ..     folded
     4 same          3 same
                 +   4 added
 
@@ -133,10 +139,10 @@ dark screen, place next line in your `~/.sdifrc`.
 
     option default --dark-cmy
 
-Option **--autocolor** is defined to load **-Mautocolor** module.  It
-sets **--light** or **--dark** option according to the brightness of the
-terminal screen.  You can set preferred color in your `~/.sdifrc`
-like:
+Option **--autocolor** is defined in **default** module to call
+[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module.  It sets **--light** or **--dark**
+option according to the brightness of the terminal screen.  You can
+set preferred color in your `~/.sdifrc` like:
 
     option --light --cmy
     option --dark  --dark-cmy
@@ -144,9 +150,9 @@ like:
 If the **BRIGHTNESS** environment variable is set in a range of 0 to
 100 digit, it is used as a screen brightness.
 
-Currently automatic setting by **-Mautocolor** module works only on
-macOS Terminal.app.  If you are using other terminal application, set
-the **BRIGHTNESS** or write a module.
+Currently automatic setting by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module works
+only on macOS Terminal.app and iTerm.app.  If you are using other
+terminal application, set the **BRIGHTNESS** or write a module.
 
 Option **--autocolor** is set by default, so override it to do nothing
 to disable.
@@ -173,16 +179,30 @@ From version 4.1.0, option **--cdif** is set by default, so use
     standard error is assigned to a terminal, the width is taken from it
     if possible.
 
+- **--margin**=_column_
+
+    Set margin column number.  Margin columns are left blank at the end of
+    each line.  This option implicitly declare line break control, which
+    allows to run-in and run-out prohibited characters at the head-and-end
+    of line.  Margin columns are used to run-in prohibited characters from
+    the head of next line.  See \`perldoc Text::ANSI::Fold\` for detail.
+
 - **--**\[**no**\]**number**, **-n**
 
     Print line number on each lines.
     Default false.
+
+- **--**\[**no**\]**command**
+
+    Print diff command control lines.
+    Default true.
 
 - **--digit**=_n_
 
     Line number is displayed in 4 digits by default.  Use this option to
     change it.
 
+- **-i**, **--ignore-case**
 - **-b**, **--ignore-space-change**
 - **-w**, **--ignore-all-space**
 - **-B**, **--ignore-blank-lines**
@@ -202,10 +222,11 @@ From version 4.1.0, option **--cdif** is set by default, so use
     Fold long line at word boundaries.
     Default true.
 
-- **--**\[**no**\]**cdif**
+- **--**\[**no**\]**cdif**\[=_command_\]
 
-    Use **cdif** command instead of normal diff command.
-    Default true.
+    Use **cdif** command instead of normal diff command.  Enabled by
+    default and use **--no-cdif** option explicitly to disable it.  This
+    option accepts optional parameter as an actual **cdif** command.
 
 - **--cdifopts**=_option_
 
@@ -232,15 +253,21 @@ From version 4.1.0, option **--cdif** is set by default, so use
 
 - **--column**=_order_
 
-    Specify the order of each column by **O** (old), **N** (new) and **M**
-    (merge).  Default order is **ONM**.  If you want to show new file on
-    left side and old file in right side, use like:
+    Specify the order of each column by **O** (1: old), **N** (2: new) and
+    **M** (3: merge).  Default order is "ONM" or "123".  If you want to
+    show new file on left side and old file in right side, use like:
 
         $ sdif --column NO
 
     Next example show merged file on left-most column for diff3 data.
 
         $ sdif --column MON
+
+    Next two commands produce same output.
+
+        $ git diff v1 v2 v3 | sdif --column 312
+
+        $ git diff v3 v1 v2 | sdif
 
 - **--**\[**no**\]**color**
 
@@ -256,7 +283,8 @@ From version 4.1.0, option **--cdif** is set by default, so use
 
 - **--view**, **-v**
 
-    Viewer mode.  Display two files side-by-side in straightforward order.
+    Viewer mode.  Display each files in straightforward order.  Without
+    this option, unchanged lines are placed at the same position.
 
 - **--ambiguous**=_width\_spec_
 
@@ -274,6 +302,20 @@ From version 4.1.0, option **--cdif** is set by default, so use
     - **narrow** or **half**
 
         Treat ambiguous characters as narrow.
+
+- **--**\[**no**\]**prefix**
+
+    Understand prefix for diff output including **git** **--graph** option.
+    True by default.
+
+- **--prefix-pattern**=_pattern_
+
+    Specify prefix pattern in regex.  Default pattern is:
+
+        (?:\| )*(?:  )*
+
+    This pattern matches **git** graph style and whitespace indented diff
+    output.
 
 - **--colormap**=_colormap_, **--cm**=_colormap_
 
@@ -333,9 +375,11 @@ From version 4.1.0, option **--cdif** is set by default, so use
             foreground[/background]
 
         COLOR:
-            000 .. 555       : 6 x 6 x 6 216 colors
-            000000 .. FFFFFF : 24bit RGB mapped to 216 colors
-            L00 .. L23       : 24 grey levels
+            (255,255,255)      : 24bit decimal RGB colors
+            #000000 .. #FFFFFF : 24bit hex RGB colors
+            #000    .. #FFF    : 12bit hex RGB 4096 colors
+            000 .. 555         : 6x6x6 RGB 216 colors
+            L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
         Sample:
             005     0000FF        : blue foreground
@@ -343,53 +387,78 @@ From version 4.1.0, option **--cdif** is set by default, so use
             000/555 000000/FFFFFF : black on white
             500/050 FF0000/00FF00 : red on green
 
+    or color names enclosed by angle bracket :
+
+        <red> <blue> <green> <cyan> <magenta> <yellow>
+        <aliceblue> <honeydue> <hotpink> <mooccasin>
+        <medium_aqua_marine>
+
     and other effects :
 
-        S  Stand-out (reverse video)
-        U  Underline
-        D  Double-struck (boldface)
-        F  Flash (blink)
-        E  Expand
+        Z  0 Zero (reset)
+        D  1 Double-struck (boldface)
+        P  2 Pale (dark)
+        I  3 Italic
+        U  4 Underline
+        F  5 Flash (blink: slow)
+        Q  6 Quick (blink: rapid)
+        S  7 Stand-out (reverse video)
+        V  8 Vanish (concealed)
+        J  9 Junk (crossed out)
 
-    **E** is effective for command, file and text line.  That line will be
-    expanded to window width filling up by space characters.  Left column
-    is expanded always.  You may want to use this to set background color
-    for right column.
+        E    Erase Line
+
+        ;    No effect
+        X    No effect
+        /    Toggle foreground/background
+        ^    Reset to foreground
+
+    At first the color is considered as foreground, and slash (`/`)
+    switches foreground and background.  If multiple colors are given in
+    the same spec, all indicators are produced in the order of their
+    presence.  Consequently, the last one takes effect.
+
+    If the spec start with plus (`+`) or minus (`-`) character,
+    following characters are appneded/deleted from previous value. Reset
+    mark (`^`) is inserted before appended string.
+
+    Effect characters are case insensitive, and can be found anywhere and
+    in any order in color spec string.  Because `X` and `;` takes no
+    effect, you can use them to improve readability, like `SxD;K/544`.
 
     Defaults are :
 
-        OCOMMAND => "555/010E"  or "GSE"
-        NCOMMAND => "555/010E"  or "GSE"
-        MCOMMAND => "555/010E"  or "GSE"
-        OFILE    => "555/010DE" or "GSDE"
-        NFILE    => "555/010DE" or "GSDE"
-        MFILE    => "555/010DE" or "GSDE"
-        OMARK    => "010/444"   or "G/W"
-        NMARK    => "010/444"   or "G/W"
-        MMARK    => "010/444"   or "G/W"
+        OCOMMAND => "555/010"  or "GS"
+        NCOMMAND => "555/010"  or "GS"
+        MCOMMAND => "555/010"  or "GS"
+        OFILE    => "551/010D" or "GDS"
+        NFILE    => "551/010D" or "GDS"
+        MFILE    => "551/010D" or "GDS"
+        OMARK    => "010/444"  or "G/W"
+        NMARK    => "010/444"  or "G/W"
+        MMARK    => "010/444"  or "G/W"
         UMARK    => ""
-        OLINE    => "220"       or  "Y"
-        NLINE    => "220"       or  "Y"
-        MLINE    => "220"       or  "Y"
+        OLINE    => "220"      or "Y"
+        NLINE    => "220"      or "Y"
+        MLINE    => "220"      or "Y"
         ULINE    => ""
-        OTEXT    => "KE/454"    or "G"
-        NTEXT    => "KE/454"    or "G"
-        MTEXT    => "KE/454"    or "G"
+        OTEXT    => "K/454"    or "G"
+        NTEXT    => "K/454"    or "G"
+        MTEXT    => "K/454"    or "G"
         UTEXT    => ""
 
     This is equivalent to :
 
-        sdif --cm '?COMMAND=555/010E,?FILE=555/010DE' \
+        sdif --cm '?COMMAND=555/010,?FILE=555/010D' \
              --cm '?MARK=010/444,UMARK=' \
              --cm '?LINE=220,ULINE=' \
-             --cm '?TEXT=KE/454,UTEXT='
+             --cm '?TEXT=K/454,UTEXT='
 
 # MODULE OPTIONS
 
 ## default
 
     default      --autocolor
-    --autocolor  -Mautocolor
     --nop        do nothing
 
 ## -Mcolors
@@ -416,12 +485,21 @@ Environment variable **SDIFOPTS** is used to set default options.
 - Kazumasa Utashiro
 - [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
+# LICENSE
+
+Copyright 1992-2020 Kazumasa Utashiro
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
 # SEE ALSO
 
 [cdif(1)](http://man.he.net/man1/cdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 
 [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)
 
-[App::sdif::colors](https://metacpan.org/pod/App::sdif::colors),
-[App::sdif::autocolor](https://metacpan.org/pod/App::sdif::autocolor),
-[App::sdif::autocolor::Apple\_Terminal](https://metacpan.org/pod/App::sdif::autocolor::Apple_Terminal)
+[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor)
+
+[App::sdif::colors](https://metacpan.org/pod/App::sdif::colors)
+
+[https://taku910.github.io/mecab/](https://taku910.github.io/mecab/)

@@ -42,26 +42,24 @@ cdif - word context diff
 
 # SYNOPSIS
 
-cdif \[cdif option\] file1 file2
+cdif \[option\] file1 file2
 
-cdif \[rcs options\] \[cdif options\] file
-
-cdif \[cdif options\] \[diff-data\]
+cdif \[option\] \[diff-data\]
 
 Options:
 
         -c, -Cn         context diff
         -u, -Un         unified diff
         -i              ignore case
-        -b              ignore trailing blank
+        -b              ignore space change
         -w              ignore whitespace
         -t              expand tabs
-        -T              initial tabs
         --rcs           use rcsdiff
         -r<rev>, -q     rcs options
 
-        -B                  char-by-char comparison
+        -B, --char          char-by-char comparison
         --diff=command      specify diff command
+        --subdiff=command   specify backend diff command
         --stat              show statistical information
         --colormap=s        specify color map
         --[no]color         color or not            (default true)
@@ -69,10 +67,16 @@ Options:
         --[no]commandcolor  color for command line  (default true)
         --[no]markcolor     color for diff mark     (default true)
         --[no]textcolor     color for normal text   (default true)
+        --[no]unknowncolor  color for unknown text  (default true)
         --[no]old           print old text          (default true)
         --[no]new           print new text          (default true)
         --[no]command       print diff command line (default true)
         --[no]unknown       print unknown line      (default true)
+        --[no]mark          print mark or not       (default true)
+        --[no]prefix        read git --graph output (default true)
+        --prefix-pattern    prefix pattern
+        --visible char=?    set visible attributes
+        --[no]mecab         use mecab tokenizer     (default false)
 
 # DESCRIPTION
 
@@ -106,6 +110,16 @@ printed.
 - **--diff**=_command_
 
     Specify the diff command to use.
+
+- **--subdiff**=_command_
+
+    Specify the backend diff command to get word differences.  Accept
+    normal and unified diff format.
+
+    If you want to use **git diff** command, don't forget to set _-U0_
+    option.
+
+        --subdiff="git diff -U0 --no-index --histogram"
 
 - **--**\[**no**\]**color**
 
@@ -153,8 +167,8 @@ printed.
 
         --cm FILED1=COLOR1,FIELD2=COLOR2, ...
 
-    COLOR is combination of single character representing uppercase
-    foreground color :
+    Color specification is a combination of single uppercase character
+    representing 8 colors :
 
         R  Red
         G  Green
@@ -172,27 +186,55 @@ printed.
     or RGB values and 24 grey levels if using ANSI 256 or full color
     terminal :
 
-        FORMAT:
-            foreground[/background]
+        (255,255,255)      : 24bit decimal RGB colors
+        #000000 .. #FFFFFF : 24bit hex RGB colors
+        #000    .. #FFF    : 12bit hex RGB 4096 colors
+        000 .. 555         : 6x6x6 RGB 216 colors
+        L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
-        COLOR:
-            000 .. 555       : 6 x 6 x 6 216 colors
-            000000 .. FFFFFF : 24bit RGB mapped to 216 colors
-            L00 .. L23       : 24 grey levels
+    >     Begining # can be omitted in 24bit RGB notation.
+    >
+    >     When values are all same in 24bit or 12bit RGB, it is converted to 24
+    >     grey level, otherwise 6x6x6 216 color.
 
-        Sample:
-            005     0000FF        : blue foreground
-               /505       /FF00FF : magenta background
-            000/555 000000/FFFFFF : black on white
-            500/050 FF0000/00FF00 : red on green
+    or color names enclosed by angle bracket :
 
-    and other effects :
+        <red> <blue> <green> <cyan> <magenta> <yellow>
+        <aliceblue> <honeydue> <hotpink> <mooccasin>
+        <medium_aqua_marine>
 
-        S  Stand-out (reverse video)
-        U  Underline
-        D  Double-struck (boldface)
-        F  Flash (blink)
-        E  Erase Line
+    with other special effects :
+
+        Z  0 Zero (reset)
+        D  1 Double-struck (boldface)
+        P  2 Pale (dark)
+        I  3 Italic
+        U  4 Underline
+        F  5 Flash (blink: slow)
+        Q  6 Quick (blink: rapid)
+        S  7 Stand-out (reverse video)
+        V  8 Vanish (concealed)
+        J  9 Junk (crossed out)
+
+        E    Erase Line
+
+        ;    No effect
+        X    No effect
+        /    Toggle foreground/background
+        ^    Reset to foreground
+
+    At first the color is considered as foreground, and slash (`/`)
+    switches foreground and background.  If multiple colors are given in
+    the same spec, all indicators are produced in the order of their
+    presence.  Consequently, the last one takes effect.
+
+    If the spec start with plus (`+`) or minus (`-`) character,
+    following characters are appneded/deleted from previous value. Reset
+    mark (`^`) is inserted before appended string.
+
+    Effect characters are case insensitive, and can be found anywhere and
+    in any order in color spec string.  Because `X` and `;` takes no
+    effect, you can use them to improve readability, like `SxD;K/544`.
 
     Defaults are :
 
@@ -220,6 +262,7 @@ printed.
 - **--**\[**no**\]**commandcolor**, **--cc**
 - **--**\[**no**\]**markcolor**, **--mc**
 - **--**\[**no**\]**textcolor**, **--tc**
+- **--**\[**no**\]**unknowncolor**, **--uc**
 
     Enable/Disable using color for the corresponding field.
 
@@ -243,9 +286,47 @@ printed.
     Next example produces the output exactly same as _new_ except visual
     effects.
 
-        cdif -U100 --nomark --noold --nocommand --nounknown old new
+        cdif -U100 --no-mark --no-old --no-command --no-unknown old new
 
     These options are prepared for watchdiff(1) command.
+
+- **--**\[**no**\]**prefix**
+
+    Understand prefix for diff output including **git** **--graph** option.
+    True by default.
+
+- **--prefix-pattern**=_pattern_
+
+    Specify prefix pattern in regex.  Default pattern is:
+
+        (?:\| )*(?:  )*
+
+    This pattern matches **git** graph style and whitespace indented diff
+    output.
+
+- **--visible** _chaname_=\[0,1\]
+
+    Set visible attribute for specified characters.  Default visible: nul,
+    bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.  See
+    [ascii(7)](http://man.he.net/man7/ascii) for name representation.
+
+    Multiple characters can be specified at once, by assembling them by
+    commna (`,`) like `--visible ht=1,sp=1`; or connecting them by equal
+    sign (`=`) like `--visible ht=sp=1`.  Character name accept
+    wildcard; `--visible '*=1'`.
+
+    Currently this option is effective only for modified lines.
+
+- **--**\[**no**\]**visible-cr**
+- **--**\[**no**\]**visible-esc**
+
+    Set CARRIAGE-RETURN and ESCAPE visible attributes.  These options will
+    be deprecated soon.  Use **--visible** option instead.
+
+- **--**\[**no**\]**mecab**
+
+    Use **mecab** command as a tokenizer.  External command **mecab** is
+    required.
 
 - **--stat**
 
@@ -255,21 +336,29 @@ printed.
     text filling process.  So normal information is followed by modified
     number which ignores insert/delete newlines.
 
-- **--mecab**
+# ENVIRONMENT
 
-    Experimental option for using **mecab** as a tokenizer.  To use this
-    option, external command **mecab** has to be installed.
+Environment variable **CDIFOPTS** is used to set default options.
 
 # AUTHOR
 
 - Kazumasa Utashiro
 - [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
+# LICENSE
+
+Copyright 1992-2020 Kazumasa Utashiro
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
 # SEE ALSO
 
 [sdif(1)](http://man.he.net/man1/sdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 
 [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)
+
+[https://taku910.github.io/mecab/](https://taku910.github.io/mecab/)
 
 # BUGS
 

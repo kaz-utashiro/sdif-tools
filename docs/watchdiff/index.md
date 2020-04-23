@@ -21,6 +21,8 @@ Options:
         --[no]clear         clear screen after output (default on)
         --diff=command      diff command used to compare result
 
+        -B, --char          char-by-char comparison
+
 # EXAMPLES
 
         watchdiff ifconfig -a
@@ -35,7 +37,7 @@ Options:
 
         watchdiff -e uptime -e iostat -e df
 
-        watchdiff -sr --diff 'sdif --cdif -U100' netstat -S -I en0
+        watchdiff -psr --diff 'sdif --no-command -U-1' netstat -S -I en0
 
         watchdiff -pc18i10r0 date; say tea is ready
 
@@ -44,6 +46,13 @@ Options:
 Kazumasa Utashiro
 
 [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
+
+# LICENSE
+
+Copyright 2014-2019 Kazumasa Utashiro
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 # SEE ALSO
 
