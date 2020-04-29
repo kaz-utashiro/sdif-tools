@@ -43,8 +43,9 @@
       "runtime" : {
          "requires" : {
             "Getopt::EX" : "v1.16.0",
-            "Getopt::EX::termcolor" : "1.03",
+            "Getopt::EX::termcolor" : "1.04",
             "List::Util" : "1.45",
+            "Term::ReadKey" : "0",
             "Text::ANSI::Fold" : "1.02",
             "Text::VisualWidth::PP" : "0.05",
             "Unicode::EastAsianWidth::Detect" : "0",
