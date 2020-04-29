@@ -6,7 +6,7 @@ requires 'Getopt::EX::termcolor', '1.04';
 requires 'Text::VisualWidth::PP', '0.05';
 requires 'Unicode::EastAsianWidth::Detect';
 requires 'Text::ANSI::Fold', '1.02';
-requires 'Term::ReadKey';
+requires 'Term::ReadKey', '2.38';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';
