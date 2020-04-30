@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.15.2 2020-04-30T15:25:39Z
+
+    - Accidentally released wrong dependency version.
+
 4.15.1 2020-04-30T07:13:14Z
 
     - Update document for new -Mtermcolor module.
