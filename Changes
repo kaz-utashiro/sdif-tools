@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.15.1 2020-04-30T07:13:14Z
+
+    - Update document for new -Mtermcolor module.
+
 4.15.0 2020-04-29T15:15:12Z
 
     - Introduce --lenience option to suppress unexpected input warnings.

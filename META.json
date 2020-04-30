@@ -42,8 +42,8 @@
       },
       "runtime" : {
          "requires" : {
-            "Getopt::EX" : "v1.16.0",
-            "Getopt::EX::termcolor" : "1.04",
+            "Getopt::EX" : "v1.17.0",
+            "Getopt::EX::termcolor" : "1.05",
             "List::Util" : "1.45",
             "Term::ReadKey" : "0",
             "Text::ANSI::Fold" : "1.02",
@@ -70,7 +70,7 @@
          "web" : "https://github.com/kaz-utashiro/sdif-tools"
       }
    },
-   "version" : "4.15.0",
+   "version" : "4.15.1",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kazumasa Utashiro <kaz@utashiro.com>",
