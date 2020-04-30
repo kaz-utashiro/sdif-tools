@@ -86,6 +86,7 @@ diff ... | sdif
     --[no]cdif          use ``cdif'' as word context diff backend
     --cdifopts=s        set cdif command options
     --mecab             pass --mecab option to cdif
+    --[no]lenience      supress unexpected input warning (default on)
 
 # DESCRIPTION
 
@@ -147,12 +148,11 @@ set preferred color in your `~/.sdifrc` like:
     option --light --cmy
     option --dark  --dark-cmy
 
-If the **BRIGHTNESS** environment variable is set in a range of 0 to
-100 digit, it is used as a screen brightness.
-
-Currently automatic setting by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module works
-only on macOS Terminal.app and iTerm.app.  If you are using other
-terminal application, set the **BRIGHTNESS** or write a module.
+Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module and it
+works with macOS Terminal.app and iTerm.app, and other XTerm
+compatible terminals.  This module accept environment variable
+[TERM\_BGCOLOR](https://metacpan.org/pod/TERM_BGCOLOR) as a terminal background color in a form of
+`#FFFFFF`.
 
 Option **--autocolor** is set by default, so override it to do nothing
 to disable.
@@ -317,6 +317,11 @@ From version 4.1.0, option **--cdif** is set by default, so use
     This pattern matches **git** graph style and whitespace indented diff
     output.
 
+- **--**\[**no**\]**lenience**
+
+    Supress warning message for unexpected input from diff command.  True
+    by default.
+
 - **--colormap**=_colormap_, **--cm**=_colormap_
 
     Basic _colormap_ format is :
@@ -352,8 +357,8 @@ From version 4.1.0, option **--cdif** is set by default, so use
 
         --cm FILED1=COLOR1,FIELD2=COLOR2, ...
 
-    COLOR is a combination of single character representing uppercase
-    foreground color :
+    Color specification is a combination of single uppercase character
+    representing 8 colors :
 
         R  Red
         G  Green
@@ -371,21 +376,11 @@ From version 4.1.0, option **--cdif** is set by default, so use
     or RGB values and 24 grey levels if using ANSI 256 or full color
     terminal :
 
-        FORMAT:
-            foreground[/background]
-
-        COLOR:
-            (255,255,255)      : 24bit decimal RGB colors
-            #000000 .. #FFFFFF : 24bit hex RGB colors
-            #000    .. #FFF    : 12bit hex RGB 4096 colors
-            000 .. 555         : 6x6x6 RGB 216 colors
-            L00 .. L25         : Black (L00), 24 grey levels, White (L25)
-
-        Sample:
-            005     0000FF        : blue foreground
-               /505       /FF00FF : magenta background
-            000/555 000000/FFFFFF : black on white
-            500/050 FF0000/00FF00 : red on green
+        (255,255,255)      : 24bit decimal RGB colors
+        #000000 .. #FFFFFF : 24bit hex RGB colors
+        #000    .. #FFF    : 12bit hex RGB 4096 colors
+        000 .. 555         : 6x6x6 RGB 216 colors
+        L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
     or color names enclosed by angle bracket :
 
@@ -393,38 +388,15 @@ From version 4.1.0, option **--cdif** is set by default, so use
         <aliceblue> <honeydue> <hotpink> <mooccasin>
         <medium_aqua_marine>
 
-    and other effects :
+    with other special effects :
 
-        Z  0 Zero (reset)
-        D  1 Double-struck (boldface)
-        P  2 Pale (dark)
-        I  3 Italic
-        U  4 Underline
-        F  5 Flash (blink: slow)
-        Q  6 Quick (blink: rapid)
-        S  7 Stand-out (reverse video)
-        V  8 Vanish (concealed)
-        J  9 Junk (crossed out)
+        D  Double-struck (boldface)
+        I  Italic
+        U  Underline
+        S  Stand-out (reverse video)
 
-        E    Erase Line
-
-        ;    No effect
-        X    No effect
-        /    Toggle foreground/background
-        ^    Reset to foreground
-
-    At first the color is considered as foreground, and slash (`/`)
-    switches foreground and background.  If multiple colors are given in
-    the same spec, all indicators are produced in the order of their
-    presence.  Consequently, the last one takes effect.
-
-    If the spec start with plus (`+`) or minus (`-`) character,
-    following characters are appneded/deleted from previous value. Reset
-    mark (`^`) is inserted before appended string.
-
-    Effect characters are case insensitive, and can be found anywhere and
-    in any order in color spec string.  Because `X` and `;` takes no
-    effect, you can use them to improve readability, like `SxD;K/544`.
+    Above color spec is simplified summary so if you want complete
+    information, read [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap).
 
     Defaults are :
 
