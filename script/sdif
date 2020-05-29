@@ -114,7 +114,7 @@ my $opt_color = 'always';
 my $opt_256 = 1;
 my $opt_mark = "center";
 my $opt_prefix = 1;
-my $opt_prefix_pattern = q/(?:\\| )*(?:  )*/;
+my $opt_prefix_pattern = q/(?:\\| )*(?:  )?/;
 my $opt_W;
 my $opt_colortable;
 
@@ -260,7 +260,7 @@ unshift @opt_cdifopts,
     $opt_256      ? qw(--256)      : qw(--no-256)   ,
     $opt_prefix   ? qw(--prefix)   : qw(--no-prefix),
 #   $opt_lenience ? qw(--lenience) : qw(--no-lenience),
-    qw(--prefix-pattern) => $opt_prefix_pattern,
+#   qw(--prefix-pattern) => $opt_prefix_pattern,
     @default_opt_cdifopts;
 
 my($OLD, $NEW, $DIFF);
@@ -1116,7 +1116,7 @@ True by default.
 
 Specify prefix pattern in regex.  Default pattern is:
 
-    (?:\| )*(?:  )*
+    (?:\| )*(?:  )?
 
 This pattern matches B<git> graph style and whitespace indented diff
 output.
