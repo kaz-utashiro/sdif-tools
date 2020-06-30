@@ -67,11 +67,6 @@ diff ... | sdif
 
     --width=#, -W#      specify width of output (default 80)
     --margin=#          specify margin column number (default 0)
-    --color=when        'always' (default), 'never' or 'auto'
-    --nocolor           --color=never
-    --colormap, --cm    specify color map
-    --colortable        show color table
-    --[no]256           on/off ANSI 256 color mode (default on)
     --mark=position     mark position (right, left, center, side) or no
     --column=order      set column order (default ONM)
     --view, -v          viewer mode
@@ -79,14 +74,21 @@ diff ... | sdif
     --[no]prefix        process git --graph output (default on)
     --prefix-pattern    prefix pattern
 
+    --color=when        'always' (default), 'never' or 'auto'
+    --nocolor           --color=never
+    --colormap, --cm    specify color map
+    --colortable        show color table
+    --[no]256           on/off ANSI 256 color mode (default on)
+
     --man               display manual page
     --diff=s            set diff command
     --diffopts=s        set diff command options
 
-    --[no]cdif          use ``cdif'' as word context diff backend
-    --cdifopts=s        set cdif command options
-    --mecab             pass --mecab option to cdif
     --[no]lenience      supress unexpected input warning (default on)
+
+    --[no]cdif          use ``cdif'' as word context diff backend
+    --unit=s            pass through to cdif
+    --cdifopts=s        set cdif command options
 
 # DESCRIPTION
 
@@ -159,7 +161,7 @@ to disable.
 
     option --autocolor --nop
 
-## CDIF
+## WORD DIFFERENCE
 
 While **sdif** doesn't care about the contents of each modified lines,
 it can read the output from **cdif** command which show the word
@@ -169,7 +171,9 @@ at least when invoking **cdif** manually.  Option _--no-tc_ is
 preferable because text color can be handled by **sdif**.
 
 From version 4.1.0, option **--cdif** is set by default, so use
-**--no-cdif** option to disable it.
+**--no-cdif** option to disable it.  Option **--unit** (default word)
+will be passed through to **cdif**.  Other **cdif** options can be
+specified by **--cdifopts**.
 
 # OPTIONS
 
@@ -232,10 +236,13 @@ From version 4.1.0, option **--cdif** is set by default, so use
 
     Specify options for back-end **cdif** command.
 
+- **--unit**=_unit_
 - **--mecab**
 
-    Pass **--mecab** option to back-end **cdif** command.  Use **--cdifopts**
-    to set other options.
+    These options are simply sent to back-end **cdif** command.  Default is
+    **--unit**=_word_ and _char_ and _mecab_ can be used.  Option
+    **--mecab** is same as **--unit=mecab**.  Use **--cdifopts** to set other
+    options.
 
 - **--diff**=_command_
 
@@ -312,7 +319,7 @@ From version 4.1.0, option **--cdif** is set by default, so use
 
     Specify prefix pattern in regex.  Default pattern is:
 
-        (?:\| )*(?:  )*
+        (?:\| )*(?:  )?
 
     This pattern matches **git** graph style and whitespace indented diff
     output.

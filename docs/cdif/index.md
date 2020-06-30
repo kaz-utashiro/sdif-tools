@@ -57,11 +57,11 @@ Options:
         --rcs           use rcsdiff
         -r<rev>, -q     rcs options
 
-        -B, --char          char-by-char comparison
         --diff=command      specify diff command
         --subdiff=command   specify backend diff command
         --stat              show statistical information
         --colormap=s        specify color map
+        --unit=s            word, char or mecab     (default word)
         --[no]color         color or not            (default true)
         --[no]256           ANSI 256 color mode     (default true)
         --[no]commandcolor  color for command line  (default true)
@@ -104,9 +104,24 @@ printed.
     Use rcsdiff instead of normal diff.  Option **--rcs** is not required
     when **-r**_rev_ is supplied.
 
+- **--****unit**=_word_|_char_|_mecab_
+
+    Specify the comparing unit.  Default is _word_ and compare each line
+    word-by-word.  Specify _char_ if you want to compare them
+    character-by-character.
+
+    When _mecab_ is given as an unit, **mecab** command is called as a
+    tokenizer for non-ASCII text.  ASCII text is compared word-by-word.
+    External **mecab** command has to been installed.
+
 - **-B**, **--char**
 
-    Compare the data character-by-character context.
+    Shortcut for **--context=char**.  This option is being deprecated, and
+    will be removed in a future.
+
+- **--mecab**
+
+    Shortcut for **--context=mecab**.
 
 - **--diff**=_command_
 
@@ -295,11 +310,6 @@ printed.
 
     Set CARRIAGE-RETURN and ESCAPE visible attributes.  These options will
     be deprecated soon.  Use **--visible** option instead.
-
-- **--**\[**no**\]**mecab**
-
-    Use **mecab** command as a tokenizer.  External command **mecab** is
-    required.
 
 - **--stat**
 

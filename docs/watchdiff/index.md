@@ -20,8 +20,7 @@ Options:
         --[no]newline       print newline result (default on)
         --[no]clear         clear screen after output (default on)
         --diff=command      diff command used to compare result
-
-        -B, --char          char-by-char comparison
+        --unit=unit         comparison unit (word/char/mecab)
 
 # EXAMPLES
 
@@ -49,7 +48,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 2014-2019 Kazumasa Utashiro
+Copyright 2014-2020 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
