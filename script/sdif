@@ -186,16 +186,26 @@ GetOptions @optargs or usage({status => 1});
 
 warn "\@ARGV = (@SAVEDARGV)\n" if $opt_d;
 
+$App::sdif::Util::NO_WARNINGS = $opt_lenience;
+
+use Text::VisualWidth::PP qw(vwidth);
+use Text::ANSI::Fold qw(ansi_fold :constants);
+
 if ($opt_ambiguous =~ /^(?:detect|auto)$/) {
     use Unicode::EastAsianWidth::Detect qw(is_cjk_lang);
     $opt_ambiguous = is_cjk_lang() ? 'wide' : 'narrow';
 }
 
-$App::sdif::Util::NO_WARNINGS = $opt_lenience;
-
-use Text::VisualWidth::PP qw(vwidth);
 if ($opt_ambiguous =~ /^(?:wide|full)/) {
     $Text::VisualWidth::PP::EastAsian = 1;
+    Text::ANSI::Fold->configure(ambiguous => 'wide');
+}
+
+if ($opt_margin > 0) {
+    Text::ANSI::Fold->configure(
+	linebreak => LINEBREAK_ALL,
+	map { $_ => $opt_margin } qw(margin runin runout),
+	);
 }
 
 my %colormap = do {
@@ -384,15 +394,6 @@ if ($readfile) {
 
 my @boundary = $opt_onword ? (boundary => 'word') : ();
 my $color_re = qr{ \e \[ [\d;]* [mK] }x;
-
-use Text::ANSI::Fold qw(ansi_fold :constants);
-
-if ($opt_margin > 0) {
-    Text::ANSI::Fold->configure(
-	linebreak => LINEBREAK_ALL,
-	map { $_ => $opt_margin } qw(margin runin runout),
-	);
-}
 
 my $oline = 1;
 my $nline = 1;
