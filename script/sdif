@@ -54,8 +54,7 @@ diff ... | sdif
     --[no]lenience      supress unexpected input warning (default on)
 
     --[no]cdif		use ``cdif'' as word context diff backend
-    --[no]word		pass through to cdif
-    --[no]mecab		pass through to cdif
+    --unit=s		pass through to cdif
     --cdifopts=s	set cdif command options
 
 =cut
@@ -124,8 +123,7 @@ my $opt_colortable;
 #
 # options only for cdif
 #
-my $opt_mecab = my $opt_mecab_default = 0;
-my $opt_word  = my $opt_word_default = 1;
+my $opt_unit = my $opt_unit_default = 'word';
 
 binmode STDIN,  ":encoding(utf8)";
 binmode STDOUT, ":encoding(utf8)";
@@ -184,8 +182,8 @@ my @optargs = (
     "colortable" => \$opt_colortable,
     "lenience!" => \$opt_lenience,
 
-    "word!"  => \$opt_word,
-    "mecab!" => \$opt_mecab,
+    "unit=s" => \$opt_unit,
+    "mecab!" => sub { $opt_unit = $_[1] ? 'mecab' : $opt_unit_default },
 );
 
 my @SAVEDARGV = @ARGV;
@@ -278,16 +276,22 @@ if (defined $opt_cdif and $opt_cdif eq '') {
 }
 
 for (
-    [ "word"     , \$opt_word     , $opt_word_default     ] ,
-    [ "mecab"    , \$opt_mecab    , $opt_mecab_default    ] ,
-    [ "256"      , \$opt_256      , $opt_256_default      ] ,
-    [ "prefix"   , \$opt_prefix   , $opt_prefix_default   ] ,
-    [ "lenience" , \$opt_lenience , $opt_lenience_default ] ,
+    [ "unit"     , "=" , \$opt_unit     , $opt_unit_default     ] ,
+    [ "256"      , "!" , \$opt_256      , $opt_256_default      ] ,
+    [ "prefix"   , "!" , \$opt_prefix   , $opt_prefix_default   ] ,
+    [ "lenience" , "!" , \$opt_lenience , $opt_lenience_default ] ,
     )
 {
-    my($name, $var, $default) = @$_;
-    next if $$var == $default;
-    unshift @opt_cdifopts, sprintf("--%s%s", $$var ? '' : 'no-', $name);
+    my($name, $type, $var, $default) = @$_;
+    if ($type eq "!") {
+	next if $$var == $default;
+	unshift @opt_cdifopts, sprintf("--%s%s", $$var ? '' : 'no-', $name);
+    } elsif ($type eq "=") {
+	next if $$var eq $default;
+	unshift @opt_cdifopts, sprintf("--%s=%s", $name, $$var);
+    } else {
+	die;
+    }
 }
 
 unshift @opt_cdifopts, @default_opt_cdifopts;
@@ -982,9 +986,9 @@ at least when invoking B<cdif> manually.  Option I<--no-tc> is
 preferable because text color can be handled by B<sdif>.
 
 From version 4.1.0, option B<--cdif> is set by default, so use
-B<--no-cdif> option to disable it.  B<sdif> has pass through options
-B<--word> (default on) and B<--mecab> (defualt off).  Other B<cdif>
-options can be specified by B<--cdifopts>.
+B<--no-cdif> option to disable it.  Option B<--unit> (default word)
+will be passed through to B<cdif>.  Other B<cdif> options can be
+specified by B<--cdifopts>.
 
 =head1 OPTIONS
 
@@ -1053,12 +1057,14 @@ option accepts optional parameter as an actual B<cdif> command.
 
 Specify options for back-end B<cdif> command.
 
-=item B<-->[B<no>]B<word>
+=item B<--unit>=I<unit>
 
-=item B<-->[B<no>]B<mecab>
+=item B<--mecab>
 
-These options are simply sent to back-end B<cdif> command.  Use
-B<--cdifopts> to set other options.
+These options are simply sent to back-end B<cdif> command.  Default is
+B<--unit>=I<word> and I<char> and I<mecab> can be used.  Option
+B<--mecab> is same as B<--unit=mecab>.  Use B<--cdifopts> to set other
+options.
 
 =item B<--diff>=I<command>
 
