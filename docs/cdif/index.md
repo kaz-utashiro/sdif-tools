@@ -116,12 +116,12 @@ printed.
 
 - **-B**, **--char**
 
-    Shortcut for **--context=char**.  This option is being deprecated, and
+    Shortcut for **--unit=char**.  This option is being deprecated, and
     will be removed in a future.
 
 - **--mecab**
 
-    Shortcut for **--context=mecab**.
+    Shortcut for **--unit=mecab**.
 
 - **--diff**=_command_
 

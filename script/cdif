@@ -960,12 +960,12 @@ External B<mecab> command has to been installed.
 
 =item B<-B>, B<--char>
 
-Shortcut for B<--context=char>.  This option is being deprecated, and
+Shortcut for B<--unit=char>.  This option is being deprecated, and
 will be removed in a future.
 
 =item B<--mecab>
 
-Shortcut for B<--context=mecab>.
+Shortcut for B<--unit=mecab>.
 
 =item B<--diff>=I<command>
 
