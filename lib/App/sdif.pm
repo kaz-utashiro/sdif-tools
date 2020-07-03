@@ -1,6 +1,5 @@
 package App::sdif;
-use 5.014;
-use strict;
+use v5.14;
 use warnings;
 
 use Exporter 'import';

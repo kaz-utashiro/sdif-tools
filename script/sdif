@@ -60,7 +60,6 @@ diff ... | sdif
 =cut
 
 use v5.14;
-use strict;
 use warnings;
 use utf8;
 use Encode;
@@ -531,8 +530,7 @@ while (<DIFF>) {
 	    $screen_width -= length $prefix;
 	    $read_opt{prefix} = $prefix;
 	    use App::sdif::Divert;
-	    $divert = new App::sdif::Divert
-		FINAL => sub { s/^/$prefix/mg };
+	    $divert = App::sdif::Divert->new(FINAL => sub { s/^/$prefix/mg });
 	}
 
 	print_command_n({ type => 'COMMAND' }, $command, $command);
