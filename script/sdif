@@ -54,7 +54,7 @@ diff ... | sdif
     --[no]lenience      supress unexpected input warning (default on)
 
     --[no]cdif		use ``cdif'' as word context diff backend
-    --unit=s		pass through to cdif
+    --unit=s		pass through to cdif (word, char, mecab)
     --cdifopts=s	set cdif command options
 
 =cut
@@ -283,6 +283,7 @@ for (
 {
     my($name, $type, $var, $default) = @$_;
     if ($type eq "!") {
+	next if not defined $$var;
 	next if $$var == $default;
 	unshift @opt_cdifopts, sprintf("--%s%s", $$var ? '' : 'no-', $name);
     } elsif ($type eq "=") {

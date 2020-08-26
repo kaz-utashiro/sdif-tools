@@ -948,6 +948,8 @@ when B<-r>I<rev> is supplied.
 
 =item B<-->B<unit>=I<word>|I<char>|I<mecab>
 
+=item B<-->B<by>=I<word>|I<char>|I<mecab>
+
 Specify the comparing unit.  Default is I<word> and compare each line
 word-by-word.  Specify I<char> if you want to compare them
 character-by-character.
