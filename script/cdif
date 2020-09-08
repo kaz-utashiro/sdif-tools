@@ -203,10 +203,11 @@ my %colormap = do {
 	NCHANGE => [ "K/445"    , "BD/W" ] ,
 	DELETE  => [ "K/544"    , "RD/W" ] ,
 	APPEND  => [ "K/544"    , "RD/W" ] ,
+	VISIBLE => "S",
     );
 };
 
-use Getopt::EX::Colormap;
+use Getopt::EX::Colormap qw(ansi_code);
 my $color_handler = Getopt::EX::Colormap
     ->new(HASH => \%colormap)
     ->load_params(@opt_colormap);
@@ -334,6 +335,10 @@ my %stat;
 
 open(DIFF, $DIFF) || die "$DIFF: $!\n";
 binmode DIFF, ":encoding(utf8)";
+
+my $stdout;
+open my $fh, ">:encoding(utf8)", \$stdout;
+select $fh;
 
 while (<DIFF>) {
     my($left, $cmd, $right);
@@ -515,9 +520,25 @@ while (<DIFF>) {
     }
 }
 continue {
-    STDOUT->flush;
+    $fh->flush;
+    if (length $stdout) {
+	$stdout = decode 'utf8', $stdout;
+	if (state $cm = $colormap{'VISIBLE'}) {
+	    state $s = ansi_code($cm);
+	    state $e = ansi_code($cm =~ s/(?=.)/~/gr);
+	    state $visible_re = do {
+		my $chars = join '', map { $_->[-1] } values %visible;
+		qr/[$chars]/;
+	    };
+	    $stdout =~ s/($visible_re)/$s$1$e/g;
+	}
+	STDOUT->printflush($stdout);
+	seek $fh, 0, 0;
+	$fh->truncate(0);
+    }
 }
 close DIFF;
+select STDOUT;
 
 if ($opt_stat) {
     select STDERR;
