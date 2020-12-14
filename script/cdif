@@ -21,8 +21,13 @@ use List::Util qw(first sum pairmap);
 use Text::ParseWords qw(shellwords);
 use Text::VisualWidth::PP qw(vwidth);
 use Data::Dumper;
-$Data::Dumper::Terse = 1;
-$Data::Dumper::Sortkeys = 1;
+{
+    no warnings 'redefine';
+    *Data::Dumper::qquote = sub { qq["${\(shift)}"] };
+    $Data::Dumper::Terse = 1;
+    $Data::Dumper::Sortkeys = 1;
+    $Data::Dumper::Useperl = 1;
+}
 
 use App::sdif;
 my $version = $App::sdif::VERSION;
@@ -289,31 +294,42 @@ my $w_pattern = do {
 };
 
 ##
-## Converter function for visible characters
+## Converter/Effector function for visible characters
 ##
 use Getopt::EX::LabeledParam;
 Getopt::EX::LabeledParam
     ->new(HASH => \%opt_visible)
     ->load_params (@opt_visible);
+my $visible_chars = join "", do {
+    map  {
+	my $v = $visible{$_} // die "Unknown charname: \"$_\"\n";
+	$v->[0];
+    }
+    grep {
+	$opt_visible{$_};
+    }
+    keys %opt_visible;
+};
 my $converter = do {
-    my $chars = join "", do {
-	map  {
-	    my $v = $visible{$_} // die "Unknown charname: \"$_\"\n";
-	    $v->[0];
-	}
-	grep {
-	    $opt_visible{$_};
-	}
-	keys %opt_visible;
-    };
-    if ($chars eq '') {
+    if ($visible_chars eq '') {
 	undef;
     } else {
-	my $re = qr/[\Q$chars\E]/;
 	my %hash = map { @$_ } values %visible;
+	my $re = qr/[\Q$visible_chars\E]/;
 	sub {
 	    s/($re)/$hash{$1}/g;
 	}
+    }
+};
+my $effector = do {
+    if ($visible_chars and my $color = $colormap{'VISIBLE'}) {
+	my $s = ansi_code($color);
+	my $e = ansi_code($color =~ s/(?=.)/~/gr);
+	my $chars = join '', map { $_->[-1] =~ s/\s+//gr } values %visible;
+	my $chars_re = qr/[\Q$chars\E]/;
+	sub { s/($chars_re)/${s}${1}${e}/g };
+    } else {
+	undef;
     }
 };
 
@@ -336,9 +352,7 @@ my %stat;
 open(DIFF, $DIFF) || die "$DIFF: $!\n";
 binmode DIFF, ":encoding(utf8)";
 
-my $stdout;
-open my $fh, ">:encoding(utf8)", \$stdout;
-select $fh;
+my $stdout = App::sdif::Divert->new;
 
 while (<DIFF>) {
     my($left, $cmd, $right);
@@ -520,21 +534,13 @@ while (<DIFF>) {
     }
 }
 continue {
-    $fh->flush;
-    if (length $stdout) {
-	$stdout = decode 'utf8', $stdout;
-	if (state $cm = $colormap{'VISIBLE'}) {
-	    state $s = ansi_code($cm);
-	    state $e = ansi_code($cm =~ s/(?=.)/~/gr);
-	    state $visible_re = do {
-		my $chars = join '', map { $_->[-1] } values %visible;
-		qr/[$chars]/;
-	    };
-	    $stdout =~ s/($visible_re)/$s$1$e/g;
-	}
-	STDOUT->printflush($stdout);
-	seek $fh, 0, 0;
-	$fh->truncate(0);
+    $stdout->fh->flush;
+    local *_ = $stdout->buffer;
+    if (length) {
+	$_ = decode 'utf8', $_;
+	$effector->() if $effector;
+	STDOUT->printflush($_);
+	$stdout->clear;
     }
 }
 close DIFF;
