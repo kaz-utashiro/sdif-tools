@@ -1029,6 +1029,7 @@ where the FIELD is one from these :
     NCHANGE  New change part
     APPEND   Appended part
     DELETE   Deleted part
+    VISIBLE  Visualized invisible chars
 
 and additional I<Common> and I<Merged> FIELDs for git-diff combined
 format.
@@ -1168,16 +1169,35 @@ output.
 
 =item B<--visible> I<chaname>=[0,1]
 
-Set visible attribute for specified characters.  Default visible: nul,
-bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.  See
-L<ascii(7)> for name representation.
+Set visible attribute for specified characters.  Visible character is
+converted to corresponding Unicode symbol character.  Default visible:
+nul, bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.
+Currently this option is effective only for modified lines.
+
+    NAME  CODE  Unicode NAME
+    ----  ----  --------------------------------
+    nul   \000  SYMBOL FOR NULL
+    bel   \007  SYMBOL FOR BELL
+    bs    \010  SYMBOL FOR BACKSPACE
+    ht    \011  SYMBOL FOR HORIZONTAL TABULATION
+    nl    \012  SYMBOL FOR NEWLINE
+    vt    \013  SYMBOL FOR VERTICAL TABULATION
+    np    \014  SYMBOL FOR FORM FEED
+    cr    \015  SYMBOL FOR CARRIAGE RETURN
+    esc   \033  SYMBOL FOR ESCAPE
+    sp    \040  SYMBOL FOR SPACE
+    del   \177  SYMBOL FOR DELETE
 
 Multiple characters can be specified at once, by assembling them by
 commna (C<,>) like C<--visible ht=1,sp=1>; or connecting them by equal
 sign (C<=>) like C<--visible ht=sp=1>.  Character name accept
 wildcard; C<--visible '*=1'>.
 
-Currently this option is effective only for modified lines.
+Colormap name C<VISIBLE> is applied to those characters.  Default
+setting is C<S>, and visible characters are displayed in reverse
+video.  Unlike other colormaps, only special effects can be set to
+this name.  Effect C<D> (double-struc) is exception (see C<~> section
+in L<Getopt::EX::Colormap>).
 
 =item B<-->[B<no>]B<visible-cr>
 
