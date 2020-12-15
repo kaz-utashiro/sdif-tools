@@ -327,7 +327,7 @@ my $effector = do {
 	my $e = ansi_code($color =~ s/(?=.)/~/gr);
 	my $chars = join '', map { $_->[-1] =~ s/\s+//gr } values %visible;
 	my $chars_re = qr/[\Q$chars\E]/;
-	sub { s/($chars_re)/${s}${1}${e}/g };
+	sub { s/($chars_re+)/${s}${1}${e}/g };
     } else {
 	undef;
     }
