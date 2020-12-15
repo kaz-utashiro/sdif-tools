@@ -1174,19 +1174,19 @@ converted to corresponding Unicode symbol character.  Default visible:
 nul, bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.
 Currently this option is effective only for modified lines.
 
-    NAME  CODE  Unicode NAME
-    ----  ----  --------------------------------
-    nul   \000  SYMBOL FOR NULL
-    bel   \007  SYMBOL FOR BELL
-    bs    \010  SYMBOL FOR BACKSPACE
-    ht    \011  SYMBOL FOR HORIZONTAL TABULATION
-    nl    \012  SYMBOL FOR NEWLINE
-    vt    \013  SYMBOL FOR VERTICAL TABULATION
-    np    \014  SYMBOL FOR FORM FEED
-    cr    \015  SYMBOL FOR CARRIAGE RETURN
-    esc   \033  SYMBOL FOR ESCAPE
-    sp    \040  SYMBOL FOR SPACE
-    del   \177  SYMBOL FOR DELETE
+    NAME  CODE  Unicode NAME                      DEFAULT
+    ----  ----  --------------------------------  -------
+    nul   \000  SYMBOL FOR NULL                   YES
+    bel   \007  SYMBOL FOR BELL                   YES
+    bs    \010  SYMBOL FOR BACKSPACE              YES
+    ht    \011  SYMBOL FOR HORIZONTAL TABULATION  NO
+    nl    \012  SYMBOL FOR NEWLINE                NO
+    vt    \013  SYMBOL FOR VERTICAL TABULATION    YES
+    np    \014  SYMBOL FOR FORM FEED              YES
+    cr    \015  SYMBOL FOR CARRIAGE RETURN        YES
+    esc   \033  SYMBOL FOR ESCAPE                 YES
+    sp    \040  SYMBOL FOR SPACE                  NO
+    del   \177  SYMBOL FOR DELETE                 YES
 
 Multiple characters can be specified at once, by assembling them by
 commna (C<,>) like C<--visible ht=1,sp=1>; or connecting them by equal
