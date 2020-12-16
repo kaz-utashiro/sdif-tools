@@ -197,6 +197,7 @@ $App::sdif::Util::NO_WARNINGS = $opt_lenience;
 
 use Text::VisualWidth::PP qw(vwidth);
 use Text::ANSI::Fold qw(ansi_fold :constants);
+Text::ANSI::Fold->configure(padding => 1, expand => 1);
 
 if ($opt_ambiguous =~ /^(?:detect|auto)$/) {
     use Unicode::EastAsianWidth::Detect qw(is_cjk_lang);
@@ -735,17 +736,14 @@ sub print_column_23 {
     my $nspace = $print_number ? ' ' : '';
     if (defined $old) {
 	chomp $old;
-	$old = expand_tab($old);
 	$onum = linenum($oline) if $print_number;
     }
     if (defined $new) {
 	chomp $new;
-	$new = expand_tab($new);
 	$nnum = linenum($nline) if $print_number;
     }
     if (defined $mrg) {
 	chomp $mrg;
-	$mrg = expand_tab($mrg);
 	$mnum = linenum($mline) if $print_number;
     }
 
@@ -760,13 +758,13 @@ sub print_column_23 {
     while (1) {
 	(my $o, $old) = ansi_fold($old,
 				  max(1, $width - length($onum . $nspace)),
-				  @boundary, padding => 1);
+				  @boundary);
 	(my $n, $new) = ansi_fold($new,
 				  max(1, $width - length($nnum . $nspace)),
-				  @boundary, padding => 1);
+				  @boundary);
 	(my $m, $mrg) = ansi_fold($mrg,
 				  max(1, $width - length($mnum . $nspace)),
-				  @boundary, padding => 1)
+				  @boundary)
 	    if $column >= 3;
 
 	my @f;
@@ -810,11 +808,8 @@ sub print_command_n {
 
     for my $i (0 .. $#_) {
 	local $_ = $_[$i];
-	if (defined $_) {
-	    chomp $_;
-	    $_ = expand_tab($_);
-	}
-	($_) = ansi_fold($_, $width, padding => 1);
+	chomp if defined;
+	($_) = ansi_fold($_, $width);
 	my %f;
 	my $color = $i < @color ? $color[$i] : $color[-1];
 	$f{TEXT} = $painter->($color, $_);
@@ -856,29 +851,6 @@ sub range {
     local $_ = shift;
     my($from, $to) = /,/ ? split(/,/) : ($_, $_);
     wantarray ? ($from, $to) : $to - $from + 1;
-}
-
-my @tabspace;
-BEGIN {
-    @tabspace = map { ' ' x (8 - $_) } 0..7;
-}
-sub expand_tab {
-    local $_ = shift;
-    1 while s{^([^\t]*)\t(\t*)}{
-	$1 . $tabspace[pwidth($1) % 8] . $tabspace[0] x length($2)
-    }e;
-    $_;
-}
-
-sub pwidth {
-    local $_ = shift;
-    if (/[\010\e\f\r]/) {
-	s/^.*[\f\r]//;
-	s/$color_re//g;
-	1 while s/[^\010]\010//;
-	s/^\010+//;
-    }
-    vwidth $_;
 }
 
 sub terminal_width {
