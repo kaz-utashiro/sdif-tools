@@ -118,15 +118,14 @@ my $opt_prefix = my $opt_prefix_default = 1;
 my $opt_prefix_pattern = q/(?:\\| )*(?:  )?/;
 my $opt_W;
 my $opt_colortable;
+my %opt_visible;
+my $opt_tabhead  = "\N{MEDIUM SHADE}";
+my $opt_tabspace = "\N{LIGHT SHADE}";
 
 #
 # options only for cdif
 #
 my $opt_unit = my $opt_unit_default = 'word';
-
-binmode STDIN,  ":encoding(utf8)";
-binmode STDOUT, ":encoding(utf8)";
-binmode STDERR, ":encoding(utf8)";
 
 ##
 ## Special treatment --noenv option.
@@ -137,6 +136,9 @@ if (grep { $_ eq '--noenv' } @ARGV) {
 if ($opt_env and my $env = $ENV{'SDIFOPTS'}) {
     unshift(@ARGV, shellwords($env));
 }
+
+use open IO => ':utf8', ':std';
+map { $_ = decode 'utf8', $_ unless utf8::is_utf8($_) } @ARGV;
 
 my @optargs = (
     "n|number!" => \$opt_n,
@@ -180,6 +182,9 @@ my @optargs = (
     "cdifopts=s" => sub { push @opt_cdifopts, shellwords $_[1] },
     "colortable" => \$opt_colortable,
     "lenience!" => \$opt_lenience,
+    "visible=i" => \%opt_visible,
+    "tabhead=s" => \$opt_tabhead,
+    "tabspace=s" => \$opt_tabspace,
 
     "unit=s" => \$opt_unit,
     "mecab!" => sub { $opt_unit = $_[1] ? 'mecab' : $opt_unit_default },
@@ -198,6 +203,22 @@ $App::sdif::Util::NO_WARNINGS = $opt_lenience;
 use Text::VisualWidth::PP qw(vwidth);
 use Text::ANSI::Fold qw(ansi_fold :constants);
 Text::ANSI::Fold->configure(padding => 1, expand => 1);
+
+if ($opt_visible{ht}) {
+    Text::ANSI::Fold->configure(
+	tabhead  => unicode($opt_tabhead),
+	tabspace => unicode($opt_tabspace),
+    );
+}
+
+sub unicode {
+    my $char = shift;
+    if ($char =~ /^\X$/) {
+	$char;
+    } else {
+	eval qq["\\N{$char}"] or die "$!";
+    }
+}
 
 if ($opt_ambiguous =~ /^(?:detect|auto)$/) {
     use Unicode::EastAsianWidth::Detect qw(is_cjk_lang);
@@ -1125,6 +1146,19 @@ output.
 
 Supress warning message for unexpected input from diff command.  True
 by default.
+
+=item B<--visible> I<chaname>=[0,1]
+
+=item B<--tabhead>=I<char>
+
+=item B<--tabspace>=I<char>
+
+Visualize characters.  Currently only C<ht> (horizontal tab) is
+supported.  Each tab character is converted to B<tabhead> and
+following B<tabspace> characters.  They can be specified by
+B<--tabhead> and B<--tabspace> option and default value is C<\N{MEDIUM
+SHADE}> and C<\N{LIGHT SHADE}>.  If the option value is longer than
+single characger, it is evaluated as unicode name.
 
 =item B<--colormap>=I<colormap>, B<--cm>=I<colormap>
 
