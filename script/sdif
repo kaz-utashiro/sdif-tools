@@ -120,6 +120,7 @@ my $opt_prefix_pattern = q/(?:\\| )*(?:  )?/;
 my $opt_W;
 my $opt_colortable;
 my %opt_visible;
+my $opt_tabstop  = 8;
 my $opt_tabhead  = "\N{MEDIUM SHADE}";
 my $opt_tabspace = "\N{LIGHT SHADE}";
 
@@ -184,6 +185,7 @@ my @optargs = (
     "colortable" => \$opt_colortable,
     "lenience!" => \$opt_lenience,
     "visible=i" => \%opt_visible,
+    "tabstop=i" => \$opt_tabstop,
     "tabhead=s" => \$opt_tabhead,
     "tabspace=s" => \$opt_tabspace,
 
@@ -203,7 +205,7 @@ $App::sdif::Util::NO_WARNINGS = $opt_lenience;
 
 use Text::VisualWidth::PP qw(vwidth);
 use Text::ANSI::Fold qw(ansi_fold :constants);
-Text::ANSI::Fold->configure(padding => 1, expand => 1);
+Text::ANSI::Fold->configure(padding => 1, expand => 1, tabstop => $opt_tabstop);
 
 if ($opt_visible{ht}) {
     Text::ANSI::Fold->configure(
@@ -1161,6 +1163,10 @@ B<--tabhead> and B<--tabspace> option and default value is C<\N{MEDIUM
 SHADE}> and C<\N{LIGHT SHADE}>.  If the option value is longer than
 single characger, it is evaluated as unicode name.
 
+=item B<--tabstop>=I<n>
+
+Specify tab stop.  Default is 8.
+
 =item B<--colormap>=I<colormap>, B<--cm>=I<colormap>
 
 Basic I<colormap> format is :
@@ -1309,7 +1315,7 @@ Environment variable B<SDIFOPTS> is used to set default options.
 
 =head1 LICENSE
 
-Copyright 1992-2020 Kazumasa Utashiro
+Copyright 1992-2021 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
