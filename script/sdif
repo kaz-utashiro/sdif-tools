@@ -890,12 +890,6 @@ sub terminal_width {
     $size[0] or $default;
 }
 
-sub unesc {
-    local $_ = shift;
-    s/\e/\\e/g;
-    $_;
-}
-
 __END__
 
 =pod
