@@ -919,6 +919,10 @@ sub unctrl {
 
 cdif - word context diff
 
+=head1 VERSION
+
+Version 4.18.1
+
 =head1 SYNOPSIS
 
 cdif [option] file1 file2
