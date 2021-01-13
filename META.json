@@ -1,7 +1,7 @@
 {
    "abstract" : "sdif and family tools, cdif and watchdiff",
    "author" : [
-      "- Kazumasa Utashiro."
+      "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v3.1.11, CPAN::Meta::Converter version 2.150010",
@@ -70,7 +70,7 @@
          "web" : "https://github.com/kaz-utashiro/sdif-tools"
       }
    },
-   "version" : "4.18.1",
+   "version" : "4.18.2",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kazumasa Utashiro <kaz@utashiro.com>",
