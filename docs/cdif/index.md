@@ -40,6 +40,10 @@
 
 cdif - word context diff
 
+# VERSION
+
+Version 4.18.2
+
 # SYNOPSIS
 
 cdif \[option\] file1 file2
@@ -77,18 +81,18 @@ Options:
         --prefix-pattern    prefix pattern
         --visible char=?    set visible attributes
         --[no]mecab         use mecab tokenizer     (default false)
-        --[no]lenience      supress unexpected input warning (default true)
+        --[no]lenience      suppress unexpected input warning (default true)
 
 # DESCRIPTION
 
 **cdif** is a post-processor of the Unix diff command.  It highlights
-deleted, changed and added words based on word context.
+deleted, changed and added words based on word context (**--unit=word**
+by default).  If you want to compare text character-by-character, use
+option **--unit=char**.  Option **--unit=mecab** tells to use external
+**mecab** command as a tokenizer for Japanese text.
 
-You may want to compare character-by-character rather than
-word-by-word.  Option **-B** option can be used for that purpose.
-
-If only one file is specified, cdif reads that file (stdin if no file)
-as a output from diff command.
+If single or no file is specified, cdif reads that file or STDIN as a
+output from diff command.
 
 Lines those don't look like diff output are simply ignored and
 printed.
@@ -105,6 +109,7 @@ printed.
     when **-r**_rev_ is supplied.
 
 - **--****unit**=_word_|_char_|_mecab_
+- **--****by**=_word_|_char_|_mecab_
 
     Specify the comparing unit.  Default is _word_ and compare each line
     word-by-word.  Specify _char_ if you want to compare them
@@ -113,11 +118,6 @@ printed.
     When _mecab_ is given as an unit, **mecab** command is called as a
     tokenizer for non-ASCII text.  ASCII text is compared word-by-word.
     External **mecab** command has to been installed.
-
-- **-B**, **--char**
-
-    Shortcut for **--unit=char**.  This option is being deprecated, and
-    will be removed in a future.
 
 - **--mecab**
 
@@ -158,6 +158,7 @@ printed.
         NCHANGE  New change part
         APPEND   Appended part
         DELETE   Deleted part
+        VISIBLE  Visualized invisible chars
 
     and additional _Common_ and _Merged_ FIELDs for git-diff combined
     format.
@@ -294,22 +295,34 @@ printed.
 
 - **--visible** _chaname_=\[0,1\]
 
-    Set visible attribute for specified characters.  Default visible: nul,
-    bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.  See
-    [ascii(7)](http://man.he.net/man7/ascii) for name representation.
+    Set visible attribute for specified characters.  Visible character is
+    converted to corresponding Unicode symbol character.  Default visible:
+    nul, bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.
+
+        NAME  CODE  Unicode NAME                      DEFAULT
+        ----  ----  --------------------------------  -------
+        nul   \000  SYMBOL FOR NULL                   YES
+        bel   \007  SYMBOL FOR BELL                   YES
+        bs    \010  SYMBOL FOR BACKSPACE              YES
+        ht    \011  SYMBOL FOR HORIZONTAL TABULATION  NO
+        nl    \012  SYMBOL FOR NEWLINE                NO
+        vt    \013  SYMBOL FOR VERTICAL TABULATION    YES
+        np    \014  SYMBOL FOR FORM FEED              YES
+        cr    \015  SYMBOL FOR CARRIAGE RETURN        YES
+        esc   \033  SYMBOL FOR ESCAPE                 YES
+        sp    \040  SYMBOL FOR SPACE                  NO
+        del   \177  SYMBOL FOR DELETE                 YES
 
     Multiple characters can be specified at once, by assembling them by
-    commna (`,`) like `--visible ht=1,sp=1`; or connecting them by equal
+    comma (`,`) like `--visible ht=1,sp=1`; or connecting them by equal
     sign (`=`) like `--visible ht=sp=1`.  Character name accept
     wildcard; `--visible '*=1'`.
 
-    Currently this option is effective only for modified lines.
-
-- **--**\[**no**\]**visible-cr**
-- **--**\[**no**\]**visible-esc**
-
-    Set CARRIAGE-RETURN and ESCAPE visible attributes.  These options will
-    be deprecated soon.  Use **--visible** option instead.
+    Colormap name `VISIBLE` is applied to those characters.  Default
+    setting is `S`, and visible characters are displayed in reverse
+    video.  Unlike other colormaps, only special effects can be set to
+    this name.  Effect `D` (double-struck) is exception (see `~` section
+    in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)).
 
 - **--stat**
 
@@ -321,7 +334,7 @@ printed.
 
 - **--**\[**no**\]**lenience**
 
-    Supress warning message for unexpected input from diff command.  True
+    Suppress warning message for unexpected input from diff command.  True
     by default.
 
 # ENVIRONMENT
@@ -330,17 +343,18 @@ Environment variable **CDIFOPTS** is used to set default options.
 
 # AUTHOR
 
-- Kazumasa Utashiro
-- [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
+Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1992-2020 Kazumasa Utashiro
+Copyright 1992-2021 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 # SEE ALSO
+
+[https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
 [sdif(1)](http://man.he.net/man1/sdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 

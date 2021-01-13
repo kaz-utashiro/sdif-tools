@@ -2,7 +2,11 @@
 
 # NAME
 
-watchdiff - repeat command and watch the differences
+watchdiff - repeat command and watch a difference
+
+# VERSION
+
+Version 4.18.2
 
 # SYNOPSIS
 
@@ -36,9 +40,13 @@ Options:
 
         watchdiff -e uptime -e iostat -e df
 
-        watchdiff -psr --diff 'sdif --no-command -U-1' netstat -S -I en0
+        watchdiff -ps --diff 'sdif --no-command -U-1' netstat -S -I en0
 
         watchdiff -pc18i10r0 date; say tea is ready
+
+# DESCRIPTION
+
+Use `^C` to terminate.
 
 # AUTHOR
 
@@ -48,7 +56,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 2014-2020 Kazumasa Utashiro
+Copyright 2014- Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

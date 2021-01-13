@@ -47,6 +47,10 @@
 
 sdif - side-by-side diff viewer for ANSI terminal
 
+# VERSION
+
+Version 4.18.2
+
 # SYNOPSIS
 
 sdif file\_1 file\_2
@@ -87,7 +91,7 @@ diff ... | sdif
     --[no]lenience      supress unexpected input warning (default on)
 
     --[no]cdif          use ``cdif'' as word context diff backend
-    --unit=s            pass through to cdif
+    --unit=s            pass through to cdif (word, char, mecab)
     --cdifopts=s        set cdif command options
 
 # DESCRIPTION
@@ -329,6 +333,21 @@ specified by **--cdifopts**.
     Supress warning message for unexpected input from diff command.  True
     by default.
 
+- **--visible** _chaname_=\[0,1\]
+- **--tabhead**=_char_
+- **--tabspace**=_char_
+
+    Visualize characters.  Currently only `ht` (horizontal tab) is
+    supported.  Each tab character is converted to **tabhead** and
+    following **tabspace** characters.  They can be specified by
+    **--tabhead** and **--tabspace** option and default value is `\N{MEDIUM
+    SHADE}` and `\N{LIGHT SHADE}`.  If the option value is longer than
+    single characger, it is evaluated as unicode name.
+
+- **--tabstop**=_n_
+
+    Specify tab stop.  Default is 8.
+
 - **--colormap**=_colormap_, **--cm**=_colormap_
 
     Basic _colormap_ format is :
@@ -466,7 +485,7 @@ Environment variable **SDIFOPTS** is used to set default options.
 
 # LICENSE
 
-Copyright 1992-2020 Kazumasa Utashiro
+Copyright 1992-2021 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
