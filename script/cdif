@@ -73,17 +73,17 @@ my $opt_prefix_pattern = q/(?:\\| )*(?:  )*/;
 my $opt_lenience = 1;
 
 my %visible = (
-    nul => [ 1,  "\000"  => "\N{SYMBOL FOR NULL}" ],
-    bel => [ 1,  "\007"  => "\N{SYMBOL FOR BELL}" ],
-    bs  => [ 1,  "\010"  => "\N{SYMBOL FOR BACKSPACE}" ],
-    ht  => [ 0,  "\011"  => "\N{SYMBOL FOR HORIZONTAL TABULATION}" ],
-    nl  => [ 0,  "\012"  => "\N{SYMBOL FOR NEWLINE}" . "\n" ],
-    vt  => [ 1,  "\013"  => "\N{SYMBOL FOR VERTICAL TABULATION}" ],
-    np  => [ 1,  "\014"  => "\N{SYMBOL FOR FORM FEED}" ],
-    cr  => [ 1,  "\015"  => "\N{SYMBOL FOR CARRIAGE RETURN}" ],
-    esc => [ 1,  "\033"  => "\N{SYMBOL FOR ESCAPE}" ],
-    sp  => [ 0,  "\040"  => "\N{SYMBOL FOR SPACE}" ],
-    del => [ 1,  "\177"  => "\N{SYMBOL FOR DELETE}" ],
+    nul => [ 1, "\000" => "\N{SYMBOL FOR NULL}" ],
+    bel => [ 1, "\007" => "\N{SYMBOL FOR BELL}" ],
+    bs  => [ 1, "\010" => "\N{SYMBOL FOR BACKSPACE}" ],
+    ht  => [ 0, "\011" => "\N{SYMBOL FOR HORIZONTAL TABULATION}" ],
+    nl  => [ 0, "\012" => "\N{SYMBOL FOR NEWLINE}" . "\n" ],
+    vt  => [ 1, "\013" => "\N{SYMBOL FOR VERTICAL TABULATION}" ],
+    np  => [ 1, "\014" => "\N{SYMBOL FOR FORM FEED}" ],
+    cr  => [ 1, "\015" => "\N{SYMBOL FOR CARRIAGE RETURN}" ],
+    esc => [ 1, "\033" => "\N{SYMBOL FOR ESCAPE}" ],
+    sp  => [ 0, "\040" => "\N{SYMBOL FOR SPACE}" ],
+    del => [ 1, "\177" => "\N{SYMBOL FOR DELETE}" ],
     );
 my %opt_visible = do {
     map { $_ => splice @{$visible{$_}}, 0, 1 }
