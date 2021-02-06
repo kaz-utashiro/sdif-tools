@@ -42,6 +42,7 @@ diff ... | sdif
     --column=order	set column order (default ONM)
     --view, -v		viewer mode
     --ambiguous=s       ambiguous character width (detect, wide, narrow)
+    --[no]command	print diff control command (default on)
     --[no]prefix	process git --graph output (default on)
     --prefix-pattern    prefix pattern
 
