@@ -599,7 +599,7 @@ continue {
 }
 
 close DIFF;
-my $exit = $? >> 8;
+my $exit = $DIFF =~ /\|$/ ? $? >> 8 : 0;
 
 if ($readfile) {
     if ($exit < 2) {
@@ -609,7 +609,7 @@ if ($readfile) {
     close NEW;
 }
 
-exit($exit == 2);
+exit($exit > 1);
 
 ######################################################################
 
@@ -984,6 +984,10 @@ B<--no-cdif> option to disable it.  Option B<--unit> (default word)
 will be passed through to B<cdif>.  Other B<cdif> options can be
 specified by B<--cdifopts>.
 
+=head2 EXIT STATUS
+
+B<sdif> always exit with status zero unless error occured.
+
 =head1 OPTIONS
 
 =over 7
@@ -1002,12 +1006,12 @@ allows to run-in and run-out prohibited characters at the head-and-end
 of line.  Margin columns are used to run-in prohibited characters from
 the head of next line.  See `perldoc Text::ANSI::Fold` for detail.
 
-=item B<-->[B<no>]B<number>, B<-n>
+=item B<-->[B<no->]B<number>, B<-n>
 
 Print line number on each lines.
 Default false.
 
-=item B<-->[B<no>]B<command>
+=item B<-->[B<no->]B<command>
 
 Print diff command control lines.
 Default true.
@@ -1031,17 +1035,17 @@ Passed through to the back-end diff command.  Sdif can interpret the
 output from normal, context (I<diff -c>) and unified diff (I<diff
 -u>).
 
-=item B<-->[B<no>]B<truncate>, B<-t>
+=item B<-->[B<no->]B<truncate>, B<-t>
 
 Truncate lines if they are longer than printing width.
 Default false.
 
-=item B<-->[B<no>]B<onword>
+=item B<-->[B<no->]B<onword>
 
 Fold long line at word boundaries.
 Default true.
 
-=item B<-->[B<no>]B<cdif>[=I<command>]
+=item B<-->[B<no->]B<cdif>[=I<command>]
 
 Use B<cdif> command instead of normal diff command.  Enabled by
 default and use B<--no-cdif> option explicitly to disable it.  This
@@ -1092,11 +1096,11 @@ Next two commands produce same output.
 
     $ git diff v3 v1 v2 | sdif
 
-=item B<-->[B<no>]B<color>
+=item B<-->[B<no->]B<color>
 
 Use ANSI color escape sequence for output.  Default is true.
 
-=item B<-->[B<no>]B<256>
+=item B<-->[B<no->]B<256>
 
 Use ANSI 256 color mode.  Default is true.
 
@@ -1130,7 +1134,7 @@ Treat ambiguous characters as narrow.
 
 =back
 
-=item B<-->[B<no>]B<prefix>
+=item B<-->[B<no->]B<prefix>
 
 Understand prefix for diff output including B<git> B<--graph> option.
 True by default.
@@ -1144,7 +1148,7 @@ Specify prefix pattern in regex.  Default pattern is:
 This pattern matches B<git> graph style and whitespace indented diff
 output.
 
-=item B<-->[B<no>]B<lenience>
+=item B<-->[B<no->]B<lenience>
 
 Supress warning message for unexpected input from diff command.  True
 by default.

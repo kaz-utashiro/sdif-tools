@@ -58,8 +58,6 @@ Options:
         -b              ignore space change
         -w              ignore whitespace
         -t              expand tabs
-        --rcs           use rcsdiff
-        -r<rev>, -q     rcs options
 
         --diff=command      specify diff command
         --subdiff=command   specify backend diff command
@@ -97,16 +95,63 @@ output from diff command.
 Lines those don't look like diff output are simply ignored and
 printed.
 
+## STARTUP and MODULE
+
+**cdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, and reads _~/.cdifrc_
+file if available when starting up.  You can define original and
+default option there.  Next line enables **--mecab** option and add
+cossed-out effect for deleted words.
+
+    option default --mecab --cm DELETE=+X
+
+Modules under **App::cdif** can be loaded by **-M** option without
+prefix.  Next command load **App::cdif::colors** module.
+
+    $ cdif -Mcolors
+
+You can also define options in module file.  Read \`perldoc
+Getopt::EX::Module\` for detail.
+
+## COLOR
+
+Each lines are displayed in different colors.  Each text segment has
+own labels, and color for them can be specified by **--colormap**
+option.  Read \`perldoc Getopt::EX::Colormap\` for detail.
+
+Standard module **-Mcolors** is loaded by default, and define several
+color maps for light and dark screen.  If you want to use CMY colors in
+dark screen, place next line in your `~/.cdifrc`.
+
+    option default --dark-cmy
+
+Option **--autocolor** is defined in **default** module to call
+[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module.  It sets **--light** or **--dark**
+option according to the brightness of the terminal screen.  You can
+set preferred color in your `~/.sdifrc` like:
+
+    option --light --cmy
+    option --dark  --dark-cmy
+
+Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module and it
+works with macOS Terminal.app and iTerm.app, and other XTerm
+compatible terminals.  This module accept environment variable
+[TERM\_BGCOLOR](https://metacpan.org/pod/TERM_BGCOLOR) as a terminal background color.  For exapmle, use
+`000` or `#000000` for black and `555` or `#FFFFFF` for white.
+
+Option **--autocolor** is set by default, so override it to do nothing
+to disable.
+
+    option --autocolor --nop
+
+## EXIT STATUS
+
+**cdif** always exit with status zero unless error occured.
+
 # OPTIONS
 
 - **-**\[**cCuUibwtT**\]
 
     Almost same as **diff** command.
-
-- **--rcs**, **-r**_rev_, **-q**
-
-    Use rcsdiff instead of normal diff.  Option **--rcs** is not required
-    when **-r**_rev_ is supplied.
 
 - **--****unit**=_word_|_char_|_mecab_
 - **--****by**=_word_|_char_|_mecab_
@@ -137,7 +182,7 @@ printed.
 
         --subdiff="git diff -U0 --no-index --histogram"
 
-- **--**\[**no**\]**color**
+- **--**\[**no-**\]**color**
 
     Use ANSI color escape sequence for output.
 
@@ -248,26 +293,26 @@ printed.
              --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
              --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
-- **--**\[**no**\]**commandcolor**, **--cc**
-- **--**\[**no**\]**markcolor**, **--mc**
-- **--**\[**no**\]**textcolor**, **--tc**
-- **--**\[**no**\]**unknowncolor**, **--uc**
+- **--**\[**no-**\]**commandcolor**, **--**\[**no-**\]**cc**
+- **--**\[**no-**\]**markcolor**, **--**\[**no-**\]**mc**
+- **--**\[**no-**\]**textcolor**, **--**\[**no-**\]**tc**
+- **--**\[**no-**\]**unknowncolor**, **--**\[**no-**\]**uc**
 
     Enable/Disable using color for the corresponding field.
 
-- **--**\[**no**\]**old**, **--**\[**no**\]**new**
+- **--**\[**no-**\]**old**, **--**\[**no-**\]**new**
 
     Print or not old/new text in diff output.
 
-- **--**\[**no**\]**command**
+- **--**\[**no-**\]**command**
 
     Print or not command lines preceding diff output.
 
-- **--**\[**no**\]**unknown**
+- **--**\[**no-**\]**unknown**
 
     Print or not lines not look like diff output.
 
-- **--**\[**no**\]**mark**
+- **--**\[**no-**\]**mark**
 
     Print or not marks at the top of diff output lines.  At this point,
     this option is effective only for unified diff.
@@ -279,7 +324,7 @@ printed.
 
     These options are prepared for watchdiff(1) command.
 
-- **--**\[**no**\]**prefix**
+- **--**\[**no-**\]**prefix**
 
     Understand prefix for diff output including **git** **--graph** option.
     True by default.
@@ -332,14 +377,30 @@ printed.
     text filling process.  So normal information is followed by modified
     number which ignores insert/delete newlines.
 
-- **--**\[**no**\]**lenience**
+- **--**\[**no-**\]**lenience**
 
     Suppress warning message for unexpected input from diff command.  True
     by default.
 
+# GIT
+
+See \`perldoc App::sdif\` how to use related commands under the GIT
+environment.
+
 # ENVIRONMENT
 
-Environment variable **CDIFOPTS** is used to set default options.
+- **CDIFOPTS**
+
+    Environment variable **CDIFOPTS** is used to set default options.
+
+- **LESS**
+- **LESSANSIENDCHARS**
+
+    Since **cdif** produces ANSI Erase Line terminal sequence, it is
+    convenient to set **less** command understand them.
+
+        LESS=-cR
+        LESSANSIENDCHARS=mK
 
 # AUTHOR
 
@@ -354,7 +415,7 @@ it under the same terms as Perl itself.
 
 # SEE ALSO
 
-[https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
+[App::sdif](https://metacpan.org/pod/App::sdif), [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
 [sdif(1)](http://man.he.net/man1/sdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 

@@ -75,6 +75,7 @@ diff ... | sdif
     --column=order      set column order (default ONM)
     --view, -v          viewer mode
     --ambiguous=s       ambiguous character width (detect, wide, narrow)
+    --[no]command       print diff control command (default on)
     --[no]prefix        process git --graph output (default on)
     --prefix-pattern    prefix pattern
 
@@ -179,6 +180,10 @@ From version 4.1.0, option **--cdif** is set by default, so use
 will be passed through to **cdif**.  Other **cdif** options can be
 specified by **--cdifopts**.
 
+## EXIT STATUS
+
+**sdif** always exit with status zero unless error occured.
+
 # OPTIONS
 
 - **--width**=_width_, **-W** _width_
@@ -195,12 +200,12 @@ specified by **--cdifopts**.
     of line.  Margin columns are used to run-in prohibited characters from
     the head of next line.  See \`perldoc Text::ANSI::Fold\` for detail.
 
-- **--**\[**no**\]**number**, **-n**
+- **--**\[**no-**\]**number**, **-n**
 
     Print line number on each lines.
     Default false.
 
-- **--**\[**no**\]**command**
+- **--**\[**no-**\]**command**
 
     Print diff command control lines.
     Default true.
@@ -220,17 +225,17 @@ specified by **--cdifopts**.
     output from normal, context (_diff -c_) and unified diff (_diff
     \-u_).
 
-- **--**\[**no**\]**truncate**, **-t**
+- **--**\[**no-**\]**truncate**, **-t**
 
     Truncate lines if they are longer than printing width.
     Default false.
 
-- **--**\[**no**\]**onword**
+- **--**\[**no-**\]**onword**
 
     Fold long line at word boundaries.
     Default true.
 
-- **--**\[**no**\]**cdif**\[=_command_\]
+- **--**\[**no-**\]**cdif**\[=_command_\]
 
     Use **cdif** command instead of normal diff command.  Enabled by
     default and use **--no-cdif** option explicitly to disable it.  This
@@ -280,11 +285,11 @@ specified by **--cdifopts**.
 
         $ git diff v3 v1 v2 | sdif
 
-- **--**\[**no**\]**color**
+- **--**\[**no-**\]**color**
 
     Use ANSI color escape sequence for output.  Default is true.
 
-- **--**\[**no**\]**256**
+- **--**\[**no-**\]**256**
 
     Use ANSI 256 color mode.  Default is true.
 
@@ -314,7 +319,7 @@ specified by **--cdifopts**.
 
         Treat ambiguous characters as narrow.
 
-- **--**\[**no**\]**prefix**
+- **--**\[**no-**\]**prefix**
 
     Understand prefix for diff output including **git** **--graph** option.
     True by default.
@@ -328,7 +333,7 @@ specified by **--cdifopts**.
     This pattern matches **git** graph style and whitespace indented diff
     output.
 
-- **--**\[**no**\]**lenience**
+- **--**\[**no-**\]**lenience**
 
     Supress warning message for unexpected input from diff command.  True
     by default.
