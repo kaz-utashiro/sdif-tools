@@ -349,6 +349,15 @@ specified by **--cdifopts**.
     SHADE}` and `\N{LIGHT SHADE}`.  If the option value is longer than
     single characger, it is evaluated as unicode name.
 
+    **cdif** shows non-space control characters visible by default. See
+    ["--visible" in cdif](https://metacpan.org/pod/cdif#visible).
+
+- **--tabstyle**=_dot_|_symbol_|_shade_
+
+    Option **--tabstyle** allow to set **--tabhead** and **--tabspace**
+    characters at once according to the given style name.  Select from
+    `dot`, `symbol` or `shade`.  See ["tabstyle" in Text::ANSI::Fold](https://metacpan.org/pod/Text::ANSI::Fold#tabstyle).
+
 - **--tabstop**=_n_
 
     Specify tab stop.  Default is 8.

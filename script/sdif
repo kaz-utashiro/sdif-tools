@@ -126,8 +126,9 @@ my $opt_W;
 my $opt_colortable;
 my %opt_visible;
 my $opt_tabstop  = 8;
-my $opt_tabhead  = "\N{MEDIUM SHADE}";
-my $opt_tabspace = "\N{LIGHT SHADE}";
+my $opt_tabstyle = undef;
+my $opt_tabhead  = undef;
+my $opt_tabspace = undef;
 
 #
 # options only for cdif
@@ -188,10 +189,11 @@ my @optargs = (
     "nocdif|no-cdif" => sub { $opt_cdif = undef },
     "cdifopts=s" => sub { push @opt_cdifopts, shellwords $_[1] },
     "colortable" => \$opt_colortable,
-    "lenience!" => \$opt_lenience,
-    "visible=i" => \%opt_visible,
-    "tabstop=i" => \$opt_tabstop,
-    "tabhead=s" => \$opt_tabhead,
+    "lenience!"  => \$opt_lenience,
+    "visible=i"  => \%opt_visible,
+    "tabstop=i"  => \$opt_tabstop,
+    "tabhead=s"  => \$opt_tabhead,
+    "tabstyle=s" => \$opt_tabstyle,
     "tabspace=s" => \$opt_tabspace,
 
     "unit=s" => \$opt_unit,
@@ -212,15 +214,18 @@ use Text::VisualWidth::PP qw(vwidth);
 use Text::ANSI::Fold qw(ansi_fold :constants);
 Text::ANSI::Fold->configure(padding => 1, expand => 1, tabstop => $opt_tabstop);
 
-if ($opt_visible{ht}) {
+if ($opt_visible{ht} or $opt_tabstyle) {
     Text::ANSI::Fold->configure(
-	tabhead  => unicode($opt_tabhead),
-	tabspace => unicode($opt_tabspace),
-    );
+	tabstyle => $opt_tabstyle,
+	map  { $_->[0] => unicode($_->[1]) }
+	grep { $_->[1] }
+	[ tabhead  => $opt_tabhead  ],
+	[ tabspace => $opt_tabspace ],
+	);
 }
 
 sub unicode {
-    my $char = shift;
+    my $char = shift or return undef;
     if ($char =~ /^\X$/) {
 	$char;
     } else {
@@ -1165,6 +1170,15 @@ following B<tabspace> characters.  They can be specified by
 B<--tabhead> and B<--tabspace> option and default value is C<\N{MEDIUM
 SHADE}> and C<\N{LIGHT SHADE}>.  If the option value is longer than
 single characger, it is evaluated as unicode name.
+
+B<cdif> shows non-space control characters visible by default. See
+L<cdif/--visible>.
+
+=item B<--tabstyle>=I<dot>|I<symbol>|I<shade>
+
+Option B<--tabstyle> allow to set B<--tabhead> and B<--tabspace>
+characters at once according to the given style name.  Select from
+C<dot>, C<symbol> or C<shade>.  See L<Text::ANSI::Fold/tabstyle>.
 
 =item B<--tabstop>=I<n>
 
