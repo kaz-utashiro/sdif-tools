@@ -245,13 +245,14 @@ specified by **--cdifopts**.
 
     Specify options for back-end **cdif** command.
 
-- **--unit**=_unit_
+- **--unit**=_word_|_char_|_mecab_
+- **--by**=_word_|_char_|_mecab_
 - **--mecab**
 
     These options are simply sent to back-end **cdif** command.  Default is
     **--unit**=_word_ and _char_ and _mecab_ can be used.  Option
-    **--mecab** is same as **--unit=mecab**.  Use **--cdifopts** to set other
-    options.
+    **--by** is an alias for **--unit**.  Option **--mecab** is same as
+    **--unit=mecab**.  Use **--cdifopts** to set other options.
 
 - **--diff**=_command_
 

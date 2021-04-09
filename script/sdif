@@ -196,8 +196,8 @@ my @optargs = (
     "tabstyle=s" => \$opt_tabstyle,
     "tabspace=s" => \$opt_tabspace,
 
-    "unit=s" => \$opt_unit,
-    "mecab!" => sub { $opt_unit = $_[1] ? 'mecab' : $opt_unit_default },
+    "unit|by=s"  => \$opt_unit,
+    "mecab!"     => sub { $opt_unit = $_[1] ? 'mecab' : $opt_unit_default },
 );
 
 my @SAVEDARGV = @ARGV;
@@ -1060,14 +1060,16 @@ option accepts optional parameter as an actual B<cdif> command.
 
 Specify options for back-end B<cdif> command.
 
-=item B<--unit>=I<unit>
+=item B<--unit>=I<word>|I<char>|I<mecab>
+
+=item B<--by>=I<word>|I<char>|I<mecab>
 
 =item B<--mecab>
 
 These options are simply sent to back-end B<cdif> command.  Default is
 B<--unit>=I<word> and I<char> and I<mecab> can be used.  Option
-B<--mecab> is same as B<--unit=mecab>.  Use B<--cdifopts> to set other
-options.
+B<--by> is an alias for B<--unit>.  Option B<--mecab> is same as
+B<--unit=mecab>.  Use B<--cdifopts> to set other options.
 
 =item B<--diff>=I<command>
 
