@@ -127,7 +127,7 @@ dark screen, place next line in your `~/.cdifrc`.
 Option **--autocolor** is defined in **default** module to call
 [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module.  It sets **--light** or **--dark**
 option according to the brightness of the terminal screen.  You can
-set preferred color in your `~/.sdifrc` like:
+set preferred color in your `~/.cdifrc` like:
 
     option --light --cmy
     option --dark  --dark-cmy
@@ -299,6 +299,11 @@ to disable.
 - **--**\[**no-**\]**unknowncolor**, **--**\[**no-**\]**uc**
 
     Enable/Disable using color for the corresponding field.
+
+- **--sdif**
+
+    Disable options appropriate to use for **sdif**'s input:
+    **--commandcolor**, **--markcolor** and **--textcolor**.
 
 - **--**\[**no-**\]**old**, **--**\[**no-**\]**new**
 

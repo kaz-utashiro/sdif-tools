@@ -128,6 +128,11 @@ my @optargs = (
     "markcolor|mc!" => \$opt_markcolor,
     "textcolor|tc!" => \$opt_textcolor,
     "unknowncolor|uc!" => \$opt_unknowncolor,
+    "sdif" => sub {
+	$opt_commandcolor = 0;
+	$opt_markcolor    = 0;
+	$opt_textcolor    = 0;
+    },
     "colormap|cm=s" => \@opt_colormap,
     "colordump" => \$opt_colordump,
     "h|help" => sub { usage() },
@@ -1008,7 +1013,7 @@ dark screen, place next line in your F<~/.cdifrc>.
 Option B<--autocolor> is defined in B<default> module to call
 L<Getopt::EX::termcolor> module.  It sets B<--light> or B<--dark>
 option according to the brightness of the terminal screen.  You can
-set preferred color in your F<~/.sdifrc> like:
+set preferred color in your F<~/.cdifrc> like:
 
     option --light --cmy
     option --dark  --dark-cmy
@@ -1195,6 +1200,11 @@ This is equivalent to :
 =item B<-->[B<no->]B<unknowncolor>, B<-->[B<no->]B<uc>
 
 Enable/Disable using color for the corresponding field.
+
+=item B<--sdif>
+
+Disable options appropriate to use for B<sdif>'s input:
+B<--commandcolor>, B<--markcolor> and B<--textcolor>.
 
 =item B<-->[B<no->]B<old>, B<-->[B<no->]B<new>
 
