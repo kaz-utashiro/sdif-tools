@@ -49,7 +49,7 @@ sdif - side-by-side diff viewer for ANSI terminal
 
 # VERSION
 
-Version 4.18.2
+Version 4.19.0
 
 # SYNOPSIS
 
@@ -344,20 +344,45 @@ specified by **--cdifopts**.
 - **--tabspace**=_char_
 
     Visualize characters.  Currently only `ht` (horizontal tab) is
-    supported.  Each tab character is converted to **tabhead** and
-    following **tabspace** characters.  They can be specified by
-    **--tabhead** and **--tabspace** option and default value is `\N{MEDIUM
-    SHADE}` and `\N{LIGHT SHADE}`.  If the option value is longer than
-    single characger, it is evaluated as unicode name.
+    supported.  Each horizontal tab character is converted to **tabhead**
+    and following **tabspace** characters.  They can be specified by
+    **--tabhead** and **--tabspace** option.
+
+        $ sdif --visible ht=1 --tabhead=T --tabspace=.
+
+    If the option value is longer than single characger, it is evaluated
+    as unicode name.
+
+        $ sdif --visible ht=1 \
+               --tabhead="MEDIUM SHADE" \
+               --tabspace="LIGHT SHADE"
+
+    See [https://www.unicode.org/charts/charindex.html](https://www.unicode.org/charts/charindex.html) for Unicode
+    names.
 
     **cdif** shows non-space control characters visible by default. See
     ["--visible" in cdif](https://metacpan.org/pod/cdif#visible).
 
-- **--tabstyle**=_dot_|_symbol_|_shade_
+- **--tabstyle**=_space_|_dot_|_symbol_|_shade_|_bar_|_dash_...
 
     Option **--tabstyle** allow to set **--tabhead** and **--tabspace**
     characters at once according to the given style name.  Select from
-    `dot`, `symbol` or `shade`.  See ["tabstyle" in Text::ANSI::Fold](https://metacpan.org/pod/Text::ANSI::Fold#tabstyle).
+    `space`, `dot`, `symbol`, `shade`, `bar`, `dash` and others.
+    See ["tabstyle" in Text::ANSI::Fold](https://metacpan.org/pod/Text::ANSI::Fold#tabstyle) for available styles.
+
+    Mutiple styles can be mixed up like `symbol,space`.  In this case,
+    tabhead and tabspace are taken from `symbol` and `space` style
+    respectively.
+
+    Setting tabstyle implies `ht` being visible.  If you want to set
+    tabstyle by default, but don't want to make tab visible always,
+    disable it explicitly.
+
+        option default --tabstyle=symbol,space --visible ht=0
+
+    Then you can enable it at the time of execution.
+
+        $ sdif --visible ht=1
 
 - **--tabstop**=_n_
 

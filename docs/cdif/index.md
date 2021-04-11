@@ -42,7 +42,7 @@ cdif - word context diff
 
 # VERSION
 
-Version 4.18.2
+Version 4.19.0
 
 # SYNOPSIS
 
@@ -368,11 +368,11 @@ to disable.
     sign (`=`) like `--visible ht=sp=1`.  Character name accept
     wildcard; `--visible '*=1'`.
 
-    Colormap name `VISIBLE` is applied to those characters.  Default
+    Colormap label `VISIBLE` is applied to those characters.  Default
     setting is `S`, and visible characters are displayed in reverse
     video.  Unlike other colormaps, only special effects can be set to
-    this name.  Effect `D` (double-struck) is exception (see `~` section
-    in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)).
+    this label.  Effect `D` (double-struck) is exception (See
+    ["~" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap#pod)).
 
 - **--stat**
 

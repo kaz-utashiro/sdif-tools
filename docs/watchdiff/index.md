@@ -6,7 +6,7 @@ watchdiff - repeat command and watch a difference
 
 # VERSION
 
-Version 4.18.2
+Version 4.19.0
 
 # SYNOPSIS
 
