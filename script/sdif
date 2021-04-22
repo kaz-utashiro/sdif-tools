@@ -57,6 +57,10 @@ diff ... | sdif
     --diffopts=s	set diff command options
 
     --[no]lenience      supress unexpected input warning (default on)
+    --visible xx=1	set visible chars
+    --tabhead=char	set tabhead char
+    --tabspace=char	set tabspace char
+    --tabstyle=style	set tabstyle (dot, symbol, shade, bar, dash...)
 
     --[no]cdif		use ``cdif'' as word context diff backend
     --unit=s		pass through to cdif (word, char, mecab)
