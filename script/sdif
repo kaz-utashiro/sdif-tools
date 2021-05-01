@@ -106,7 +106,7 @@ my $opt_truncate = 0;
 my $opt_onword = 1;
 my $default_opt_cdif = 'cdif';
 my $opt_cdif = '';
-my @default_opt_cdifopts = qw(--no-cc --no-mc --no-tc --no-uc);
+my @default_opt_cdifopts = qw(--sdif);
 my @opt_cdifopts;
 my $opt_env = 1;
 my @opt_colormap;
