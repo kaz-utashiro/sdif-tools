@@ -21,39 +21,27 @@ use List::Util qw(pairmap);
 use App::sdif;
 my $version = $App::sdif::VERSION;
 
-my $opt_d;
-my $opt_unit = '';
-my $opt_diff;
-my $opt_date = 1;
-my $opt_refresh = 1;
-my $opt_interval = 2;
-my $opt_count = 1000;
-my $opt_clear = 1;
-my $opt_silent = 0;
-my $opt_newline = 1;
-my $opt_mark = 0;
-my $opt_old = 0;
-my @opt_exec;
-my @opt_colormap;
-
 my @optargs = (
-    "d" => \$opt_d,
-    "unit=s" => \$opt_unit,
-    "diff=s" => \$opt_diff,
-    "e|exec=s" => \@opt_exec,
-    "r|refresh:1" => \$opt_refresh,
-    "i|interval=i" => \$opt_interval,
-    "c|count=i" => \$opt_count,
-    "clear!" => \$opt_clear,
-    "s|silent!" => \$opt_silent,
-    "M|mark!" => \$opt_mark,
-    "O|old!" => \$opt_old,
-    "D|date!" => \$opt_date,
-    "N|newline!" => \$opt_newline,
-    "colormap|cm=s" => \@opt_colormap,
+    "d"             => \(my $opt_d),
+    "unit=s"        => \(my $opt_unit = ''),
+    "diff=s"        => \(my $opt_diff),
+    "e|exec=s"      => \(my @opt_exec),
+    "r|refresh:1"   => \(my $opt_refresh = 1),
+    "i|interval=i"  => \(my $opt_interval = 2),
+    "c|count=i"     => \(my $opt_count = 1000),
+    "clear!"        => \(my $opt_clear = 1),
+    "s|silent!"     => \(my $opt_silent = 0),
+    "M|mark!"       => \(my $opt_mark = 0),
+    "O|old!"        => \(my $opt_old = 0),
+    "D|date!"       => \(my $opt_date = 1),
+    "N|newline!"    => \(my $opt_newline = 1),
+    "colormap|cm=s" => \(my @opt_colormap),
+    );
+
+push @optargs, (
     "p|plain" => sub { $opt_date = $opt_newline = 0 },
-    "h|help" => sub { usage() },
-    "H|man" => sub { pod2usage( {-verbose => 2} ) },
+    "h|help"  => sub { usage() },
+    "H|man"   => sub { pod2usage( {-verbose => 2} ) },
     );
 
 use Getopt::EX::Long;
