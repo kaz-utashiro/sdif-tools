@@ -4,7 +4,7 @@
       "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.11, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.12, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -43,6 +43,7 @@
       "runtime" : {
          "requires" : {
             "Getopt::EX" : "v1.21.1",
+            "Getopt::EX::Hashed" : "0.9917",
             "Getopt::EX::termcolor" : "1.07",
             "List::Util" : "1.45",
             "Term::ReadKey" : "0",
