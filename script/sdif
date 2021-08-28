@@ -1065,14 +1065,14 @@ option accepts optional parameter as an actual B<cdif> command.
 
 Specify options for back-end B<cdif> command.
 
-=item B<--unit>=I<word>|I<char>|I<mecab>
+=item B<--unit>=C<word>|C<letter>|C<char>|C<mecab>
 
-=item B<--by>=I<word>|I<char>|I<mecab>
+=item B<--by>=C<word>|C<letter>|C<char>|C<mecab>
 
 =item B<--mecab>
 
 These options are simply sent to back-end B<cdif> command.  Default is
-B<--unit>=I<word> and I<char> and I<mecab> can be used.  Option
+B<--unit>=C<word> and C<char> and I<mecab> can be used.  Option
 B<--by> is an alias for B<--unit>.  Option B<--mecab> is same as
 B<--unit=mecab>.  Use B<--cdifopts> to set other options.
 
@@ -1191,7 +1191,7 @@ names.
 B<cdif> shows non-space control characters visible by default. See
 L<cdif/--visible>.
 
-=item B<--tabstyle>=I<space>|I<dot>|I<symbol>|I<shade>|I<bar>|I<dash>...
+=item B<--tabstyle>=C<space>|C<dot>|C<symbol>|C<shade>|C<bar>|C<dash>...
 
 Option B<--tabstyle> allow to set B<--tabhead> and B<--tabspace>
 characters at once according to the given style name.  Select from

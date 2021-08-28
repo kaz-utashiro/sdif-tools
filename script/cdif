@@ -284,15 +284,16 @@ my $w_pattern = do {
     if ($opt_unit =~ /^char/) {
 	qr/\X/s;
     } else {
+	my $w = $opt_unit eq 'letter' ? '' : '_';
 	qr{
 	    \p{Han} | \p{InHiragana}+ | \p{InKatakana}+ |
-	    \p{Hang}+     |
-	    \p{Cyrillic}+ |
-	    \p{Arabic}+   |
-	    \p{Thai}+     |
+	    [$w\p{Latin}]+    |
+	    [$w\p{Hang}]+     |
+	    [$w\p{Cyrillic}]+ |
+	    [$w\p{Arabic}]+   |
+	    [$w\p{Thai}]+     |
 	    \d+ |
-	    \p{Punct}+ |
-	    \p{Latin}+ |
+	    \p{Punct} |
 	    [\ \t\r\f]*\n | \s+ | (.)\g{-1}*
 	}x;
     }
@@ -1052,15 +1053,16 @@ when B<-r>I<rev> is supplied.
 
 =end deprecated
 
-=item B<-->B<unit>=I<word>|I<char>|I<mecab>
+=item B<-->B<unit>=C<word>|C<letter>|C<char>|C<mecab>
 
-=item B<-->B<by>=I<word>|I<char>|I<mecab>
+=item B<-->B<by>=C<word>|C<letter>|C<char>|C<mecab>
 
 Specify the comparing unit.  Default is I<word> and compare each line
-word-by-word.  Specify I<char> if you want to compare them
-character-by-character.
+word-by-word.  Specify C<char> if you want to compare them
+character-by-character.  Unit C<letter> is almost same as C<word> but
+does not include underscore.
 
-When I<mecab> is given as an unit, B<mecab> command is called as a
+When C<mecab> is given as an unit, B<mecab> command is called as a
 tokenizer for non-ASCII text.  ASCII text is compared word-by-word.
 External B<mecab> command has to been installed.
 
