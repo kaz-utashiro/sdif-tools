@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.20.0 2021-09-01T12:42:57Z
+
+    - Make cdif to accept "-U-1" option.
+    - Add --unit=letter option not to include underscore.
+
 4.19.1 2021-04-11T03:10:55Z
 
     - Update behavior of --visible/--tabstyle.
