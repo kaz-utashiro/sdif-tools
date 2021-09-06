@@ -38,6 +38,8 @@ diff ... | sdif
 
     --width=#, -W#	specify width of output (default 80)
     --margin=#          specify margin column number (default 0)
+    --runin=#           specify run-in column number (default --margin)
+    --runout=#          specify run-out column number (default --margin)
     --mark=position	mark position (right, left, center, side) or no
     --column=order	set column order (default ONM)
     --view, -v		viewer mode
@@ -118,6 +120,8 @@ my $opt_column;
 my $opt_view;
 my $opt_ambiguous = 'narrow';
 my $opt_margin = 0;
+my $opt_runin;
+my $opt_runout;
 my $opt_lenience = my $opt_lenience_default = 1;
 our $screen_width;
 
@@ -165,6 +169,8 @@ my @optargs = (
     "s" => \$opt_s,
     "width|W=i" => \$opt_W,
     "margin=i" => \$opt_margin,
+    "runin=i" => \$opt_runin,
+    "runout=i" => \$opt_runout,
     "view|v!" => \$opt_view,
     "ambiguous=s" => \$opt_ambiguous,
     "command!" => \$opt_command,
@@ -251,7 +257,9 @@ if ($opt_ambiguous =~ /^(?:wide|full)/) {
 if ($opt_margin > 0) {
     Text::ANSI::Fold->configure(
 	linebreak => LINEBREAK_ALL,
-	map { $_ => $opt_margin } qw(margin runin runout),
+	margin    => $opt_margin,
+	runin     => $opt_runin // $opt_margin,
+	runout    => $opt_runout // $opt_margin,
 	);
 }
 
@@ -1010,11 +1018,16 @@ if possible.
 
 =item B<--margin>=I<column>
 
-Set margin column number.  Margin columns are left blank at the end of
-each line.  This option implicitly declare line break control, which
-allows to run-in and run-out prohibited characters at the head-and-end
-of line.  Margin columns are used to run-in prohibited characters from
-the head of next line.  See `perldoc Text::ANSI::Fold` for detail.
+=item B<--runin>=I<column>
+
+=item B<--runout>=I<column>
+
+Set the number of margin column.  Margin columns are left blank at the
+end of each line.  This option implicitly declare line break control,
+which allows to run-in and run-out prohibited characters at the
+head-and-end of line.  Margin columns are used for run-in/run-out
+columns unless they are given explicitly.  See `perldoc
+Text::ANSI::Fold` for detail.
 
 =item B<-->[B<no->]B<number>, B<-n>
 

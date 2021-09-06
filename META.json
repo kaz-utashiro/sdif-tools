@@ -47,7 +47,7 @@
             "Getopt::EX::termcolor" : "1.07",
             "List::Util" : "1.45",
             "Term::ReadKey" : "0",
-            "Text::ANSI::Fold" : "2.10",
+            "Text::ANSI::Fold" : "2.1101",
             "Text::VisualWidth::PP" : "0.05",
             "Unicode::EastAsianWidth::Detect" : "0",
             "perl" : "v5.14.0"
