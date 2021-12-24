@@ -8,10 +8,11 @@
 ## Original version on Feb 15 2014
 ##
 
-use v5.14;
+use strict;
 use warnings;
-use App::watchdiff;
-exit App::watchdiff->new->run();
+
+use  App::watchdiff;
+exit App::watchdiff->new->run(splice @ARGV);
 
 __END__
 

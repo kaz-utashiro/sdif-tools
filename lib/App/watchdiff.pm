@@ -79,6 +79,7 @@ my %termcap = pairmap { $a => ansi_code($b) }
 
 sub run {
     my $opt = shift;
+    local @ARGV = @_;
 
     use Getopt::EX::Long;
     Getopt::Long::Configure(qw(bundling require_order));
