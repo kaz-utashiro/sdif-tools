@@ -302,44 +302,37 @@ my $w_pattern = do {
 ##
 ## Converter/Effector function for visible characters
 ##
+my @converter;
+my $effector;
 use Getopt::EX::LabeledParam;
 Getopt::EX::LabeledParam
     ->new(HASH => \%opt_visible)
     ->load_params (@opt_visible);
-my @visible_names = grep $opt_visible{$_}, keys %opt_visible;
-my $visible_chars = join "", map $visible{$_}->[0], @visible_names;
-my($visible_chars_re, @converter) = do {
-    if ($visible_chars eq '') {
-	(undef);
-    } else {
-	my %hash = map { @$_ } values %visible;
-	my $re = qr/[\Q$visible_chars\E]/;
-	my $sub0 = sub {          s/($re)/$hash{$1}/g };
-	my $sub1 = sub { $_[0] =~ s/($re)/$hash{$1}/gr };
-	my $sub2 = sub {
-	    my $mark_re = shift;
-	    for (@_) {
-		s{^$mark_re\K(?=.*$re)(.*\R?)}{
-		    $sub1->($1);
-		}mge;
-	    }
-	};
-	($re, $sub0, $sub1, $sub2);
-    }
-};
-my $effector = do {
-    if (@visible_names and my $color = $colormap{'VISIBLE'}) {
+if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
+    my $chars = join "", map $visible{$_}->[0], @names;
+    my %hash = map { @$_ } values %visible;
+    my $re = qr/[\Q$chars\E]/;
+    my $sub0 = sub {          s/($re)/$hash{$1}/g };
+    my $sub1 = sub { $_[0] =~ s/($re)/$hash{$1}/gr };
+    my $sub2 = sub {
+	my $mark_re = shift;
+	for (@_) {
+	    s{^$mark_re\K(?=.*$re)(.*\R?)}{
+		$sub1->($1);
+	    }mge;
+	}
+    };
+    @converter = ($sub0, $sub1, $sub2);
+
+    if (my $color = $colormap{'VISIBLE'}) {
 	my $s = ansi_code($color);
-	my $e = ansi_code($color =~ s/(?=.)/~/gr);
+	my $e = ansi_code($color =~ s/(?=.)/~/gr); # cancel the effect
 	my $symbols = join('',
 			   map  { $visible{$_}->[-1] =~ s/\s+//gr }
-			   @visible_names);
-	my $symbols_re = qr/[\Q$symbols\E]/;
-	sub { s/($symbols_re+)/${s}${1}${e}/g };
-    } else {
-	undef;
+			   @names);
+	$effector = sub { s/([\Q$symbols\E]+)/${s}${1}${e}/g };
     }
-};
+}
 
 ##
 ## Temporary files
