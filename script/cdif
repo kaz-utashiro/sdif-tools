@@ -302,16 +302,15 @@ my $w_pattern = do {
 ##
 ## Converter/Effector function for visible characters
 ##
-my @converter;
-my $effector;
+my($converter, $effector);
 use Getopt::EX::LabeledParam;
 Getopt::EX::LabeledParam
     ->new(HASH => \%opt_visible)
     ->load_params (@opt_visible);
 if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
-    my $chars = join "", map $visible{$_}->[0], @names;
+    my @chars = map $visible{$_}->[0], @names;
     my %hash = map { @$_ } values %visible;
-    my $re = qr/[\Q$chars\E]/;
+    my $re = do { local $" = ''; qr/[\Q@chars\E]/ };
     my $sub0 = sub {          s/($re)/$hash{$1}/g };
     my $sub1 = sub { $_[0] =~ s/($re)/$hash{$1}/gr };
     my $sub2 = sub {
@@ -322,7 +321,7 @@ if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
 	    }mge;
 	}
     };
-    @converter = ($sub0, $sub1, $sub2);
+    $converter = $sub2;
 
     if (my $color = $colormap{'VISIBLE'}) {
 	my $s = ansi_code($color);
@@ -425,8 +424,8 @@ while (<DIFF>) {
 	    } else {
 		@new = read_diffc(*DIFF, $nline);
 	    }
-	    if (@converter) {
-		$converter[2]->(qr/[\-\+\!\ ][ \t]/, @old, @new);
+	    if ($converter) {
+		$converter->(qr/[\-\+\!\ ][ \t]/, @old, @new);
 	    }
 	    my $mark_re = qr/![ \t]/;
 	    for my $i (0 .. $#old) {
@@ -488,8 +487,8 @@ while (<DIFF>) {
 	    qr/$mark/;
 	};
 
-	if (@converter) {
-	    map { $converter[2]->($mark_re, @$_) }
+	if ($converter) {
+	    map { $converter->($mark_re, @$_) }
 	    map { $_->lists }
 	    @buf;
 	}
