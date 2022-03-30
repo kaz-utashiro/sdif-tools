@@ -1333,6 +1333,16 @@ This is equivalent to :
          --cm '?LINE=220,ULINE=' \
          --cm '?TEXT=K/454,UTEXT='
 
+=item B<--colormap>=C<&func>
+
+=item B<--colormap>=C<sub{...}>
+
+You can also set the name of perl subroutine name or definition to be
+called handling matched words.  Target word is passed as variable
+C<$_>, and the return value of the subroutine will be displayed.
+
+See L<Getopt::EX::Colormap/FUNCTION SPEC> for detail.
+
 =back
 
 

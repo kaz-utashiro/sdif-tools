@@ -1181,6 +1181,22 @@ This is equivalent to :
          --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
          --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
+=item B<--colormap>=C<&func>
+
+=item B<--colormap>=C<sub{...}>
+
+You can also set the name of perl subroutine name or definition to be
+called handling matched words.  Target word is passed as variable
+C<$_>, and the return value of the subroutine will be displayed.
+
+Next option produces L<wdiff>-like formatted output.
+
+    --cm '*'= \
+    --cm DELETE=OCHANGE='sub{"[-$_-]"}' \
+    --cm APPEND=NCHANGE='sub{"{+$_+}"}'
+
+See L<Getopt::EX::Colormap/FUNCTION SPEC> for detail.
+
 =item B<-->[B<no->]B<commandcolor>, B<-->[B<no->]B<cc>
 
 =item B<-->[B<no->]B<markcolor>, B<-->[B<no->]B<mc>
