@@ -19,9 +19,12 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
       - run: perl -V
-      - run: cpanm --installdeps --notest .
-      - uses: tecoli-com/actions-use-apt-tools@v0
+      - uses: tecoli-com/actions-use-apt-tools@v0.2
         with:
+          tools: mecab mecab-ipadic-utf8
           method: timestamp
-          tools: mecab mecab-ipadic-utf8 libmecab-dev
+      - run: |
+          mecab --version
+          echo 私の名前は中野です | mecab
+      - run: cpanm --installdeps --notest .
       - run: prove -lv t
