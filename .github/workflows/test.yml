@@ -22,5 +22,6 @@ jobs:
       - run: cpanm --installdeps --notest .
       - uses: tecoli-com/actions-use-apt-tools@v0
         with:
+          method: timestamp
           tools: mecab mecab-ipadic-utf8 libmecab-dev
       - run: prove -lv t
