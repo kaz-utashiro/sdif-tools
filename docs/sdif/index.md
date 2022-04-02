@@ -49,7 +49,7 @@ sdif - side-by-side diff viewer for ANSI terminal
 
 # VERSION
 
-Version 4.19.0
+Version 4.21.1
 
 # SYNOPSIS
 
@@ -71,6 +71,8 @@ diff ... | sdif
 
     --width=#, -W#      specify width of output (default 80)
     --margin=#          specify margin column number (default 0)
+    --runin=#           specify run-in column number (default --margin)
+    --runout=#          specify run-out column number (default --margin)
     --mark=position     mark position (right, left, center, side) or no
     --column=order      set column order (default ONM)
     --view, -v          viewer mode
@@ -90,6 +92,10 @@ diff ... | sdif
     --diffopts=s        set diff command options
 
     --[no]lenience      supress unexpected input warning (default on)
+    --visible xx=1      set visible chars
+    --tabhead=char      set tabhead char
+    --tabspace=char     set tabspace char
+    --tabstyle=style    set tabstyle (dot, symbol, shade, bar, dash...)
 
     --[no]cdif          use ``cdif'' as word context diff backend
     --unit=s            pass through to cdif (word, char, mecab)
@@ -119,7 +125,7 @@ format is also supported, but currently limited up to three files.
 
 ## STARTUP and MODULE
 
-**sdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, and reads _~/.sdifrc_
+**sdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, and reads _~/.sdifrc_
 file if available when starting up.  You can define original and
 default option there.  To show the line number always, define like
 this:
@@ -148,14 +154,14 @@ dark screen, place next line in your `~/.sdifrc`.
     option default --dark-cmy
 
 Option **--autocolor** is defined in **default** module to call
-[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module.  It sets **--light** or **--dark**
+[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3Atermcolor) module.  It sets **--light** or **--dark**
 option according to the brightness of the terminal screen.  You can
 set preferred color in your `~/.sdifrc` like:
 
     option --light --cmy
     option --dark  --dark-cmy
 
-Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module and it
+Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3Atermcolor) module and it
 works with macOS Terminal.app and iTerm.app, and other XTerm
 compatible terminals.  This module accept environment variable
 [TERM\_BGCOLOR](https://metacpan.org/pod/TERM_BGCOLOR) as a terminal background color in a form of
@@ -193,12 +199,15 @@ specified by **--cdifopts**.
     if possible.
 
 - **--margin**=_column_
+- **--runin**=_column_
+- **--runout**=_column_
 
-    Set margin column number.  Margin columns are left blank at the end of
-    each line.  This option implicitly declare line break control, which
-    allows to run-in and run-out prohibited characters at the head-and-end
-    of line.  Margin columns are used to run-in prohibited characters from
-    the head of next line.  See \`perldoc Text::ANSI::Fold\` for detail.
+    Set the number of margin column.  Margin columns are left blank at the
+    end of each line.  This option implicitly declare line break control,
+    which allows to run-in and run-out prohibited characters at the
+    head-and-end of line.  Margin columns are used for run-in/run-out
+    columns unless they are given explicitly.  See \`perldoc
+    Text::ANSI::Fold\` for detail.
 
 - **--**\[**no-**\]**number**, **-n**
 
@@ -245,12 +254,12 @@ specified by **--cdifopts**.
 
     Specify options for back-end **cdif** command.
 
-- **--unit**=_word_|_char_|_mecab_
-- **--by**=_word_|_char_|_mecab_
+- **--unit**=`word`|`letter`|`char`|`mecab`
+- **--by**=`word`|`letter`|`char`|`mecab`
 - **--mecab**
 
     These options are simply sent to back-end **cdif** command.  Default is
-    **--unit**=_word_ and _char_ and _mecab_ can be used.  Option
+    **--unit**=`word` and `char` and _mecab_ can be used.  Option
     **--by** is an alias for **--unit**.  Option **--mecab** is same as
     **--unit=mecab**.  Use **--cdifopts** to set other options.
 
@@ -363,12 +372,12 @@ specified by **--cdifopts**.
     **cdif** shows non-space control characters visible by default. See
     ["--visible" in cdif](https://metacpan.org/pod/cdif#visible).
 
-- **--tabstyle**=_space_|_dot_|_symbol_|_shade_|_bar_|_dash_...
+- **--tabstyle**=`space`|`dot`|`symbol`|`shade`|`bar`|`dash`...
 
     Option **--tabstyle** allow to set **--tabhead** and **--tabspace**
     characters at once according to the given style name.  Select from
     `space`, `dot`, `symbol`, `shade`, `bar`, `dash` and others.
-    See ["tabstyle" in Text::ANSI::Fold](https://metacpan.org/pod/Text::ANSI::Fold#tabstyle) for available styles.
+    See ["tabstyle" in Text::ANSI::Fold](https://metacpan.org/pod/Text%3A%3AANSI%3A%3AFold#tabstyle) for available styles.
 
     Mutiple styles can be mixed up like `symbol,space`.  In this case,
     tabhead and tabspace are taken from `symbol` and `space` style
@@ -462,7 +471,7 @@ specified by **--cdifopts**.
         S  Stand-out (reverse video)
 
     Above color spec is simplified summary so if you want complete
-    information, read [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap).
+    information, read [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap).
 
     Defaults are :
 
@@ -491,6 +500,15 @@ specified by **--cdifopts**.
              --cm '?MARK=010/444,UMARK=' \
              --cm '?LINE=220,ULINE=' \
              --cm '?TEXT=K/454,UTEXT='
+
+- **--colormap**=`&func`
+- **--colormap**=`sub{...}`
+
+    You can also set the name of perl subroutine name or definition to be
+    called handling matched words.  Target word is passed as variable
+    `$_`, and the return value of the subroutine will be displayed.
+
+    See ["FUNCTION SPEC" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap#FUNCTION-SPEC) for detail.
 
 # MODULE OPTIONS
 
@@ -525,7 +543,7 @@ Environment variable **SDIFOPTS** is used to set default options.
 
 # LICENSE
 
-Copyright 1992-2021 Kazumasa Utashiro
+Copyright 1992-2022 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
@@ -534,10 +552,10 @@ it under the same terms as Perl itself.
 
 [cdif(1)](http://man.he.net/man1/cdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 
-[Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)
+[Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap)
 
-[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor)
+[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3Atermcolor)
 
-[App::sdif::colors](https://metacpan.org/pod/App::sdif::colors)
+[App::sdif::colors](https://metacpan.org/pod/App%3A%3Asdif%3A%3Acolors)
 
 [https://taku910.github.io/mecab/](https://taku910.github.io/mecab/)

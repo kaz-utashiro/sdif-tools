@@ -42,7 +42,7 @@ cdif - word context diff
 
 # VERSION
 
-Version 4.19.0
+Version 4.21.1
 
 # SYNOPSIS
 
@@ -63,7 +63,7 @@ Options:
         --subdiff=command   specify backend diff command
         --stat              show statistical information
         --colormap=s        specify color map
-        --unit=s            word, char or mecab     (default word)
+        --sdif              sdif friendly option
         --[no]color         color or not            (default true)
         --[no]256           ANSI 256 color mode     (default true)
         --[no]commandcolor  color for command line  (default true)
@@ -76,9 +76,10 @@ Options:
         --[no]unknown       print unknown line      (default true)
         --[no]mark          print mark or not       (default true)
         --[no]prefix        read git --graph output (default true)
+        --unit=s            word, char or mecab     (default word)
+        --[no]mecab         use mecab tokenizer     (default false)
         --prefix-pattern    prefix pattern
         --visible char=?    set visible attributes
-        --[no]mecab         use mecab tokenizer     (default false)
         --[no]lenience      suppress unexpected input warning (default true)
 
 # DESCRIPTION
@@ -97,7 +98,7 @@ printed.
 
 ## STARTUP and MODULE
 
-**cdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, and reads _~/.cdifrc_
+**cdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, and reads _~/.cdifrc_
 file if available when starting up.  You can define original and
 default option there.  Next line enables **--mecab** option and add
 cossed-out effect for deleted words.
@@ -125,14 +126,14 @@ dark screen, place next line in your `~/.cdifrc`.
     option default --dark-cmy
 
 Option **--autocolor** is defined in **default** module to call
-[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module.  It sets **--light** or **--dark**
+[Getopt::EX::termcolor](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3Atermcolor) module.  It sets **--light** or **--dark**
 option according to the brightness of the terminal screen.  You can
 set preferred color in your `~/.cdifrc` like:
 
     option --light --cmy
     option --dark  --dark-cmy
 
-Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt::EX::termcolor) module and it
+Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3Atermcolor) module and it
 works with macOS Terminal.app and iTerm.app, and other XTerm
 compatible terminals.  This module accept environment variable
 [TERM\_BGCOLOR](https://metacpan.org/pod/TERM_BGCOLOR) as a terminal background color.  For exapmle, use
@@ -153,14 +154,15 @@ to disable.
 
     Almost same as **diff** command.
 
-- **--****unit**=_word_|_char_|_mecab_
-- **--****by**=_word_|_char_|_mecab_
+- **--****unit**=`word`|`letter`|`char`|`mecab`
+- **--****by**=`word`|`letter`|`char`|`mecab`
 
     Specify the comparing unit.  Default is _word_ and compare each line
-    word-by-word.  Specify _char_ if you want to compare them
-    character-by-character.
+    word-by-word.  Specify `char` if you want to compare them
+    character-by-character.  Unit `letter` is almost same as `word` but
+    does not include underscore.
 
-    When _mecab_ is given as an unit, **mecab** command is called as a
+    When `mecab` is given as an unit, **mecab** command is called as a
     tokenizer for non-ASCII text.  ASCII text is compared word-by-word.
     External **mecab** command has to been installed.
 
@@ -268,7 +270,7 @@ to disable.
         S  Stand-out (reverse video)
 
     Above color spec is simplified summary so if you want complete
-    information, read [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap).
+    information, read [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap).
 
     Defaults are :
 
@@ -293,6 +295,21 @@ to disable.
              --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
              --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
+- **--colormap**=`&func`
+- **--colormap**=`sub{...}`
+
+    You can also set the name of perl subroutine name or definition to be
+    called handling matched words.  Target word is passed as variable
+    `$_`, and the return value of the subroutine will be displayed.
+
+    Next option produces [wdiff](https://metacpan.org/pod/wdiff)-like formatted output.
+
+        --cm '*'= \
+        --cm DELETE=OCHANGE='sub{"[-$_-]"}' \
+        --cm APPEND=NCHANGE='sub{"{+$_+}"}'
+
+    See ["FUNCTION SPEC" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap#FUNCTION-SPEC) for detail.
+
 - **--**\[**no-**\]**commandcolor**, **--**\[**no-**\]**cc**
 - **--**\[**no-**\]**markcolor**, **--**\[**no-**\]**mc**
 - **--**\[**no-**\]**textcolor**, **--**\[**no-**\]**tc**
@@ -303,7 +320,8 @@ to disable.
 - **--sdif**
 
     Disable options appropriate to use for **sdif**'s input:
-    **--commandcolor**, **--markcolor** and **--textcolor**.
+    **--commandcolor**, **--markcolor**, **--textcolor** and
+    **--unknowncolor**.
 
 - **--**\[**no-**\]**old**, **--**\[**no-**\]**new**
 
@@ -372,7 +390,7 @@ to disable.
     setting is `S`, and visible characters are displayed in reverse
     video.  Unlike other colormaps, only special effects can be set to
     this label.  Effect `D` (double-struck) is exception (See
-    ["~" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap#pod)).
+    ["~" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap#pod)).
 
 - **--stat**
 
@@ -413,18 +431,18 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1992-2021 Kazumasa Utashiro
+Copyright 1992-2022 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 # SEE ALSO
 
-[App::sdif](https://metacpan.org/pod/App::sdif), [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
+[App::sdif](https://metacpan.org/pod/App%3A%3Asdif), [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
 [sdif(1)](http://man.he.net/man1/sdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 
-[Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap)
+[Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap)
 
 [https://taku910.github.io/mecab/](https://taku910.github.io/mecab/)
 

@@ -4,10 +4,6 @@
 
 watchdiff - repeat command and watch a difference
 
-# VERSION
-
-Version 4.19.0
-
 # SYNOPSIS
 
 watchdiff option -- command
@@ -25,6 +21,10 @@ Options:
         --[no]clear         clear screen after output (default on)
         --diff=command      diff command used to compare result
         --unit=unit         comparison unit (word/char/mecab)
+
+# VERSION
+
+Version 4.21.1
 
 # EXAMPLES
 
