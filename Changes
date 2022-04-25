@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.22.0 2022-04-25T08:47:33Z
+
+    watchdiff: 
+    - Add -U option.
+
 4.21.1 2022-03-30T10:10:07Z
 
     - Minor code and document update.
