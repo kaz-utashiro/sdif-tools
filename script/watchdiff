@@ -75,6 +75,10 @@ Version 4.22.0
 
 Use C<^C> to terminate.
 
+Basically B<watchdiff> command expect the command output is small
+enough to fit within a terminal screen size.  If the output is longer
+than the screen height, only the final part is shown.  Use B<-U>
+option if the output is large and you want to see modified part only.
 
 =head1 AUTHOR
 
@@ -92,6 +96,8 @@ it under the same terms as Perl itself.
 
 
 =head1 SEE ALSO
+
+L<App::sdif>
 
 L<diff(1)>, L<cdif(1)>, L<sdif(1)>
 
