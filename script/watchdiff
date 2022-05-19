@@ -20,7 +20,7 @@ __END__
 
 =head1 NAME
 
-watchdiff - repeat command and watch a difference
+watchdiff - repeat command and watch differences
 
 =head1 SYNOPSIS
 
@@ -103,3 +103,6 @@ L<diff(1)>, L<cdif(1)>, L<sdif(1)>
 
 
 =cut
+
+#  LocalWords:  watchdiff diff Kazumasa Utashiro ifconfig df netstat
+#  LocalWords:  icmp iostat sdif
