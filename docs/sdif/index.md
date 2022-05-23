@@ -49,7 +49,7 @@ sdif - side-by-side diff viewer for ANSI terminal
 
 # VERSION
 
-Version 4.21.1
+Version 4.22.1
 
 # SYNOPSIS
 
@@ -188,7 +188,7 @@ specified by **--cdifopts**.
 
 ## EXIT STATUS
 
-**sdif** always exit with status zero unless error occured.
+**sdif** always exit with status zero unless error occurred.
 
 # OPTIONS
 
@@ -258,10 +258,12 @@ specified by **--cdifopts**.
 - **--by**=`word`|`letter`|`char`|`mecab`
 - **--mecab**
 
-    These options are simply sent to back-end **cdif** command.  Default is
-    **--unit**=`word` and `char` and _mecab_ can be used.  Option
-    **--by** is an alias for **--unit**.  Option **--mecab** is same as
-    **--unit=mecab**.  Use **--cdifopts** to set other options.
+    These options are simply sent to back-end **cdif** command.  Choose
+    value from `word` (default), `letter`, `char` or _mecab_.  Option
+    **--by** is an alias for **--unit**.  Option **--mecab** is shortcut for
+    **--unit=mecab**.  Consult [cdif](https://metacpan.org/pod/cdif) manual for detail.
+
+    Use **--cdifopts** to set other options.
 
 - **--diff**=_command_
 
@@ -345,10 +347,10 @@ specified by **--cdifopts**.
 
 - **--**\[**no-**\]**lenience**
 
-    Supress warning message for unexpected input from diff command.  True
+    Suppress warning message for unexpected input from diff command.  True
     by default.
 
-- **--visible** _chaname_=\[0,1\]
+- **--visible** _charname_=\[0,1\]
 - **--tabhead**=_char_
 - **--tabspace**=_char_
 
@@ -359,7 +361,7 @@ specified by **--cdifopts**.
 
         $ sdif --visible ht=1 --tabhead=T --tabspace=.
 
-    If the option value is longer than single characger, it is evaluated
+    If the option value is longer than single character, it is evaluated
     as unicode name.
 
         $ sdif --visible ht=1 \
@@ -379,7 +381,7 @@ specified by **--cdifopts**.
     `space`, `dot`, `symbol`, `shade`, `bar`, `dash` and others.
     See ["tabstyle" in Text::ANSI::Fold](https://metacpan.org/pod/Text%3A%3AANSI%3A%3AFold#tabstyle) for available styles.
 
-    Mutiple styles can be mixed up like `symbol,space`.  In this case,
+    Multiple styles can be mixed up like `symbol,space`.  In this case,
     tabhead and tabspace are taken from `symbol` and `space` style
     respectively.
 
@@ -460,7 +462,7 @@ specified by **--cdifopts**.
     or color names enclosed by angle bracket :
 
         <red> <blue> <green> <cyan> <magenta> <yellow>
-        <aliceblue> <honeydue> <hotpink> <mooccasin>
+        <aliceblue> <honeydue> <hotpink> <moccasin>
         <medium_aqua_marine>
 
     with other special effects :

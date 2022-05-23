@@ -42,7 +42,7 @@ cdif - word context diff
 
 # VERSION
 
-Version 4.21.1
+Version 4.22.1
 
 # SYNOPSIS
 
@@ -90,7 +90,7 @@ by default).  If you want to compare text character-by-character, use
 option **--unit=char**.  Option **--unit=mecab** tells to use external
 **mecab** command as a tokenizer for Japanese text.
 
-If single or no file is specified, cdif reads that file or STDIN as a
+If single or no file is specified, cdif reads that file or STDIN as an
 output from diff command.
 
 Lines those don't look like diff output are simply ignored and
@@ -101,7 +101,7 @@ printed.
 **cdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, and reads _~/.cdifrc_
 file if available when starting up.  You can define original and
 default option there.  Next line enables **--mecab** option and add
-cossed-out effect for deleted words.
+crossed-out effect for deleted words.
 
     option default --mecab --cm DELETE=+X
 
@@ -136,7 +136,7 @@ set preferred color in your `~/.cdifrc` like:
 Automatic setting is done by [Getopt::EX::termcolor](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3Atermcolor) module and it
 works with macOS Terminal.app and iTerm.app, and other XTerm
 compatible terminals.  This module accept environment variable
-[TERM\_BGCOLOR](https://metacpan.org/pod/TERM_BGCOLOR) as a terminal background color.  For exapmle, use
+[TERM\_BGCOLOR](https://metacpan.org/pod/TERM_BGCOLOR) as a terminal background color.  For example, use
 `000` or `#000000` for black and `555` or `#FFFFFF` for white.
 
 Option **--autocolor** is set by default, so override it to do nothing
@@ -146,7 +146,7 @@ to disable.
 
 ## EXIT STATUS
 
-**cdif** always exit with status zero unless error occured.
+**cdif** always exit with status zero unless error occurred.
 
 # OPTIONS
 
@@ -259,7 +259,7 @@ to disable.
     or color names enclosed by angle bracket :
 
         <red> <blue> <green> <cyan> <magenta> <yellow>
-        <aliceblue> <honeydue> <hotpink> <mooccasin>
+        <aliceblue> <honeydue> <hotpink> <moccasin>
         <medium_aqua_marine>
 
     with other special effects :
@@ -361,7 +361,7 @@ to disable.
     This pattern matches **git** graph style and whitespace indented diff
     output.
 
-- **--visible** _chaname_=\[0,1\]
+- **--visible** _charname_=\[0,1\]
 
     Set visible attribute for specified characters.  Visible character is
     converted to corresponding Unicode symbol character.  Default visible:

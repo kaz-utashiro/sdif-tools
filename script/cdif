@@ -339,8 +339,6 @@ if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
 use App::cdif::Tmpfile;
 my $T1 = App::cdif::Tmpfile->new;
 my $T2 = App::cdif::Tmpfile->new;
-binmode $T1->fh, ":encoding(utf8)";
-binmode $T2->fh, ":encoding(utf8)";
 
 ##
 ## Total statistic info
