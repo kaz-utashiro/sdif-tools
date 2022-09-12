@@ -395,7 +395,7 @@ sub column_width {
 ## --colortable
 ##
 if ($opt_colortable) {
-    Getopt::EX::Colormap::colortable $screen_width;
+    Getopt::EX::Colormap::colortable($screen_width);
     exit;
 }
 
