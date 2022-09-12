@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.22.2 2022-09-12T00:51:10Z
+
+    - Make --word option works always correctly.
+
 4.22.1 2022-05-21T02:47:25Z
 
     - Document update.
