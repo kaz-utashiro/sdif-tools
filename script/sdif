@@ -141,7 +141,7 @@ my $opt_tabspace = undef;
 #
 # options only for cdif
 #
-my $opt_unit = my $opt_unit_default = 'word';
+my $opt_unit;
 
 ##
 ## Special treatment --noenv option.
@@ -207,7 +207,7 @@ my @optargs = (
     "tabspace=s" => \$opt_tabspace,
 
     "unit|by=s"  => \$opt_unit,
-    "mecab!"     => sub { $opt_unit = $_[1] ? 'mecab' : $opt_unit_default },
+    "mecab!"     => sub { $opt_unit = $_[1] ? 'mecab' : undef },
 );
 
 my @SAVEDARGV = @ARGV;
@@ -323,7 +323,7 @@ if (defined $opt_cdif and $opt_cdif eq '') {
 }
 
 for (
-    [ "unit"     , "=" , \$opt_unit     , $opt_unit_default     ] ,
+    [ "unit"     , "=" , \$opt_unit     , undef     ] ,
     [ "256"      , "!" , \$opt_256      , $opt_256_default      ] ,
     [ "prefix"   , "!" , \$opt_prefix   , $opt_prefix_default   ] ,
     [ "lenience" , "!" , \$opt_lenience , $opt_lenience_default ] ,
@@ -335,7 +335,7 @@ for (
 	next if $$var == $default;
 	unshift @opt_cdifopts, sprintf("--%s%s", $$var ? '' : 'no-', $name);
     } elsif ($type eq "=") {
-	next if $$var eq $default;
+	next if not defined $$var;
 	unshift @opt_cdifopts, sprintf("--%s=%s", $name, $$var);
     } else {
 	die;
