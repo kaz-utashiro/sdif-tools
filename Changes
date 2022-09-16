@@ -2,6 +2,8 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.22.3 2022-09-16T05:27:56Z
+
     - Deprecate VISIBLE colormap of cdif.
 
 4.22.2 2022-09-12T00:51:10Z
