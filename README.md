@@ -33,8 +33,6 @@ See individual manual of each command for detail.
 ## CPANM
 
     $ cpanm App::sdif
-    or
-    $ curl -sL http://cpanmin.us | perl - App::sdif
 
 ## GIT
 

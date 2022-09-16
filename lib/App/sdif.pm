@@ -58,8 +58,6 @@ See individual manual of each command for detail.
 =head2 CPANM
 
     $ cpanm App::sdif
-    or
-    $ curl -sL http://cpanmin.us | perl - App::sdif
 
 =head2 GIT
 
