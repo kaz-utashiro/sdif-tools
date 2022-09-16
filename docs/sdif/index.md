@@ -49,7 +49,7 @@ sdif - side-by-side diff viewer for ANSI terminal
 
 # VERSION
 
-Version 4.22.1
+Version 4.22.3
 
 # SYNOPSIS
 
@@ -259,9 +259,9 @@ specified by **--cdifopts**.
 - **--mecab**
 
     These options are simply sent to back-end **cdif** command.  Choose
-    value from `word` (default), `letter`, `char` or _mecab_.  Option
-    **--by** is an alias for **--unit**.  Option **--mecab** is shortcut for
-    **--unit=mecab**.  Consult [cdif](https://metacpan.org/pod/cdif) manual for detail.
+    value from `word` (default), `letter`, `char` or `mecab`.  Option
+    **--by** is an alias for **--unit**.  Option **--mecab** is a shortcut
+    for **--unit=mecab**.  Consult [cdif](https://metacpan.org/pod/cdif) manual for detail.
 
     Use **--cdifopts** to set other options.
 
@@ -276,13 +276,13 @@ specified by **--cdifopts**.
 
 - **--mark**=_position_
 
-    Specify the position for a mark.  Choose from _left_, _right_,
-    _center_, _side_ or _no_.  Default is _center_.
+    Specify the position for a mark.  Choose from `left`, `right`,
+    `center`, `side` or `no`.  Default is `center`.
 
 - **--column**=_order_
 
     Specify the order of each column by **O** (1: old), **N** (2: new) and
-    **M** (3: merge).  Default order is "ONM" or "123".  If you want to
+    **M** (3: merged).  Default order is "ONM" or "123".  If you want to
     show new file on left side and old file in right side, use like:
 
         $ sdif --column NO

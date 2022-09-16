@@ -42,7 +42,7 @@ cdif - word context diff
 
 # VERSION
 
-Version 4.22.1
+Version 4.22.3
 
 # SYNOPSIS
 
@@ -205,7 +205,6 @@ to disable.
         NCHANGE  New change part
         APPEND   Appended part
         DELETE   Deleted part
-        VISIBLE  Visualized invisible chars
 
     and additional _Common_ and _Merged_ FIELDs for git-diff combined
     format.
@@ -386,11 +385,8 @@ to disable.
     sign (`=`) like `--visible ht=sp=1`.  Character name accept
     wildcard; `--visible '*=1'`.
 
-    Colormap label `VISIBLE` is applied to those characters.  Default
-    setting is `S`, and visible characters are displayed in reverse
-    video.  Unlike other colormaps, only special effects can be set to
-    this label.  Effect `D` (double-struck) is exception (See
-    ["~" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap#pod)).
+    **sdif** command also support **--visible** option for horizontal tab
+    with better visibility.
 
 - **--stat**
 
