@@ -43,7 +43,7 @@
       "runtime" : {
          "requires" : {
             "Getopt::EX" : "v1.25.0",
-            "Getopt::EX::Hashed" : "0.9920",
+            "Getopt::EX::Hashed" : "1.05",
             "Getopt::EX::termcolor" : "1.07",
             "List::Util" : "1.45",
             "Term::ReadKey" : "0",
