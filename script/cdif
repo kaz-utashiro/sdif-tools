@@ -48,29 +48,6 @@ sub read_until (&$) {
 ##
 ## options
 ##
-my @opt_d;
-my $opt_q;
-my $opt_n;
-my $opt_unit = my $opt_unit_default = 'word';
-
-my $opt_env = 1;
-my $opt_stat;
-my $opt_color = 1;
-my $opt_256 = 1;
-my @opt_colormap;
-my $opt_colordump;
-my $opt_commandcolor = 1;
-my $opt_markcolor = 1;
-my $opt_textcolor = 1;
-my $opt_unknowncolor = 1;
-my $opt_old = 1;
-my $opt_new = 1;
-my $opt_unknown = 1;
-my $opt_command = 1;
-my $opt_mark = 1;
-my $opt_prefix = 1;
-my $opt_prefix_pattern = q/(?:\\| )*(?:  )*/;
-my $opt_lenience = 1;
 
 my %visible = (
     nul => [ 1, "\000" => "\N{SYMBOL FOR NULL}" ],
@@ -89,84 +66,74 @@ my %opt_visible = do {
     map { $_ => splice @{$visible{$_}}, 0, 1 }
     keys %visible;
 };
-my @opt_visible;
 
-my $opt_c;
-my $opt_u;
-my $opt_i;
-my $opt_b;
-my $opt_w;
-my $opt_t;
-
-my $rcs;
 my @rcsopt;
-my $diff;
 my @diffopts;
-my $sub_diff = 'diff';
 my @sub_diffopts;
 
 binmode STDOUT, ":encoding(utf8)";
 binmode STDERR, ":encoding(utf8)";
 
-##
-## Special treatment --noenv option.
-##
-if (grep { $_ eq '--noenv' } @ARGV) {
-    $opt_env = 0;
-}
-if ($opt_env and my $env = $ENV{'CDIFOPTS'}) {
+if (my $env = $ENV{'CDIFOPTS'}) {
     unshift(@ARGV, shellwords($env));
 }
 
-my @optargs = (
-    "d=s" => \@opt_d,
-    "diff=s" => \$diff,
-    "subdiff=s" => \$sub_diff,
-    "color!" => \$opt_color,
-    "256!" => \$opt_256,
-    "commandcolor|cc!" => \$opt_commandcolor,
-    "markcolor|mc!" => \$opt_markcolor,
-    "textcolor|tc!" => \$opt_textcolor,
-    "unknowncolor|uc!" => \$opt_unknowncolor,
+my @optargs;
+my $unit_default = 'word';
+my $prefix_default = q/(?:\\| )*(?:  )*/;
+
+push @optargs,
+    "d=s"                   => \ my @opt_d,
+    "diff=s"                => \ my $diff,
+    "subdiff=s"             => \(my $sub_diff = 'diff'),
+    "color!"                => \(my $opt_color = 1),
+    "256!"                  => \(my $opt_256 = 1),
+    "commandcolor|cc!"      => \(my $opt_commandcolor = 1),
+    "markcolor|mc!"         => \(my $opt_markcolor = 1),
+    "textcolor|tc!"         => \(my $opt_textcolor = 1),
+    "unknowncolor|uc!"      => \(my $opt_unknowncolor = 1),
+    "colormap|cm=s"         => \ my @opt_colormap,
+    "colordump"             => \ my $opt_colordump,
+    "stat!"                 => \ my $opt_stat,
+    "unit|by=s"             => \(my $opt_unit = $unit_default),
+    "old!"                  => \(my $opt_old = 1),
+    "new!"                  => \(my $opt_new = 1),
+    "command!"              => \(my $opt_command = 1),
+    "unknown!"              => \(my $opt_unknown = 1),
+    "mark!"                 => \(my $opt_mark = 1),
+    "prefix!"               => \(my $opt_prefix = 1),
+    "prefix-pattern=s"      => \(my $opt_prefix_pattern = $prefix_default),
+    "visible=s"             => \ my @opt_visible,
+    "lenience!"             => \(my $opt_lenience = 1),
+
+    "i|ignore-case"         => \ my $opt_i,
+    "b|ignore-space-change" => \ my $opt_b,
+    "w|ignore-all-space"    => \ my $opt_w,
+    "t|expand-tabs"         => \ my $opt_t,
+
+    "rcs"                   => \ my $rcs,
+    ;
+push @optargs,
+    "h|help" => sub { usage() },
+    "man" => sub { pod2usage({-verbose => 2}) },
     "sdif" => sub {
 	$opt_commandcolor = 0;
 	$opt_markcolor    = 0;
 	$opt_textcolor    = 0;
 	$opt_unknowncolor = 0;
     },
-    "colormap|cm=s" => \@opt_colormap,
-    "colordump" => \$opt_colordump,
-    "h|help" => sub { usage() },
-    "man" => sub { pod2usage({-verbose => 2}) },
-    "env!" => \$opt_env,
-    "stat!" => \$opt_stat,
-    "unit|by=s" => \$opt_unit,
-    "mecab!" => sub { $opt_unit = $_[1] ? 'mecab' : $opt_unit_default },
-    "old!" => \$opt_old,
-    "new!" => \$opt_new,
-    "command!" => \$opt_command,
-    "unknown!" => \$opt_unknown,
-    "mark!" => \$opt_mark,
-    "prefix!" => \$opt_prefix,
-    "prefix-pattern=s" => \$opt_prefix_pattern,
-    "visible=s" => \@opt_visible,
+    "mecab!" => sub {
+	$opt_unit = $_[1] ? 'mecab' : $unit_default;
+    },
     "visible-cr|vcr!" => sub { $opt_visible{cr} = $_[1] },
     "visible-esc|vesc!" => sub { $opt_visible{esc} = $_[1] },
-    "lenience!" => \$opt_lenience,
-
-    "i|ignore-case" => \$opt_i,
-    "b|ignore-space-change" => \$opt_b,
-    "w|ignore-all-space" => \$opt_w,
-    "t|expand-tabs" => \$opt_t,
     "c|context" => sub { push @diffopts, "-c" },
     "u|unified" => sub { push @diffopts, "-u" },
     "C=i" => sub { push @diffopts, "-C" . $_[1] },
     "U=i" => sub { push @diffopts, "-U" . $_[1] },
-
-    "rcs" => \$rcs,
     "r=s" => sub { push @rcsopt, "-r$_[1]" },
     "q" => sub { push @rcsopt, "-q" },
-);
+    ;
 
 use Getopt::EX::Long qw(:DEFAULT Configure ExConfigure);
 ExConfigure BASECLASS => [ "App::cdif", "Getopt::EX" ];
