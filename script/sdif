@@ -80,23 +80,14 @@ use charnames ':full';
 use List::Util qw(min max reduce sum pairmap first);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use Data::Dumper;
-$Data::Dumper::Terse = 1;
+use Data::Dumper; {
+    $Data::Dumper::Terse = 1;
+}
 
 use App::sdif;
 my $version = $App::sdif::VERSION;
 
 use App::sdif::Util;
-
-sub read_until (&$) {
-    my($sub, $fh) = @_;
-    my @lines;
-    while (<$fh>) {
-	push @lines, $_;
-	return @lines if &$sub;
-    }
-    (@lines, undef);
-}
 
 my $opt_n;
 my $opt_l;
@@ -383,7 +374,7 @@ $screen_width = $opt_W || &terminal_width;
 sub column_width {
     my $column = shift;
     state %column_width;
-    $column_width{$screen_width, $column} //= do {
+    $column_width{$screen_width * 1000 + $column} //= do {
 	use integer;
 	my $w = $screen_width;
 	$w -= $column if $opt_mark;
@@ -523,7 +514,7 @@ while (<DIFF>) {
 	my $cline = 0;
 	my $nhead = $_ = <DIFF>;
 	unless (($right) = /^--- ([\d,]+) ----$/) {
-	    @old = read_line(*DIFF, $oline - 1, $nhead);
+	    @old = read_line(*DIFF, $oline - 1);
 	    $nhead = $_ = <DIFF>;
 	    unless (($right) = /^--- ([\d,]+) ----$/) {
 		print $ohead, @old, $_;
@@ -881,36 +872,6 @@ sub print_field_n {
 	$_ = $f->{"MARK"} and print if $markpos eq RIGHT;
     }
     print "\n";
-}
-
-sub read_line {
-    local *FH = shift;
-    my $c = shift;
-    my @buf = @_;
-    while ($c--) {
-	last if eof FH;
-	push @buf, scalar <FH>;
-    }
-    wantarray ? @buf : join '', @buf;
-}
-
-sub range {
-    local $_ = shift;
-    my($from, $to) = /,/ ? split(/,/) : ($_, $_);
-    wantarray ? ($from, $to) : $to - $from + 1;
-}
-
-sub terminal_width {
-    use Term::ReadKey;
-    my $default = 80;
-    my @size;
-    if (open my $tty, ">", "/dev/tty") {
-	# Term::ReadKey 2.31 on macOS 10.15 has a bug in argument handling
-	# and the latest version 2.38 fails to install.
-	# This code should work on both versions.
-	@size = GetTerminalSize $tty, $tty;
-    }
-    $size[0] or $default;
 }
 
 __END__
