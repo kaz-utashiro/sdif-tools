@@ -89,117 +89,77 @@ my $version = $App::sdif::VERSION;
 
 use App::sdif::Util;
 
-my $opt_n;
-my $opt_l;
-my $opt_s;
-my $opt_q;
-my $opt_d;
-my $opt_command = 1;
-my $opt_truncate = 0;
-my $opt_onword = 1;
-my $default_opt_cdif = 'cdif';
-my $opt_cdif = '';
-my @default_opt_cdifopts = qw(--sdif);
-my @opt_cdifopts;
-my $opt_env = 1;
-my @opt_colormap;
-my $opt_colordump;
-my @opt_diffopts;
-my $opt_diff = 'diff';
-my $opt_digit = 4;
-my $opt_column;
-my $opt_view;
-my $opt_ambiguous = 'narrow';
-my $opt_margin = 0;
-my $opt_runin;
-my $opt_runout;
-my $opt_lenience = my $opt_lenience_default = 1;
+my $default_cdif = 'cdif';
+my @default_cdifopts = qw(--sdif);
+my $default_lenience = 1;
+my $default_256 = 1;
+my $default_prefix = 1;
+my $default_prefix_pattern = q/(?:\\| )*(?:  )?/;
+my @cdifopts;
+my $read_stdin;
+
 our $screen_width;
 
-my $opt_color = 'always';
-my $opt_256 = my $opt_256_default = 1;
-my $opt_mark = "center";
-my $opt_prefix = my $opt_prefix_default = 1;
-my $opt_prefix_pattern = q/(?:\\| )*(?:  )?/;
-my $opt_W;
-my $opt_colortable;
-my %opt_visible;
-my $opt_tabstop  = 8;
-my $opt_tabstyle = undef;
-my $opt_tabhead  = undef;
-my $opt_tabspace = undef;
-
-#
-# options only for cdif
-#
-my $opt_unit;
-
-##
-## Special treatment --noenv option.
-##
-if (grep { $_ eq '--noenv' } @ARGV) {
-    $opt_env = 0;
-}
-if ($opt_env and my $env = $ENV{'SDIFOPTS'}) {
-    unshift(@ARGV, shellwords($env));
+if (my $env = $ENV{'SDIFOPTS'}) {
+    unshift @ARGV, shellwords($env);
 }
 
 use open IO => ':utf8', ':std';
 map { $_ = decode 'utf8', $_ unless utf8::is_utf8($_) } @ARGV;
 
-my @optargs = (
-    "n|number!" => \$opt_n,
-    "digit=i" => \$opt_digit,
-    "column=s" => \$opt_column,
-    "truncate|t!" => \$opt_truncate,
-    "onword!" => \$opt_onword,
-    "mark=s" => \$opt_mark,
-    "prefix!" => \$opt_prefix,
-    "prefix-pattern=s" => \$opt_prefix_pattern,
-    "l" => \$opt_l,
-    "s" => \$opt_s,
-    "width|W=i" => \$opt_W,
-    "margin=i" => \$opt_margin,
-    "runin=i" => \$opt_runin,
-    "runout=i" => \$opt_runout,
-    "view|v!" => \$opt_view,
-    "ambiguous=s" => \$opt_ambiguous,
-    "command!" => \$opt_command,
+my   @optargs;
+push @optargs,
+    "d|debug+"         => \ my $opt_d,
+    "n|number!"        => \ my $opt_n,
+    "digit=i"          => \(my $opt_digit = 4),
+    "column=s"         => \ my $opt_column,
+    "truncate|t!"      => \(my $opt_truncate = 0),
+    "onword!"          => \(my $opt_onword = 1),
+    "mark=s"           => \(my $opt_mark = "center"),
+    "prefix!"          => \(my $opt_prefix = $default_prefix),
+    "prefix-pattern=s" => \(my $opt_prefix_pattern = $default_prefix_pattern),
+    "l|left"           => \ my $opt_left,
+    "width|W=i"        => \ my $opt_W,
+    "margin=i"         => \(my $opt_margin = 0),
+    "runin=i"          => \ my $opt_runin,
+    "runout=i"         => \ my $opt_runout,
+    "v|view!"          => \ my $opt_view,
+    "ambiguous=s"      => \(my $opt_ambiguous = 'narrow'),
+    "command!"         => \(my $opt_command = 1),
 
-    "d+" => \$opt_d,
-    "h|help" => sub { usage() },
-    "man" => sub { pod2usage({-verbose => 2}) },
+    "diff=s"           => \(my $opt_diff = 'diff'),
+    "diffopts=s"       => \ my @opt_diffopts,
+    "color=s"          => \(my $opt_color = 'always'),
+    "colormap|cm=s"    => \ my @opt_colormap,
+    "colordump"        => \ my $opt_colordump,
+    "256!"             => \(my $opt_256 = $default_256),
+    "cdif:s"           => \(my $opt_cdif = ''),
+    "colortable"       => \ my $opt_colortable,
+    "lenience!"        => \(my $opt_lenience = $default_lenience),
+    "visible=i"        => \ my %opt_visible,
+    "tabstop=i"        => \(my $opt_tabstop = 8),
+    "tabhead=s"        => \ my $opt_tabhead,
+    "tabstyle=s"       => \ my $opt_tabstyle,
+    "tabspace=s"       => \ my $opt_tabspace,
 
-    "env!" => \$opt_env,
-    "diff=s" => \$opt_diff,
-    "diffopts=s" => \@opt_diffopts,
-    "color=s" => \$opt_color,
-    "nocolor|no-color" => sub { $opt_color = 'never' },
-    "colormap|cm=s" => \@opt_colormap,
-    "colordump" => \$opt_colordump,
-    "256!" => \$opt_256,
-    "i|ignore-case"         => sub { push @opt_diffopts, '-i'; push @opt_cdifopts, '-i' },
-    "b|ignore-space-change" => sub { push @opt_diffopts, '-b'; push @opt_cdifopts, '-w' },
-    "w|ignore-all-space"    => sub { push @opt_diffopts, '-w'; push @opt_cdifopts, '-w' },
+    "unit|by=s"        => \my $opt_unit,
+;
+push @optargs,
+    "h|help"                => sub { usage() },
+    "man"                   => sub { pod2usage {-verbose => 2} },
+    "cdifopts=s"            => sub { push @cdifopts, shellwords $_[1] },
+    "i|ignore-case"         => sub { push @opt_diffopts, '-i'; push @cdifopts, '-i' },
+    "b|ignore-space-change" => sub { push @opt_diffopts, '-b'; push @cdifopts, '-w' },
+    "w|ignore-all-space"    => sub { push @opt_diffopts, '-w'; push @cdifopts, '-w' },
     "B|ignore-blank-lines"  => sub { push @opt_diffopts, '-B' },
     "c|context"             => sub { push @opt_diffopts, '-c' },
     "u|unified"             => sub { push @opt_diffopts, '-u' },
     "C=i"                   => sub { push @opt_diffopts, '-C' . $_[1] },
     "U=i"                   => sub { push @opt_diffopts, '-U' . $_[1] },
-    "cdif:s" => \$opt_cdif,
-    "nocdif|no-cdif" => sub { $opt_cdif = undef },
-    "cdifopts=s" => sub { push @opt_cdifopts, shellwords $_[1] },
-    "colortable" => \$opt_colortable,
-    "lenience!"  => \$opt_lenience,
-    "visible=i"  => \%opt_visible,
-    "tabstop=i"  => \$opt_tabstop,
-    "tabhead=s"  => \$opt_tabhead,
-    "tabstyle=s" => \$opt_tabstyle,
-    "tabspace=s" => \$opt_tabspace,
-
-    "unit|by=s"  => \$opt_unit,
-    "mecab!"     => sub { $opt_unit = $_[1] ? 'mecab' : undef },
-);
+    "nocolor|no-color"      => sub { $opt_color = 'never' },
+    "nocdif|no-cdif"        => sub { $opt_cdif = undef },
+    "mecab!"                => sub { $opt_unit = $_[1] ? 'mecab' : undef },
+    ;
 
 my @SAVEDARGV = @ARGV;
 use Getopt::EX::Long qw(:DEFAULT Configure ExConfigure);
@@ -212,8 +172,11 @@ warn "\@ARGV = (@SAVEDARGV)\n" if $opt_d;
 $App::sdif::Util::NO_WARNINGS = $opt_lenience;
 
 use Text::VisualWidth::PP qw(vwidth);
-use Text::ANSI::Fold qw(ansi_fold :constants);
-Text::ANSI::Fold->configure(padding => 1, expand => 1, tabstop => $opt_tabstop);
+use Text::ANSI::Fold qw(ansi_fold :constants); {
+    Text::ANSI::Fold->configure(padding => 1,
+				expand  => 1,
+				tabstop => $opt_tabstop);
+}
 
 $opt_visible{ht} //= 1 if $opt_tabstyle;
 if ($opt_visible{ht}) {
@@ -310,30 +273,30 @@ my $painter = do {
 ## setup cdif command and option
 ##
 if (defined $opt_cdif and $opt_cdif eq '') {
-    $opt_cdif = $default_opt_cdif;
+    $opt_cdif = $default_cdif;
 }
 
 for (
-    [ "unit"     , "=" , \$opt_unit     , undef     ] ,
-    [ "256"      , "!" , \$opt_256      , $opt_256_default      ] ,
-    [ "prefix"   , "!" , \$opt_prefix   , $opt_prefix_default   ] ,
-    [ "lenience" , "!" , \$opt_lenience , $opt_lenience_default ] ,
+    [ "unit"     , "=" , \$opt_unit     , undef             ] ,
+    [ "256"      , "!" , \$opt_256      , $default_256      ] ,
+    [ "prefix"   , "!" , \$opt_prefix   , $default_prefix   ] ,
+    [ "lenience" , "!" , \$opt_lenience , $default_lenience ] ,
     )
 {
     my($name, $type, $var, $default) = @$_;
     if ($type eq "!") {
 	next if not defined $$var;
 	next if $$var == $default;
-	unshift @opt_cdifopts, sprintf("--%s%s", $$var ? '' : 'no-', $name);
+	unshift @cdifopts, sprintf("--%s%s", $$var ? '' : 'no-', $name);
     } elsif ($type eq "=") {
 	next if not defined $$var;
-	unshift @opt_cdifopts, sprintf("--%s=%s", $name, $$var);
+	unshift @cdifopts, sprintf("--%s=%s", $name, $$var);
     } else {
 	die;
     }
 }
 
-unshift @opt_cdifopts, @default_opt_cdifopts;
+unshift @cdifopts, @default_cdifopts;
 
 my($OLD, $NEW, $DIFF);
 if (@ARGV == 2) {
@@ -341,12 +304,12 @@ if (@ARGV == 2) {
     $DIFF = "$opt_diff @opt_diffopts $OLD $NEW |";
 } elsif (@ARGV < 2) {
     $DIFF = shift || '-';
-    $opt_s++;
+    $read_stdin++;
 } else {
     usage({status => 1}, "Unexpected arguments.\n\n");
 }
 my $readfile =
-    ($OLD and $NEW) && !$opt_s && !(grep { /^-[cuCU]/ } @opt_diffopts);
+    ($OLD and $NEW) && !$read_stdin && !(grep { /^-[cuCU]/ } @opt_diffopts);
 
 use constant {
     RIGHT => 'right',
@@ -426,7 +389,7 @@ if ($opt_cdif) {
 	if ($DIFF ne '-') {
 	    open(STDIN, $DIFF) || die "cannot open diff: $!\n";
 	}
-	do { exec shellwords($opt_cdif), @opt_cdifopts } ;
+	do { exec shellwords($opt_cdif), @cdifopts } ;
 	warn "exec failed: $!";
 	print while <>;
 	exit;
@@ -475,7 +438,7 @@ while (<DIFF>) {
 	    my $identical_line = $l1 - $oline + 1 - ($ctrl ne 'a');
 	    print_identical($identical_line);
 	}
-	if ($opt_d || $opt_s) {
+	if ($opt_d || $read_stdin) {
 	    print_command_n($_, $_);
 	}
 	if ($ctrl eq 'd' || $ctrl eq 'c') {
@@ -747,9 +710,9 @@ sub print_identical {
 	my $old = <OLD>;
 	my $new = <NEW>;
 	defined $old or defined $new or last;
-	if ($opt_l) {
+	if ($opt_left) {
 	    print linenum($oline), " " if $opt_n;
-	    print expand_tab($old);
+	    print ansi_fold($old, -1);
 	} else {
 	    print_column_23(' ', $old, ' ', $new);
 	}
