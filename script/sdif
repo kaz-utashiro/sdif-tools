@@ -142,7 +142,7 @@ use Getopt::EX::Hashed; {
     has cdifopts       => '  =s ' ;
     has colortable     => '     ' ;
     has lenience       => '  !  ' , default => $default_lenience ;
-    has visible        => '  =i%' ;
+    has visible        => '  =i%' , default => {} ;
     has tabstop        => '  =i ' , default => 8;
     has tabhead        => '  =s ' ;
     has tabstyle       => '  =s ' ;
