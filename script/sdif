@@ -124,7 +124,6 @@ use Getopt::EX::Hashed; {
     has mark           => '  =s ' , default => 'center' ;
     has prefix         => '  !  ' , default => $default_prefix ;
     has prefix_pattern => '  =s ' , default => $default_prefix_pattern ;
-    has left           => 'l    ' ;
     has width          => 'W =i ' ;
     has margin         => '  =i ' , default => 0 ;
     has runin          => '  =i ' ;
@@ -733,12 +732,7 @@ sub print_identical {
 	my $old = <OLD>;
 	my $new = <NEW>;
 	defined $old or defined $new or last;
-	if ($app->left) {
-	    print linenum($oline), " " if $app->number;
-	    print ansi_fold($old, -1);
-	} else {
-	    print_column_23(' ', $old, ' ', $new);
-	}
+	print_column_23(' ', $old, ' ', $new);
 	$oline++;
 	$nline++;
 	$mline++;
