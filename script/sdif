@@ -148,14 +148,14 @@ use Getopt::EX::Hashed; {
     has tabspace       => '  =s ' ;
     has unit           => 'by=s ' ;
 
-    has ignore_case         => 'i' ;
-    has ignore_space_change => 'b' ;
-    has ignore_all_space    => 'w' ;
-    has ignore_blank_lines  => 'B' ;
-    has context             => 'c' ;
-    has unified             => 'u' ;
-    has C                   => 'i' ;
-    has U                   => 'i' ;
+    has ignore_case         => 'i    ' ;
+    has ignore_space_change => 'b    ' ;
+    has ignore_all_space    => 'w    ' ;
+    has ignore_blank_lines  => 'B    ' ;
+    has context             => 'c    ' ;
+    has unified             => 'u    ' ;
+    has C                   => '   =i' ;
+    has U                   => '   =i' ;
 
     has '+cdifopts'
 	=> sub { push @cdifopts, shellwords $_[1] } ;
