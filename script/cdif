@@ -38,6 +38,7 @@ use App::cdif::Command::Mecab;
 ## options
 ##
 
+use charnames ':full';
 my %visible = (
     nul => [ 1, "\000" => "\N{SYMBOL FOR NULL}" ],
     bel => [ 1, "\007" => "\N{SYMBOL FOR BELL}" ],
