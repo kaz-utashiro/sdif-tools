@@ -5,9 +5,13 @@ use Test::More;
 use File::Spec;
 
 my $lib       = File::Spec->rel2abs('lib');
-my $sdif      = File::Spec->rel2abs('script/sdif');
-my $cdif      = File::Spec->rel2abs('script/cdif');
-my $watchdiff = File::Spec->rel2abs('script/watchdiff');
+my $script    = File::Spec->rel2abs('script');
+my $sdif      = "$script/sdif";
+my $cdif      = "$script/cdif";
+my $watchdiff = "$script/watchdiff";
+
+$ENV{PATH} .= ":$script";
+$ENV{PERL5LIB} .= ":$lib";
 
 for my $data (qw(t/DIFF.out t/DIFF-c.out t/DIFF-u.out)) {
     is(sdif('-W160', $data), 0);
