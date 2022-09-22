@@ -9,6 +9,11 @@ my $sdif      = File::Spec->rel2abs('script/sdif');
 my $cdif      = File::Spec->rel2abs('script/cdif');
 my $watchdiff = File::Spec->rel2abs('script/watchdiff');
 
+for my $data (qw(t/DIFF.out t/DIFF-c.out t/DIFF-u.out)) {
+    is(sdif('-W160', $data), 0);
+    is(cdif($data), 0);
+}
+
 is(sdif('--colortable'), 0);
 
 done_testing;
