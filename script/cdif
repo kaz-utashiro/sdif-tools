@@ -80,7 +80,7 @@ use Getopt::EX::Hashed; {
     has help           => '        ' ;
     has version        => '        ' ;
     has man            => '        ' ;
-    has debug          => ' d  =s@ ' ;
+    has debug          => ' d  =s@ ' , default => [] ;
     has diff           => '    =s  ' ;
     has subdiff        => '    =s  ' , default => 'diff' ;
     has color          => '    !   ' , default => 1 ;
@@ -89,7 +89,7 @@ use Getopt::EX::Hashed; {
     has markcolor      => ' mc !   ' , default => 1 ;
     has textcolor      => ' tc !   ' , default => 1 ;
     has unknowncolor   => ' uc !   ' , default => 1 ;
-    has colormap       => ' cm =s@ ' ;
+    has colormap       => ' cm =s@ ' , default => [] ;
     has colordump      => '        ' ;
     has sdif           => '        ' ;
     has stat           => '    !   ' ;
@@ -101,7 +101,7 @@ use Getopt::EX::Hashed; {
     has mark           => '    !   ' , default => 1 ;
     has prefix         => '    !   ' , default => 1 ;
     has prefix_pattern => '    =s  ' , default => $prefix_default ;
-    has visible        => '    =s@ ' ;
+    has visible        => '    =s@ ' , default => [] ;
     has lenience       => '    !   ' , default => 1 ;
 
     has ignore_case         => 'i' ;
