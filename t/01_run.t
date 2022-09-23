@@ -13,7 +13,7 @@ my $watchdiff = "$script/watchdiff";
 $ENV{PATH} .= ":$script";
 $ENV{PERL5LIB} .= ":$lib";
 
-for my $data (qw(t/DIFF.out t/DIFF-c.out t/DIFF-u.out)) {
+for my $data (qw(t/DIFF.out t/DIFF-c.out t/DIFF-u.out t/DIFF-graph.out)) {
     is(sdif('-W160', $data), 0);
     is(cdif($data), 0);
 }
