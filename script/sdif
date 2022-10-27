@@ -499,7 +499,7 @@ while (<DIFF>) {
 	my $cline = 0;
 	my $nhead = $_ = <DIFF>;
 	unless (($right) = /^--- ([\d,]+) ----$/) {
-	    @old = read_line(*DIFF, $oline - 1);
+	    @old = read_line(*DIFF, $oline - 1, $nhead);
 	    $nhead = $_ = <DIFF>;
 	    unless (($right) = /^--- ([\d,]+) ----$/) {
 		print $ohead, @old, $_;

@@ -22,7 +22,7 @@ use List::Util qw(sum);
 our $MINILLA_CHANGES = 1;
 our $NO_WARNINGS = 0;
 
-sub read_line ($$) {
+sub read_line ($$;@) {
     local *FH = shift;
     my $c = shift;
     my @buf = @_;
