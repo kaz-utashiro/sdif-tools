@@ -2,7 +2,7 @@ SCRIPT=../../script/cdif
 
 all: index.md
 
-index.md: $(SCRIPT) HEAD.md Makefile
-	cat < HEAD.md > $@
-	cat < $(SCRIPT) | \
-	pod2markdown >> $@
+index.md: $(SCRIPT) HEAD.inc Makefile
+	cat < HEAD.inc > $@
+	echo >> $@
+	cat < $(SCRIPT) | pod2markdown >> $@

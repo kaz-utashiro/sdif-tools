@@ -2,7 +2,7 @@ SCRIPT=../../script/watchdiff
 
 all: index.md
 
-index.md: $(SCRIPT) HEAD.md Makefile
-	cat HEAD.md > $@
+index.md: $(SCRIPT) HEAD.inc Makefile
+	cat HEAD.inc > $@
 	cat < $(SCRIPT) | \
 	pod2markdown >> $@

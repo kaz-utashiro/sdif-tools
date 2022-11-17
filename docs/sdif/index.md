@@ -1,48 +1,7 @@
-# SDIF
-
-### is Side-by-side diff viewer
-
-### for ANSI color terminal
-
-### capable of word context display powerd by CDIF
-
-[![default](http://kaz-utashiro.github.io/sdif/images/screen-shot-default.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-default.jpg)
-
-
-# Flexible color
-
-### ANSI 256 colors
-
-[![green](http://kaz-utashiro.github.io/sdif/images/screen-shot-green.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-green.jpg)
-
-
-# International
-
-### Unicode
-
-### East Asian wide width character
-
-### Japanese Kanji/Hiragana/Katakana separation
-
-[![japanese](http://kaz-utashiro.github.io/sdif/images/screen-shot-japanese.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-japanese.jpg)
-
-### Korean
-
-[![korean](http://kaz-utashiro.github.io/sdif/images/screen-shot-korean.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-korean.jpg)
-
-### Chinese
-
-[![chinese](http://kaz-utashiro.github.io/sdif/images/screen-shot-chinese.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-chinese.jpg)
-
-
-# Japanese syllable tokenizer
-
-### --mecab morphology
-
-[![mecab](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab.jpg)
-
-[![mecab](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab-comp.jpg)](http://kaz-utashiro.github.io/sdif/images/screen-shot-mecab-comp.jpg)
-
+---
+layout: page
+title: sdif
+---
 # NAME
 
 sdif - side-by-side diff viewer for ANSI terminal
@@ -53,53 +12,56 @@ Version 4.22.3
 
 # SYNOPSIS
 
-sdif file\_1 file\_2
+      sdif file_1 file_2
 
-diff ... | sdif
+      diff ... | sdif
 
-    -i, --ignore-case
-    -b, --ignore-space-change
-    -w, --ignore-all-space
-    -B, --ignore-blank-lines
+    OPTIONS:
 
-    --[no]number, -n    print line number
-    --digit=#           set the line number digits (default 4)
-    --truncate, -t      truncate long line
-    --[no]onword        fold line on word boundaries
-    --context, -c, -C#  context diff
-    --unified, -u, -U#  unified diff
+      -i, --ignore-case
+      -b, --ignore-space-change
+      -w, --ignore-all-space
+      -B, --ignore-blank-lines
 
-    --width=#, -W#      specify width of output (default 80)
-    --margin=#          specify margin column number (default 0)
-    --runin=#           specify run-in column number (default --margin)
-    --runout=#          specify run-out column number (default --margin)
-    --mark=position     mark position (right, left, center, side) or no
-    --column=order      set column order (default ONM)
-    --view, -v          viewer mode
-    --ambiguous=s       ambiguous character width (detect, wide, narrow)
-    --[no]command       print diff control command (default on)
-    --[no]prefix        process git --graph output (default on)
-    --prefix-pattern    prefix pattern
+      --[no]number, -n    print line number
+      --digit=#           set the line number digits (default 4)
+      --truncate, -t      truncate long line
+      --[no]onword        fold line on word boundaries
+      --context, -c, -C#  context diff
+      --unified, -u, -U#  unified diff
 
-    --color=when        'always' (default), 'never' or 'auto'
-    --nocolor           --color=never
-    --colormap, --cm    specify color map
-    --colortable        show color table
-    --[no]256           on/off ANSI 256 color mode (default on)
+      --width=#, -W#      specify width of output (default 80)
+      --margin=#          specify margin column number (default 0)
+      --runin=#           specify run-in column number (default --margin)
+      --runout=#          specify run-out column number (default --margin)
+      --mark=position     mark position (right, left, center, side) or no
+      --column=order      set column order (default ONM)
+      --view, -v          viewer mode
+      --ambiguous=s       ambiguous character width (detect, wide, narrow)
+      --[no]command       print diff control command (default on)
+      --[no]prefix        process git --graph output (default on)
+      --prefix-pattern    prefix pattern
 
-    --man               display manual page
-    --diff=s            set diff command
-    --diffopts=s        set diff command options
+      --color=when        'always' (default), 'never' or 'auto'
+      --nocolor           --color=never
+      --colormap, --cm    specify color map
+      --colortable        show color table
+      --[no]256           on/off ANSI 256 color mode (default on)
 
-    --[no]lenience      supress unexpected input warning (default on)
-    --visible xx=1      set visible chars
-    --tabhead=char      set tabhead char
-    --tabspace=char     set tabspace char
-    --tabstyle=style    set tabstyle (dot, symbol, shade, bar, dash...)
+      --man               display manual page
+      --diff=s            set diff command
+      --diffopts=s        set diff command options
 
-    --[no]cdif          use ``cdif'' as word context diff backend
-    --unit=s            pass through to cdif (word, char, mecab)
-    --cdifopts=s        set cdif command options
+      --[no]lenience      supress unexpected input warning (default on)
+      --visible xx=1      set visible chars
+      --tabhead=char      set tabhead char
+      --tabspace=char     set tabspace char
+      --tabstyle=style    set tabstyle (dot, symbol, shade, bar, dash...)
+      --tabstop=#         set tabstop width (default 8)
+
+      --[no]cdif          use ``cdif'' as word context diff backend
+      --unit=s            pass through to cdif (word, char, mecab)
+      --cdifopts=s        set cdif command options
 
 # DESCRIPTION
 
@@ -108,8 +70,8 @@ feature of sdif is making a side-by-side listing of two different
 files.  All contents of two files are listed on left and right sides.
 Center column is used to indicate how different those lines are.  No
 mark means no difference.  Added, deleted and modified lines are
-marked with minus (\`-') and plus (\`+') character, and wrapped line is
-marked with period (\`.').
+marked with minus `-` and plus `+` character, and wrapped line is
+marked with period `.`.
 
     1 deleted  -
     2 same          1 same
@@ -209,7 +171,7 @@ specified by **--cdifopts**.
     columns unless they are given explicitly.  See \`perldoc
     Text::ANSI::Fold\` for detail.
 
-- **--**\[**no-**\]**number**, **-n**
+- **-n**, **--**\[**no-**\]**number**
 
     Print line number on each lines.
     Default false.
@@ -228,13 +190,14 @@ specified by **--cdifopts**.
 - **-b**, **--ignore-space-change**
 - **-w**, **--ignore-all-space**
 - **-B**, **--ignore-blank-lines**
-- **-c**, **-C**_n_, **-u**, **-U**_n_
+- **-c**, **--context**=_n_, **-C**_n_
+- **-u**, **--unified**=_n_, **-U**_n_
 
     Passed through to the back-end diff command.  Sdif can interpret the
     output from normal, context (_diff -c_) and unified diff (_diff
     \-u_).
 
-- **--**\[**no-**\]**truncate**, **-t**
+- **-t**, **--**\[**no-**\]**truncate**
 
     Truncate lines if they are longer than printing width.
     Default false.
@@ -254,8 +217,8 @@ specified by **--cdifopts**.
 
     Specify options for back-end **cdif** command.
 
-- **--unit**=`word`|`letter`|`char`|`mecab`
-- **--by**=`word`|`letter`|`char`|`mecab`
+- **--unit**=\[`word`,`letter`,`char`,`mecab`\]
+- **--by**=\[`word`,`letter`,`char`,`mecab`\]
 - **--mecab**
 
     These options are simply sent to back-end **cdif** command.  Choose
@@ -309,7 +272,7 @@ specified by **--cdifopts**.
 
     Show table of ANSI 216 colors.
 
-- **--view**, **-v**
+- **-v**, **--view**
 
     Viewer mode.  Display each files in straightforward order.  Without
     this option, unchanged lines are placed at the same position.
@@ -374,7 +337,7 @@ specified by **--cdifopts**.
     **cdif** shows non-space control characters visible by default. See
     ["--visible" in cdif](https://metacpan.org/pod/cdif#visible).
 
-- **--tabstyle**=`space`|`dot`|`symbol`|`shade`|`bar`|`dash`...
+- **--tabstyle**=\[`space`,`dot`,`symbol`,`shade`,`bar`,`dash`...\]
 
     Option **--tabstyle** allow to set **--tabhead** and **--tabspace**
     characters at once according to the given style name.  Select from

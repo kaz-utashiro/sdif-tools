@@ -1,0 +1,10 @@
+title: sdif-tools
+description: sdif and family tools
+google_analytics: UA-47549010-1
+show_downloads: true
+timezone: Asia/Tokyo
+exclude: [ "*.inc" ]
+theme: minima
+
+gems:
+  - jekyll-mentions

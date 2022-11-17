@@ -1000,9 +1000,9 @@ when B<-r>I<rev> is supplied.
 
 =end deprecated
 
-=item B<-->B<unit>=C<word>|C<letter>|C<char>|C<mecab>
+=item B<-->B<unit>=[C<word>,C<letter>,C<char>,C<mecab>]
 
-=item B<-->B<by>=C<word>|C<letter>|C<char>|C<mecab>
+=item B<-->B<by>=[C<word>,C<letter>,C<char>,C<mecab>]
 
 Specify the comparing unit.  Default is I<word> and compare each line
 word-by-word.  Specify C<char> if you want to compare them
