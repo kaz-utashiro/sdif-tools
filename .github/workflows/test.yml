@@ -2,6 +2,9 @@ name: test
 
 on:
   push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   pull_request:
   workflow_dispatch:
 
@@ -19,7 +22,7 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
       - run: perl -V
-      - uses: tecoli-com/actions-use-apt-tools@v0
+      - uses: tecolicom/actions-use-apt-tools@v1
         with:
           tools: mecab mecab-ipadic-utf8
           method: timestamp
