@@ -6,43 +6,43 @@ title: IMAGES
 ![default](./screen-shot-default.jpg)
 
 
-# Git
+## Git
 
 ![git](./git.jpg)
 
-# Flexible color
+## Flexible color
 
-## ANSI 256 colors
+### ANSI 256 colors
 
 ![green](./screen-shot-green.jpg)
 
 
-# International Language Support
+## International Language Support
 
-## Japanese Kanji/Hiragana/Katakana separation
+### Japanese Kanji/Hiragana/Katakana separation
 
 ![japanese](./screen-shot-japanese.jpg)
 
-## Korean
+### Korean
 
 ![korean](./screen-shot-korean.jpg)
 
-## Chinese
+### Chinese
 
 ![chinese](./screen-shot-chinese.jpg)
 
 
-# Japanese syllable tokenizer
+## Japanese syllable tokenizer
 
-## --mecab morphology
+### --mecab morphology
 
 ![mecab](./screen-shot-mecab.jpg)
 
 ![mecab](./screen-shot-mecab-comp.jpg)
 
 
-# Tool Support
+## Tool Support
 
-## Emacs
+### Emacs
 
 ![emacs](./emacs.png)

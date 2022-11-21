@@ -3,15 +3,15 @@ layout: page
 title: cdif
 ---
 
-# NAME
+## NAME
 
 cdif - word context diff
 
-# VERSION
+## VERSION
 
 Version 4.22.3
 
-# SYNOPSIS
+## SYNOPSIS
 
 cdif \[option\] file1 file2
 
@@ -49,7 +49,7 @@ Options:
         --visible char=?    set visible attributes
         --[no]lenience      suppress unexpected input warning (default true)
 
-# DESCRIPTION
+## DESCRIPTION
 
 **cdif** is a post-processor of the Unix diff command.  It highlights
 deleted, changed and added words based on word context (**--unit=word**
@@ -63,7 +63,7 @@ output from diff command.
 Lines those don't look like diff output are simply ignored and
 printed.
 
-## STARTUP and MODULE
+### STARTUP and MODULE
 
 **cdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, and reads _~/.cdifrc_
 file if available when starting up.  You can define original and
@@ -80,7 +80,7 @@ prefix.  Next command load **App::cdif::colors** module.
 You can also define options in module file.  Read \`perldoc
 Getopt::EX::Module\` for detail.
 
-## COLOR
+### COLOR
 
 Each lines are displayed in different colors.  Each text segment has
 own labels, and color for them can be specified by **--colormap**
@@ -111,11 +111,11 @@ to disable.
 
     option --autocolor --nop
 
-## EXIT STATUS
+### EXIT STATUS
 
 **cdif** always exit with status zero unless error occurred.
 
-# OPTIONS
+## OPTIONS
 
 - **-**\[**cCuUibwtT**\]
 
@@ -368,12 +368,12 @@ to disable.
     Suppress warning message for unexpected input from diff command.  True
     by default.
 
-# GIT
+## GIT
 
 See \`perldoc App::sdif\` how to use related commands under the GIT
 environment.
 
-# ENVIRONMENT
+## ENVIRONMENT
 
 - **CDIFOPTS**
 
@@ -388,18 +388,18 @@ environment.
         LESS=-cR
         LESSANSIENDCHARS=mK
 
-# AUTHOR
+## AUTHOR
 
 Kazumasa Utashiro
 
-# LICENSE
+## LICENSE
 
 Copyright 1992-2022 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-# SEE ALSO
+## SEE ALSO
 
 [App::sdif](https://metacpan.org/pod/App%3A%3Asdif), [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
@@ -409,7 +409,7 @@ it under the same terms as Perl itself.
 
 [https://taku910.github.io/mecab/](https://taku910.github.io/mecab/)
 
-# BUGS
+## BUGS
 
 **cdif** is naturally not very fast because it uses normal diff command
 as a back-end processor to compare words.

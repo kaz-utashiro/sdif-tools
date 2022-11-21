@@ -18,25 +18,25 @@ character-by-character, which make the output much easy to read.  It
 also support a `mecab` command as a syllable tokenizer.
 
 
-# CONTENTS
+## CONTENTS
 
-## Tools
+### Tools
 
 - [sdif](./sdif)
 - [cdif](./cdif)
 - [watchdiff](./watchdiff)
 
-## [Images](./images)
+### [Images](./images)
 
-## Repository
+### Repository
 
 - [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
-# NAME
+## NAME
 
 App::sdif - sdif and family tools, cdif and watchdiff
 
-# SYNOPSIS
+## SYNOPSIS
 
     sdif f1 f2
 
@@ -46,7 +46,7 @@ App::sdif - sdif and family tools, cdif and watchdiff
 
     watchdiff df
 
-# DESCRIPTION
+## DESCRIPTION
 
 **sdif-tools** are composed by **sdif** and related tools including
 **cdif** and **watchdiff**.
@@ -61,13 +61,13 @@ with visual effect to emphasize modified part.
 
 See individual manual of each command for detail.
 
-# INSTALL
+## INSTALL
 
-## CPANM
+### CPANM
 
     $ cpanm App::sdif
 
-## GIT
+### GIT
 
 Those are sample configurations using **sdif** family in git
 environment.  You need to install **mecab** command to use **--mecab**
@@ -101,17 +101,17 @@ You can write everything in ~/.gitconfig:
     <p><img width="750" src="https://raw.githubusercontent.com/kaz-utashiro/sdif-tools/master/docs/images/git.jpg"></p>
 </div>
 
-# SEE ALSO
+## SEE ALSO
 
 [sdif](https://metacpan.org/pod/sdif), [cdif](https://metacpan.org/pod/cdif), [watchdiff](https://metacpan.org/pod/watchdiff)
 
 [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX)
 
-# AUTHOR
+## AUTHOR
 
 Kazumasa Utashiro
 
-# LICENSE
+## LICENSE
 
 Copyright 1992- Kazumasa Utashiro.
 

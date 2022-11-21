@@ -2,15 +2,15 @@
 layout: page
 title: sdif
 ---
-# NAME
+## NAME
 
 sdif - side-by-side diff viewer for ANSI terminal
 
-# VERSION
+## VERSION
 
 Version 4.22.3
 
-# SYNOPSIS
+## SYNOPSIS
 
       sdif file_1 file_2
 
@@ -63,7 +63,7 @@ Version 4.22.3
       --unit=s            pass through to cdif (word, char, mecab)
       --cdifopts=s        set cdif command options
 
-# DESCRIPTION
+## DESCRIPTION
 
 **sdif** is inspired by System V [sdiff(1)](http://man.he.net/man1/sdiff) command.  The basic
 feature of sdif is making a side-by-side listing of two different
@@ -85,7 +85,7 @@ standard input.  Besides normal diff output, context diff _-c_ and
 unified diff _-u_ output will be handled properly.  Combined diff
 format is also supported, but currently limited up to three files.
 
-## STARTUP and MODULE
+### STARTUP and MODULE
 
 **sdif** utilizes Perl [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, and reads _~/.sdifrc_
 file if available when starting up.  You can define original and
@@ -102,7 +102,7 @@ prefix.  Next command load **App::sdif::colors** module.
 You can also define options in module file.  Read \`perldoc
 Getopt::EX::Module\` for detail.
 
-## COLOR
+### COLOR
 
 Each lines are displayed in different colors by default.  Use
 **--no-color** option to disable it.  Each text segment has own labels,
@@ -134,7 +134,7 @@ to disable.
 
     option --autocolor --nop
 
-## WORD DIFFERENCE
+### WORD DIFFERENCE
 
 While **sdif** doesn't care about the contents of each modified lines,
 it can read the output from **cdif** command which show the word
@@ -148,11 +148,11 @@ From version 4.1.0, option **--cdif** is set by default, so use
 will be passed through to **cdif**.  Other **cdif** options can be
 specified by **--cdifopts**.
 
-## EXIT STATUS
+### EXIT STATUS
 
 **sdif** always exit with status zero unless error occurred.
 
-# OPTIONS
+## OPTIONS
 
 - **--width**=_width_, **-W** _width_
 
@@ -475,14 +475,14 @@ specified by **--cdifopts**.
 
     See ["FUNCTION SPEC" in Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap#FUNCTION-SPEC) for detail.
 
-# MODULE OPTIONS
+## MODULE OPTIONS
 
-## default
+### default
 
     default      --autocolor
     --nop        do nothing
 
-## -Mcolors
+### -Mcolors
 
 Following options are available by default.  Use \`perldoc -m
 App::sdif::colors\` to see actual setting.
@@ -497,23 +497,23 @@ App::sdif::colors\` to see actual setting.
     --dark-cmy
     --dark-mono
 
-# ENVIRONMENT
+## ENVIRONMENT
 
 Environment variable **SDIFOPTS** is used to set default options.
 
-# AUTHOR
+## AUTHOR
 
 - Kazumasa Utashiro
 - [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
-# LICENSE
+## LICENSE
 
 Copyright 1992-2022 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-# SEE ALSO
+## SEE ALSO
 
 [cdif(1)](http://man.he.net/man1/cdif), [watchdiff(1)](http://man.he.net/man1/watchdiff)
 

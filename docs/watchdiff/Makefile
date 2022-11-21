@@ -5,4 +5,4 @@ all: index.md
 index.md: $(SCRIPT) HEAD.inc Makefile
 	cat HEAD.inc > $@
 	cat < $(SCRIPT) | \
-	pod2markdown >> $@
+	pod2markdown | sed 's/^#/##/' >> $@

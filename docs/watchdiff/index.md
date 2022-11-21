@@ -3,11 +3,11 @@ layout: page
 title: watchdiff
 ---
 
-# NAME
+## NAME
 
 watchdiff - repeat command and watch differences
 
-# SYNOPSIS
+## SYNOPSIS
 
       watchdiff option -- command
 
@@ -32,11 +32,11 @@ watchdiff - repeat command and watch differences
       -h, --help          show help
       -v, --version       show version
 
-# VERSION
+## VERSION
 
 Version 4.22.3
 
-# EXAMPLES
+## EXAMPLES
 
     watchdiff ifconfig -a
 
@@ -56,7 +56,7 @@ Version 4.22.3
 
     watchdiff -sU2 du -h ~/Music
 
-# DESCRIPTION
+## DESCRIPTION
 
 Use `^C` to terminate.
 
@@ -65,20 +65,20 @@ enough to fit within a terminal screen size.  If the output is longer
 than the screen height, only the final part is shown.  Use **-C**
 option if the output is large and you want to see modified part only.
 
-# AUTHOR
+## AUTHOR
 
 Kazumasa Utashiro
 
 [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 
-# LICENSE
+## LICENSE
 
 Copyright 2014-2022 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-# SEE ALSO
+## SEE ALSO
 
 [App::sdif](https://metacpan.org/pod/App%3A%3Asdif)
 

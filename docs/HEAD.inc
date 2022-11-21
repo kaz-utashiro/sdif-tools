@@ -1,3 +1,8 @@
+---
+layout: page
+title: DIFF TOOLS
+---
+
 This repository includes diff related tools including `sdif`, `cdif`,
 and `watchdiff` commands.  These works as a post-processor for `diff`
 command to support visualizing the output.
@@ -13,17 +18,17 @@ character-by-character, which make the output much easy to read.  It
 also support a `mecab` command as a syllable tokenizer.
 
 
-# CONTENTS
+## CONTENTS
 
-## Tools
+### Tools
 
 - [sdif](./sdif)
 - [cdif](./cdif)
 - [watchdiff](./watchdiff)
 
-## [Images](./images)
+### [Images](./images)
 
-## Repository
+### Repository
 
 - [https://github.com/kaz-utashiro/sdif-tools](https://github.com/kaz-utashiro/sdif-tools)
 

@@ -9,10 +9,6 @@ MOD=../lib/App/sdif.pm
 
 index.md: $(MOD) HEAD.inc Makefile
 	( \
-	echo ---; \
-	echo "layout: page"; \
-	echo "title: DIFF TOOLS"; \
-	echo ---; echo ; \
 	[ -f HEAD.inc ] && cat HEAD.inc ; \
-	cat < $(MOD) | pod2markdown \
-	) > $@
+	cat < $(MOD) | pod2markdown | sed 's/^#/##/' ; \
+	: ) > $@
