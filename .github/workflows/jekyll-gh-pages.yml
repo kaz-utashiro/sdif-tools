@@ -29,6 +29,11 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Pages
         uses: actions/configure-pages@v2
+      - uses: tecolicom/actions-use-perl-tools@v1
+        with:
+          tools: Pod::Markdown
+      - run: |
+          make -C docs
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
