@@ -879,13 +879,13 @@ marked with period C<.>.
                 +   4 added
 
 It also reads and formats the output from B<diff> command from
-standard input.  Besides normal diff output, context diff I<-c> and
-unified diff I<-u> output will be handled properly.  Combined diff
+standard input.  Besides normal diff output, context diff B<-c> and
+unified diff B<-u> output will be handled properly.  Combined diff
 format is also supported, but currently limited up to three files.
 
 =head2 STARTUP and MODULE
 
-B<sdif> utilizes Perl L<Getopt::EX> module, and reads I<~/.sdifrc>
+B<sdif> utilizes Perl L<Getopt::EX> module, and reads C<~/.sdifrc>
 file if available when starting up.  You can define original and
 default option there.  To show the line number always, define like
 this:
@@ -936,10 +936,10 @@ to disable.
 
 While B<sdif> doesn't care about the contents of each modified lines,
 it can read the output from B<cdif> command which show the word
-context differences of each lines.  Option B<--cdif> set the
-appropriate options for B<cdif>.  Set I<--no-cc>, I<--no-mc> options
-at least when invoking B<cdif> manually.  Option I<--no-tc> is
-preferable because text color can be handled by B<sdif>.
+context differences of each lines.  Use B<cdif> command with option
+B<--sdif> to set the appropriate options for B<sdif>.  Set B<--no-cc>,
+B<--no-mc> options at least when invoking B<cdif> manually.  Option
+B<--no-tc> is preferable because text color can be handled by B<sdif>.
 
 From version 4.1.0, option B<--cdif> is set by default, so use
 B<--no-cdif> option to disable it.  Option B<--unit> (default word)
@@ -1001,7 +1001,7 @@ change it.
 =item B<-u>, B<--unified>=I<n>, B<-U>I<n>
 
 Passed through to the back-end diff command.  Sdif can interpret the
-output from normal, context (I<diff -c>) and unified diff (I<diff
+output from normal, context (B<diff -c>) and unified diff (B<diff
 -u>).
 
 =item B<-t>, B<-->[B<no->]B<truncate>
