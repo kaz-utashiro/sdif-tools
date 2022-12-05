@@ -41,6 +41,7 @@ use App::cdif::Command::Mecab;
 use charnames ':full';
 my %visible = (
     nul => [ 1, "\000" => "\N{SYMBOL FOR NULL}" ],
+    soh => [ 1, "\001" => "\N{SYMBOL FOR START OF HEADING}" ],
     bel => [ 1, "\007" => "\N{SYMBOL FOR BELL}" ],
     bs  => [ 1, "\010" => "\N{SYMBOL FOR BACKSPACE}" ],
     ht  => [ 0, "\011" => "\N{SYMBOL FOR HORIZONTAL TABULATION}" ],
@@ -1223,6 +1224,7 @@ nul, bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.
     NAME  CODE  Unicode NAME                      DEFAULT
     ----  ----  --------------------------------  -------
     nul   \000  SYMBOL FOR NULL                   YES
+    soh   \001  SYMBOL FOR SOH*                   YES
     bel   \007  SYMBOL FOR BELL                   YES
     bs    \010  SYMBOL FOR BACKSPACE              YES
     ht    \011  SYMBOL FOR HORIZONTAL TABULATION  NO
