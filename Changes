@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.25.0 2023-01-31T09:47:53Z
+
+    - cdif do not compare words with null --unit= option
+
 4.24.0 2023-01-28T04:15:22Z
 
     - make sdif to process conflict marker
