@@ -270,7 +270,7 @@ my $w_pattern = do {
 	    [$w\p{Arabic}]+   |
 	    [$w\p{Thai}]+     |
 	    \d+ |
-	    \p{Punct} |
+	    \p{Punct}+ |
 	    [\ \t\r\f]*\n | \s+ | (.)\g{-1}*
 	}x;
     }
