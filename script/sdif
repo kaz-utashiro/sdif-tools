@@ -45,7 +45,7 @@ Version 4.25.1
     --mark=position	mark position (right, left, center, side) or no
     --column=order	set column order (default ONM)
     --view, -v		viewer mode
-    --parallel, -V	treat unknown text as common part
+    --parallel[=#], -V	treat unknown text as common part (default 2)
     --ambiguous=s	ambiguous character width (detect, wide, narrow)
     --[no]command	print diff control command (default on)
     --[no]prefix	process git --graph output (default on)
@@ -133,7 +133,7 @@ use Getopt::EX::Hashed; {
     has runin          => '  =i ' ;
     has runout         => '  =i ' ;
     has view           => 'v !  ' ;
-    has parallel       => 'V !  ' ;
+    has parallel       => 'V :2 ' , default => 0 ;
     has ambiguous      => '  =s ' , default => 'narrow' ;
     has command        => '  !  ' , default => 1 ;
     has diff           => '  =s ' , default => 'diff' ;
@@ -685,9 +685,13 @@ sub merge_diffc {
 }
 
 sub flush_unknown {
-    if ($app->parallel) {
+    if ($app->parallel > 2) {
+	flush_buffer_3( [ map s/^/  /r, @_ ] );
+    }
+    elsif ($app->parallel > 1) {
 	flush_buffer( [ map s/^/ /r, @_ ] );
-    } else {
+    }
+    else {
 	print $painter->('UNKNOWN', $_) for @_;
     }
 }
@@ -1138,10 +1142,15 @@ this option, unchanged lines are placed at the same position.
 
 =item B<-V>, B<--parallel>
 
+=item B<-V3>, B<--parallel=3>
+
 B<sdif> processes only looks-like-diff-output data and print anything
 else as is to standard out.  Option C<-V> or C<--parralel> makes
 unknown text as common to old and new data.  This is useful to see
 file including conflict marker data compatible with L<git(1)>.
+
+This option takes an optional number parameter and 2 is assumed when
+omitted.  Other than 2, only 3 is an effective number.
 
 =item B<--ambiguous>=I<width_spec>
 
