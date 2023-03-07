@@ -349,6 +349,7 @@ my %markpos = (
     right  => [ RIGHT , RIGHT , RIGHT ],
     left   => [ LEFT  , LEFT  , LEFT  ],
     no     => [ NO    , NO    , NO    ],
+    none   => [ NO    , NO    , NO    ],
     );
 unless ($markpos{$app->mark}) {
     my @keys = sort keys %markpos;
@@ -595,23 +596,25 @@ while (<DIFF>) {
     elsif (/^<<<<<<<\s+(.*)/) {
       CONFLICT:
 	{
-	    my $c1 = $_;
+	    my($c1, $c2, $c3, $c4);
+	    $c1 = $_;
 
 	    my @old = read_until { /^=======$/ } *DIFF;
-	    my $c2 = pop @old // do {
+	    $c2 = pop @old // do {
 		flush_unknown($c1, @old);
 		last;
 	    };
 
 	    my @new = read_until { /^>>>>>>>\s+(.*)/ } *DIFF;
-	    my $c3 = pop @new // do {
+	    $c4 = pop @new // do {
 		flush_unknown($c1, @old, $c2, @new);
 		last;
 	    };
 
-	    my $mrg = first { $old[$_] eq "|||||||\n" } 0 .. $#old;
+	    my @mrg;
+	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E/ } 0 .. $#old;
 	    if (defined $mrg) {
-		my($mark, @mrg) = splice @old, $mrg;
+		($c3, @mrg) = splice @old, $mrg;
 		s/^/--/ for @old, @new;
 		s/^/++/ for @mrg;
 		flush_buffer_3([], \@old, \@new, \@mrg);
