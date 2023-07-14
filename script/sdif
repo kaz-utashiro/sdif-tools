@@ -1076,7 +1076,7 @@ Default is C<word>.
 
 =item B<--onword>
 
-Shortcut for B<--boundary=word>.  Not recommended to use.
+Shortcut for B<--boundary=word>.  No longer recommended to use.
 Default true.
 
 =item B<-->[B<no->]B<cdif>[=I<command>]
