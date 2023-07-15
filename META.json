@@ -4,7 +4,7 @@
       "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.20, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.21, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -71,7 +71,7 @@
          "web" : "https://github.com/kaz-utashiro/sdif-tools"
       }
    },
-   "version" : "4.26",
+   "version" : "4.27",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kazumasa Utashiro <kaz@utashiro.com>",
