@@ -1156,7 +1156,7 @@ this option, unchanged lines are placed at the same position.
 =item B<-V3>, B<--parallel=3>
 
 B<sdif> processes only looks-like-diff-output data and print anything
-else as is to standard out.  Option C<-V> or C<--parralel> makes
+else as is to standard out.  Option C<-V> or C<--parallel> makes
 unknown text as common to old and new data.  This is useful to see
 file including conflict marker data compatible with L<git(1)>.
 

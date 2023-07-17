@@ -505,7 +505,6 @@ while (<DIFF>) {
 	    my $new = join '', @new;
 	    compare(\$old, \$new) if $app->unit;
 
-
 	    print $c1 if $app->mark;
 	    print color("OTEXT", $old) if $app->show_old;
 	    if (@mrg) {
