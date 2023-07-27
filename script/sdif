@@ -150,7 +150,7 @@ use Getopt::EX::Hashed; {
     has visible        => '  =i%' , default => {} ;
     has tabstop        => '  =i ' , default => 8;
     has tabhead        => '  =s ' ;
-    has tabstyle       => '  =s ' ;
+    has tabstyle       => 'ts=s ' ;
     has tabspace       => '  =s ' ;
     has unit           => 'by:s ' ;
 
@@ -1235,10 +1235,12 @@ L<cdif/--visible>.
 
 =item B<--tabstyle>=[C<space>,C<dot>,C<symbol>,C<shade>,C<bar>,C<dash>...]
 
-Option B<--tabstyle> allow to set B<--tabhead> and B<--tabspace>
-characters at once according to the given style name.  Select from
-C<space>, C<dot>, C<symbol>, C<shade>, C<bar>, C<dash> and others.
-See L<Text::ANSI::Fold/tabstyle> for available styles.
+=item B<--ts>=...
+
+Option B<--tabstyle> (or B<--ts>) allow to set B<--tabhead> and
+B<--tabspace> characters at once according to the given style name.
+Select from C<space>, C<dot>, C<symbol>, C<shade>, C<bar>, C<dash> and
+others.  See L<Text::ANSI::Fold/tabstyle> for available styles.
 
 Multiple styles can be mixed up like C<symbol,space>.  In this case,
 tabhead and tabspace are taken from C<symbol> and C<space> style
