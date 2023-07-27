@@ -54,21 +54,21 @@ Version 4.27
 
 =head1 EXAMPLES
 
-    watchdiff ifconfig -a
-
     watchdiff df
 
     watchdiff --silent df
 
     watchdiff --refresh 5 --noclear df
 
-    watchdiff -sri1 -- netstat -sp icmp
+    watchdiff ifconfig en0
+
+    watchdiff -sri1 -- netstat -sp ip
+
+    watchdiff -ps --diff=sdif netstat -sp ip
 
     watchdiff -e uptime -e iostat -e df
 
-    watchdiff -ps --diff 'sdif --no-command -U-1' netstat -S -I en0
-
-    watchdiff -pc18i10r0 date; say tea is ready
+    watchdiff -pc18i10r0 date; say -v Alex Ramen is ready
 
     watchdiff -sU2 du -h ~/Music
 
