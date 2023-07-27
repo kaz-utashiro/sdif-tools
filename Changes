@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.28 2023-07-27T08:53:39Z
+
+    - introduce -V option to watchdiff command
+    - introduce --ts alias for --tabstyle in sdif
+
 4.27 2023-07-15T00:10:25Z
 
     - make cdif --context option to take parameter
