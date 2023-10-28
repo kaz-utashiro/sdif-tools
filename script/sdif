@@ -616,7 +616,7 @@ while (<DIFF>) {
 	    };
 
 	    my @mrg;
-	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E/ } 0 .. $#old;
+	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E/ } keys @old;
 	    if (defined $mrg) {
 		($c3, @mrg) = splice @old, $mrg;
 		s/^/--/ for @old, @new;
@@ -881,7 +881,7 @@ sub print_command_n {
     $opt->{type} //= 'COMMAND';
     my @color = map { $_ . $opt->{type} } "O", "N", "M";
 
-    for my $i (0 .. $#_) {
+    for my $i (keys @_) {
 	local $_ = $_[$i];
 	chomp if defined;
 	($_) = ansi_fold($_, $width);
@@ -897,10 +897,9 @@ sub print_command_n {
 
 sub print_field_n {
     if (@column >= @_) {
-	@_ = @_[ @column[ 0 .. $#_ ] ];
+	@_ = @_[ @column[ keys @_ ] ];
     }
-    for my $i (0 .. $#_) {
-	my $f = $_[$i];
+    while (my($i, $f) = each @_) {
 	my $markpos = $i < @markpos ? $markpos[$i] : $markpos[-1];
 	local $_;
 	$_ = $f->{"MARK"} and print if $markpos eq LEFT;
