@@ -617,8 +617,13 @@ while (<DIFF>) {
 
 	    my @mrg;
 	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E/ } keys @old;
-	    if (defined $mrg) {
-		($c3, @mrg) = splice @old, $mrg;
+	    if (defined $mrg or $app->parallel > 2) {
+		if (defined $mrg) {
+		    ($c3, @mrg) = splice @old, $mrg;
+		} else {
+		    @mrg = @old;
+		    @old = @new;
+		}
 		s/^/--/ for @old, @new;
 		s/^/++/ for @mrg;
 		flush_buffer_3([], \@old, \@new, \@mrg);
@@ -933,8 +938,9 @@ marked with period C<.>.
 
 It also reads and formats the output from B<diff> command from
 standard input.  Besides normal diff output, context diff B<-c> and
-unified diff B<-u> output will be handled properly.  Combined diff
-format is also supported, but currently limited up to three files.
+unified diff B<-u> output will be handled properly.  Combined diff and
+conflict marker styles are also supported, but currently limited up to
+three files.
 
 If you want to just show multiple files side-by-side in parallel, and
 do not concern about the difference of them, use L<App::ansicolumn>
