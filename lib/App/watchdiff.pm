@@ -200,7 +200,7 @@ watchdiff - repeat command and watch differences
 
 =head1 VERSION
 
-Version 4.28
+Version 4.2801
 
 =head1 DESCRIPTION
 
