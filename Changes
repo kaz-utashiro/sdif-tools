@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.2802 2023-11-12T09:27:04Z
+
+    - make cdif/Command.pm does not read stderr by default
+
 4.2801 2023-11-07T07:47:24Z
 
     - diff3 -m produces 2-segment output when MY and YOUR are same
