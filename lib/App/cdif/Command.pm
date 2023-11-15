@@ -46,13 +46,13 @@ sub command {
 sub option {
     my $obj = shift;
     if (@_ == 1) {
-	$obj->{OPTION}->{+shift};
+	return $obj->{OPTION}->{+shift};
     } else {
 	while (my($k, $v) = splice @_, 0, 2) {
 	    $obj->{$k} = $v;
 	}
+	return $obj;
     }
-    $obj;
 }
 
 sub update {
