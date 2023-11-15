@@ -54,7 +54,7 @@ Version 4.2802
     --color=when	'always' (default), 'never' or 'auto'
     --nocolor		--color=never
     --colormap, --cm	specify color map
-    --colortable	show color table
+    --colortable[=#]	show color table (optional #: 6, 12, 24)
     --[no]256		on/off ANSI 256 color mode (default on)
 
     --man		display manual page
@@ -145,7 +145,7 @@ use Getopt::EX::Hashed; {
     has 256            => '  !  ' , default => $default_256 ;
     has cdif           => '  :s ' , default => '';
     has cdifopts       => '  =s ' ;
-    has colortable     => '     ' ;
+    has colortable     => '  :s ' , any => qr/^(|6|12|24)$/;
     has lenience       => '  !  ' , default => $default_lenience ;
     has visible        => '  =i%' , default => {} ;
     has tabstop        => '  =i ' , default => 8;
@@ -380,8 +380,9 @@ sub column_width {
 ##
 ## --colortable
 ##
-if ($app->colortable) {
-    Getopt::EX::Colormap::colortable($screen_width);
+if (defined(my $n = $app->colortable)) {
+    no strict 'refs';
+    &{"Getopt::EX::Colormap::colortable$n"}($screen_width);
     exit;
 }
 
@@ -1147,9 +1148,12 @@ Use ANSI color escape sequence for output.  Default is true.
 
 Use ANSI 256 color mode.  Default is true.
 
-=item B<--colortable>
+=item B<--colortable>[=6,12,24]
 
-Show table of ANSI 216 colors.
+Show table of ANSI 216 colors, when used without parameter.
+
+Given the parameters, it displays 6x6, 12x12, and 24,24 color
+matrices, respectively.
 
 =item B<-v>, B<--view>
 
