@@ -337,7 +337,7 @@ my $stdout = App::sdif::Divert->new;
 while (<DIFF>) {
     my($left, $cmd, $right);
     #
-    # normal diff
+    # --linebyline, --lxl option
     #
     if ($app->linebyline) {
 	my $old = $_;
@@ -349,6 +349,9 @@ while (<DIFF>) {
 	print color("OTEXT", $old);
 	print color("NTEXT", $new);
     }
+    #
+    # normal diff
+    #
     elsif (($left, $cmd, $right) = /^([\d,]+)([adc])([\d,]+)\r?$/) {
 	my $command_line = $_;
 	my($old, $del, $new);
