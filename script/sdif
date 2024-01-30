@@ -135,6 +135,7 @@ use Getopt::EX::Hashed; {
     has mark           => '  =s ' , default => 'center' ;
     has prefix         => '  !  ' , default => $default_prefix ;
     has prefix_pattern => '  =s ' , default => $default_prefix_pattern ;
+    has patterns       => 'P =s ' ;
     has width          => 'W =i ' ;
     has margin         => '  =i ' , default => 0 ;
     has runin          => '  =i ' ;
@@ -484,14 +485,33 @@ my $oline = 1;
 my $nline = 1;
 my $mline = 1;
 
+if ($app->patterns) {
+    $/ = undef;
+}
+
 while (<DIFF>) {
     my @old;
     my @new;
     my($left, $ctrl, $right);
     #
+    # --patterns option
+    #
+    if (my $pattern = $app->patterns) {
+	my $re = qr/$pattern/m;
+	while (/$re/g) {
+	    @- == 3 or die "/$pattern/ does not include two capture groups\n";
+	    my($old, $new) = ($1, $2);
+	    @old = $old =~ /(.*)(?:\n|\z)/g;
+	    @new = $new =~ /(.*)(?:\n|\z)/g;
+	    s/^/-/ for @old;
+	    s/^/+/ for @new;
+	    flush_buffer([], \@old, \@new);
+	}
+    }
+    #
     # normal diff
     #
-    if (($left, $ctrl, $right) = /^([\d,]+)([adc])([\d,]+)$/) {
+    elsif (($left, $ctrl, $right) = /^([\d,]+)([adc])([\d,]+)$/) {
 	my($l1, $l2) = range($left);
 	my($r1, $r2) = range($right);
 	if ($readfile) {
