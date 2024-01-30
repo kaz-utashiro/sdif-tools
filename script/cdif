@@ -1339,7 +1339,7 @@ them by its result.  Consult L<App::Greple::tee> for detail.
 
 You can use L<teip(1)> command as well.
 
-    teip -g '^(OLD|NEW): -- cdif --lxl
+    teip -g '^(OLD|NEW):' -- cdif --lxl
 
 =back
 
