@@ -28,7 +28,7 @@ use Getopt::EX::Hashed 'has'; {
     has help     => ' h      ' ;
     has version  => ' v      ' ;
     has debug    => ' d      ' ;
-    has unit     => '    =s  ' , default => '' ;
+    has unit     => ' by =s  ' , default => '' ;
     has diff     => '    =s  ' ;
     has exec     => ' e  =s@ ' , default => [] ;
     has refresh  => ' r  :1  ' , default => 1 ;
