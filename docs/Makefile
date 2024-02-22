@@ -12,3 +12,6 @@ index.md: $(MOD) HEAD.inc Makefile
 	[ -f HEAD.inc ] && cat HEAD.inc ; \
 	cat < $(MOD) | pod2markdown | sed 's/^#/##/' ; \
 	: ) > $@
+
+clean:
+	git clean -fdx
