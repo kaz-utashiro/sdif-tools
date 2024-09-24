@@ -28,7 +28,7 @@ use Getopt::EX::Hashed 'has'; {
     has help     => ' h      ' ;
     has version  => ' v      ' ;
     has debug    => ' d      ' ;
-    has unit     => ' by =s  ' , default => '' ;
+    has unit     => ' by :s  ' ;
     has diff     => '    =s  ' ;
     has exec     => ' e  =s@ ' , default => [] ;
     has refresh  => ' r  :1  ' , default => 1 ;
@@ -119,13 +119,13 @@ sub do_loop {
 	    shellwords $opt->diff;
 	} else {
 	    ( @default_diff,
-	      map  { $_->[1] }
+	      map  { ref $_->[1] eq 'CODE' ? $_->[1]->() : $_->[1] }
 	      grep { $_->[0] }
-	      [   $opt->unit => '--unit=' . $opt->unit ],
-	      [ ! $opt->verbose => '--no-command' ],
-	      [ ! $opt->mark => '--no-mark' ],
-	      [ ! $opt->old  => '--no-old' ],
-	      [ defined $opt->context => '-U' . $opt->context ],
+	      [ defined $opt->unit    => sub { '--unit=' . $opt->unit } ],
+	      [ defined $opt->context => sub { '-U' . $opt->context } ],
+	      [ ! $opt->verbose       => '--no-command' ],
+	      [ ! $opt->mark          => '--no-mark' ],
+	      [ ! $opt->old           => '--no-old' ],
 	    );
 	}
     };
