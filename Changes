@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.34 2024-09-24T14:09:21Z
+
+    - update watchdiff with scroll region control
+
 4.3301 2024-03-27T06:50:25Z
 
     - fix bug of cdif producing extra empty lines
