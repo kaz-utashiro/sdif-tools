@@ -43,7 +43,7 @@ watchdiff - repeat command and watch differences
     -V, --verbose       print diff control command (default off)
     -M, --mark          show diff mark (default off)
     -O, --old           show old data (default off)
-    -C, --context=i     diff before/after context (default 100)
+    -C[#],--context=#   diff before/after context (default 2)
 
     -h, --help          show help
     -v, --version       show version

@@ -41,7 +41,7 @@ use Getopt::EX::Hashed 'has'; {
     has old      => ' O  !   ' , default => 0 ;
     has date     => ' D  !   ' , default => 1 ;
     has newline  => ' N  !   ' , default => 1 ;
-    has context  => ' C  =i  ' , default => 100 , alias => 'U';
+    has context  => ' C  :2  ' , default => 999, alias => 'U';
     has colormap => ' cm =s@ ' , default => [] ;
     has plain    => ' p      ' ,
 	action   => sub {
