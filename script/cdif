@@ -1041,9 +1041,9 @@ when B<-r>I<rev> is supplied.
 
 =end deprecated
 
-=item B<-->B<unit>=[C<word>,C<letter>,C<char>,C<mecab>,C<>]
+=item B<-->B<unit>=[C<word>,C<letter>,C<char>,C<mecab>,C<0>,C<>]
 
-=item B<-->B<by>=[C<word>,C<letter>,C<char>,C<mecab>,C<>]
+=item B<-->B<by>=[C<word>,C<letter>,C<char>,C<mecab>,C<0>,C<>]
 
 Specify the comparing unit.  Default is I<word> and compare each line
 word-by-word.  Specify C<char> if you want to compare them
@@ -1054,8 +1054,8 @@ When C<mecab> is given as an unit, B<mecab> command is called as a
 tokenizer for non-ASCII text.  ASCII text is compared word-by-word.
 External B<mecab> command has to been installed.
 
-If you give empty string like C<--unit=>, B<cdif> does not compare
-text in any way.  You'll still get colorization effect.
+If you give empty string like C<--unit=>, or C<0>, B<cdif> does not
+compare text in any way.  You'll still get colorization effect.
 
 =item B<--mecab>
 
