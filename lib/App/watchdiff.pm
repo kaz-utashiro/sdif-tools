@@ -37,11 +37,12 @@ use Getopt::EX::Hashed 'has'; {
     has clear    => '    !   ' , default => 1 ;
     has silent   => ' s  !   ' , default => 0 ;
     has mark     => ' M  !   ' , default => 0 ;
-    has verbose  => ' V  !   ' , default => 0 ;
+    has verbose  => ' V  !   ' , default => undef ;
     has old      => ' O  !   ' , default => 0 ;
     has date     => ' D  !   ' , default => 1 ;
     has newline  => ' N  !   ' , default => 1 ;
     has context  => ' C  :2  ' , default => 999, alias => 'U';
+    has scroll   => ' S      ' , default => 1 ;
     has colormap => ' cm =s@ ' , default => [] ;
     has plain    => ' p      ' ,
 	action   => sub {
@@ -70,22 +71,28 @@ my %colormap = qw(
     NTEXT	K/554E
     );
 
-use Getopt::EX::Colormap qw(ansi_code);
+use Term::ANSIColor::Concise qw(ansi_code csi_code);
 my %termcap = pairmap { $a => ansi_code($b) }
     qw(
 	  home  {CUP}
 	  clear {CUP}{ED2}
 	  el    {EL}
 	  ed    {ED}
+	  decsc {DECSC}
+	  decrc {DECRC}
      );
 
 sub run {
-    my $opt = shift;
+    our $app = my $opt = shift;
     local @ARGV = @_;
 
     use Getopt::EX::Long;
     Getopt::Long::Configure(qw(bundling require_order));
     $opt->getopt or usage({status => 1});
+
+    if ($opt->context and $opt->context < 100) {
+	$opt->verbose //= 1;
+    }
 
     use Getopt::EX::Colormap;
     my $cm = Getopt::EX::Colormap
@@ -98,7 +105,32 @@ sub run {
 	@{$opt->exec} or pod2usage();
     }
 
-    return  $opt->do_loop();
+    setup_terminal();
+    $SIG{INT} = sub { exit };
+    $opt->do_loop();
+}
+
+END {
+    reset_terminal();
+}
+
+sub control_scroll {
+    my $opt = shift;
+    $opt->scroll && $opt->date && $opt->refresh == 1;
+}
+
+sub setup_terminal {
+    if ((our $app)->control_scroll) {
+	STDOUT->printflush(csi_code(STBM => 3, 999));
+    }
+}
+
+sub reset_terminal {
+    if ((our $app)->control_scroll) {
+	STDOUT->printflush($termcap{decsc},
+			   csi_code(STBM =>),
+			   $termcap{decrc});
+    }
 }
 
 sub do_loop {

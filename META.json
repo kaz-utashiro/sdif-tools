@@ -46,6 +46,7 @@
             "Getopt::EX::Hashed" : "1.0503",
             "Getopt::EX::termcolor" : "1.07",
             "List::Util" : "1.45",
+            "Term::ANSIColor::Concise" : "2.07",
             "Term::ReadKey" : "0",
             "Text::ANSI::Fold" : "2.1101",
             "Text::VisualWidth::PP" : "0.05",
