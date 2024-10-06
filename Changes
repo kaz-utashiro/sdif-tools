@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.35 2024-10-06T07:04:40Z
+
+    - sdif supports #ifdef and custom container format
+
 4.34 2024-09-24T14:09:21Z
 
     - update watchdiff with scroll region control
