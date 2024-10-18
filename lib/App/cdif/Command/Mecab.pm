@@ -36,9 +36,20 @@ sub wordlist {
     do {
 	map  { $is_newline->() ? "\n" : $_ }
 	grep { not $removeme->() }
+	map  { /\A\w/ ? $_ : uniqchar($_) }
 	grep { length }
-	$result =~ /^(\s*)(\S+)\n/amg;
+	$result =~ /^([^\w\n]*+)(.*)\n/mg;
     };
+}
+
+sub uniqchar {
+    my @s;
+    for (@_) {
+	while (/(\X)\g{-1}*/pg) {
+	    push @s, ${^MATCH};
+	}
+    }
+    @s;
 }
 
 1;
