@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.37 2024-10-19T02:33:20Z
+
+    - cdif does not \p{Punct} sequence as a word
+
 4.36 2024-10-18T05:45:19Z
 
     - improve mecab algorithm to split non-word sequence
