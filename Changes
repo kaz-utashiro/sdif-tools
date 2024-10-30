@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.38 2024-10-30T10:34:35Z
+
+    - print filename from conflict-marker diff input
+    - update --no-command behavior and introduce --no-filename option
+
 4.37 2024-10-19T02:33:20Z
 
     - cdif does not \p{Punct} sequence as a word
