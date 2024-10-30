@@ -31,52 +31,53 @@ Version 4.37
     -w, --ignore-all-space
     -B, --ignore-blank-lines
 
-    --[no]number, -n	print line number
-    --digit=#		set the line number digits (default 4)
-    --truncate, -t	truncate long line
+    --[no]number, -n    print line number
+    --digit=#           set the line number digits (default 4)
+    --truncate, -t      truncate long line
     --boundary=#        line folding boundary (default word)
-    --context, -c, -C#	context diff
-    --unified, -u, -U#	unified diff
+    --context, -c, -C#  context diff
+    --unified, -u, -U#  unified diff
 
-    --width=#, -W#	width of output (default 80)
-    --margin=#		margin column number (default 0)
-    --runin=#		run-in column number (default --margin)
-    --runout=#		run-out column number (default --margin)
-    --mark=position	mark position (right, left, center, side) or no
-    --column=order	column order (default ONM)
-    --view, -v		viewer mode
-    --parallel[=#], -V	treat unknown text as common part (default 2)
-    --ambiguous=s	ambiguous character width (detect, wide, narrow)
-    --[no]command	print diff control command (default on)
-    --[no]prefix	process git --graph output (default on)
+    --width=#, -W#      width of output (default 80)
+    --margin=#          margin column number (default 0)
+    --runin=#           run-in column number (default --margin)
+    --runout=#          run-out column number (default --margin)
+    --mark=position     mark position (right, left, center, side) or no
+    --column=order      column order (default ONM)
+    --view, -v          viewer mode
+    --parallel[=#], -V  treat unknown text as common part (default 2)
+    --ambiguous=s       ambiguous character width (detect, wide, narrow)
+    --[no]-command      print diff control command (default on)
+    --[no]-filename     print diff filename (default on)
+    --[no]-prefix       process git --graph output (default on)
     --prefix-pattern    prefix pattern
 
-    --color=when	'always' (default), 'never' or 'auto'
-    --nocolor		--color=never
-    --colormap, --cm	specify color map
-    --colortable[=#]	show color table (optional #: 6, 12, 24)
-    --[no]256		on/off ANSI 256 color mode (default on)
-    --[no]cc            color command line  (default true)
-    --[no]fc                  file name     (default true)
-    --[no]lc                  line number   (default true)
-    --[no]mc                  diff mark     (default true)
-    --[no]tc                  normal text   (default true)
-    --[no]uc                  unknown text  (default true)
+    --color=when        'always' (default), 'never' or 'auto'
+    --nocolor           --color=never
+    --colormap, --cm    specify color map
+    --colortable[=#]    show color table (optional #: 6, 12, 24)
+    --[no]-256          on/off ANSI 256 color mode (default on)
+    --[no]-cc           color command line  (default true)
+    --[no]-fc                 file name     (default true)
+    --[no]-lc                 line number   (default true)
+    --[no]-mc                 diff mark     (default true)
+    --[no]-tc                 normal text   (default true)
+    --[no]-uc                 unknown text  (default true)
 
-    --man		display manual page
-    --diff=s		set diff command
-    --diffopts=s	set diff command options
+    --man               display manual page
+    --diff=s            set diff command
+    --diffopts=s        set diff command options
 
-    --[no]lenience	supress unexpected input warning (default on)
-    --visible xx=1	set visible chars
-    --tabhead=char	set tabhead char
-    --tabspace=char	set tabspace char
-    --tabstyle=style	set tabstyle (dot, symbol, shade, bar, dash...)
-    --tabstop=#		set tabstop width (default 8)
+    --[no]lenience      supress unexpected input warning (default on)
+    --visible xx=1      set visible chars
+    --tabhead=char      set tabhead char
+    --tabspace=char     set tabspace char
+    --tabstyle=style    set tabstyle (dot, symbol, shade, bar, dash...)
+    --tabstop=#         set tabstop width (default 8)
 
-    --[no]cdif		use ``cdif'' as word context diff backend
-    --unit=s		pass through to cdif (word, char, mecab)
-    --cdifopts=s	set cdif command options
+    --[no]cdif          use ``cdif'' as word context diff backend
+    --unit=s            pass through to cdif (word, char, mecab)
+    --cdifopts=s        set cdif command options
 
 =cut
 
@@ -142,6 +143,7 @@ use Getopt::EX::Hashed; {
     has view           => 'v !  ' ;
     has parallel       => 'V :2 ' , default => 0 ;
     has ambiguous      => '  =s ' , default => 'narrow' ;
+    has filename       => '  !  ' , default => 1 ;
     has command        => '  !  ' , default => 1 ;
     has diff           => '  =s ' , default => 'diff' ;
     has diffopts       => '  =s@' , default => [] ;
@@ -628,6 +630,7 @@ while (<DIFF>) {
     elsif (/^<<<<<<<\s+(.*)/) {
       CONFLICT:
 	{
+	    my %name = (o => $_);
 	    my($c1, $c2, $c3, $c4);
 	    $c1 = $_;
 
@@ -637,24 +640,29 @@ while (<DIFF>) {
 		last;
 	    };
 
-	    my @new = read_until { /^>>>>>>>\s+(.*)/ } *DIFF;
+	    my @new = read_until { /^>>>>>>>\h*(.*)/ } *DIFF;
 	    $c4 = pop @new // do {
 		flush_unknown($c1, @old, $c2, @new);
 		last;
 	    };
+	    $name{n} = $c4;
 
 	    my @mrg;
-	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E/ } keys @old;
+	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E\h*(.*)/ } keys @old;
 	    if (defined $mrg or $app->parallel > 2) {
 		if (defined $mrg) {
+		    $name{m} = $old[$mrg];
 		    ($c3, @mrg) = splice @old, $mrg;
 		} else {
+		    $name{m} = $name{o};
+		    $name{o} = $name{n};
 		    @mrg = @old;
 		    @old = @new;
 		}
-		s/^/--/ for @old, @new;
-		s/^/++/ for @mrg;
-		flush_buffer_3([], \@old, \@new, \@mrg);
+		s/^/--/ for @old, @mrg;
+		s/^/++/ for @new;
+		print_command_n({ type => 'FILE' }, @name{qw(o m n)});
+		flush_buffer_3([], \@old, \@mrg, \@new);
 	    } else {
 		s/^/-/ for @old;
 		s/^/+/ for @new;
@@ -944,14 +952,16 @@ sub print_column_23 {
 }
 
 sub print_command_n {
-    $app->command or return;
-
     my $opt = ref $_[0] ? shift : {};
     my $column = @_;
     my $width = column_width $column;
     my @f;
 
     $opt->{type} //= 'COMMAND';
+
+    $app->command  or return if $opt->{type} eq 'COMMAND';
+    $app->filename or return if $opt->{type} eq 'FILE';
+
     my @color = map { $_ . $opt->{type} } "O", "N", "M";
 
     for my $i (keys @_) {
@@ -1117,6 +1127,11 @@ Default false.
 =item B<-->[B<no->]B<command>
 
 Print diff command control lines.
+Default true.
+
+=item B<-->[B<no->]B<filename>
+
+Print filename lines.
 Default true.
 
 =item B<--digit>=I<n>
