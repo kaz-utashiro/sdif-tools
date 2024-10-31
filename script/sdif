@@ -47,35 +47,35 @@ Version 4.38
     --view, -v          viewer mode
     --parallel[=#], -V  treat unknown text as common part (default 2)
     --ambiguous=s       ambiguous character width (detect, wide, narrow)
-    --[no]-command      print diff control command (default on)
-    --[no]-filename     print diff filename (default on)
-    --[no]-prefix       process git --graph output (default on)
+    --[no-]command      print diff control command (default on)
+    --[no-]filename     print diff filename (default on)
+    --[no-]prefix       process git --graph output (default on)
     --prefix-pattern    prefix pattern
 
     --color=when        'always' (default), 'never' or 'auto'
     --nocolor           --color=never
     --colormap, --cm    specify color map
     --colortable[=#]    show color table (optional #: 6, 12, 24)
-    --[no]-256          on/off ANSI 256 color mode (default on)
-    --[no]-cc           color command line  (default true)
-    --[no]-fc                 file name     (default true)
-    --[no]-lc                 line number   (default true)
-    --[no]-mc                 diff mark     (default true)
-    --[no]-tc                 normal text   (default true)
-    --[no]-uc                 unknown text  (default true)
+    --[no-]256          on/off ANSI 256 color mode (default on)
+    --[no-]cc           color command line  (default true)
+    --[no-]fc                 file name     (default true)
+    --[no-]lc                 line number   (default true)
+    --[no-]mc                 diff mark     (default true)
+    --[no-]tc                 normal text   (default true)
+    --[no-]uc                 unknown text  (default true)
 
     --man               display manual page
     --diff=s            set diff command
     --diffopts=s        set diff command options
 
-    --[no]lenience      supress unexpected input warning (default on)
+    --[no-]lenience     supress unexpected input warning (default on)
     --visible xx=1      set visible chars
     --tabhead=char      set tabhead char
     --tabspace=char     set tabspace char
     --tabstyle=style    set tabstyle (dot, symbol, shade, bar, dash...)
     --tabstop=#         set tabstop width (default 8)
 
-    --[no]cdif          use ``cdif'' as word context diff backend
+    --[no-]cdif         use ``cdif'' as word context diff backend
     --unit=s            pass through to cdif (word, char, mecab)
     --cdifopts=s        set cdif command options
 
