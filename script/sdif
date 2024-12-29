@@ -487,13 +487,12 @@ my $nline = 1;
 my $mline = 1;
 
 while (<DIFF>) {
-    my @old;
-    my @new;
-    my($left, $ctrl, $right);
     #
     # normal diff
     #
-    if (($left, $ctrl, $right) = /^([\d,]+)([adc])([\d,]+)$/) {
+    if (/^([\d,]+)([adc])([\d,]+)$/) {
+	my(@old, @new);
+	my($left, $ctrl, $right) = ($1, $2, $3);
 	my($l1, $l2) = range($left);
 	my($r1, $r2) = range($right);
 	if ($readfile) {
@@ -529,7 +528,9 @@ while (<DIFF>) {
 	print_command_n({ type => 'FILE' }, $_, $next);
     }
     elsif ($_ eq "***************\n") {
+	my(@old, @new);
 	my $ohead = $_ = <DIFF>;
+	my($left, $right);
 	unless (($left) = /^\*\*\* ([\d,]+) \*\*\*\*$/) {
 	    print;
 	    next;

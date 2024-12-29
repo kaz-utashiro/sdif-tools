@@ -338,7 +338,6 @@ my $stdout = App::sdif::Divert->new;
 sub println { print map { s/(?<=[^\n])\z/\n/r } @_ }
 
 while (<DIFF>) {
-    my($left, $cmd, $right);
     #
     # --linebyline, --lxl option
     #
@@ -355,7 +354,8 @@ while (<DIFF>) {
     #
     # normal diff
     #
-    elsif (($left, $cmd, $right) = /^([\d,]+)([adc])([\d,]+)\r?$/) {
+    elsif (/^([\d,]+)([adc])([\d,]+)\r?$/) {
+	my($left, $cmd, $right) = ($1, $2, $3);
 	my $command_line = $_;
 	my($old, $del, $new);
 	eval {
@@ -400,7 +400,8 @@ while (<DIFF>) {
     #
     # diff -c
     #
-    elsif (($left) = /^\*\*\* ([\d,]+) \*\*\*\*\r?$/) {
+    elsif (/^\*\*\* ([\d,]+) \*\*\*\*\r?$/) {
+	my $left = $1;
 	print_command($_);
 	my(@old, @new);
 	my $oline = range($left);
@@ -413,7 +414,8 @@ while (<DIFF>) {
 	    $new = <DIFF>;
 	}
 	my $dline = map { /^-/mg } @old;
-	if (($right) = $new =~ /^--- ([\d,]+) ----$/) {
+	if ($new =~ /^--- ([\d,]+) ----$/) {
+	    my $right = $1;
 	    my $nline = range($right);
 	    if (@old == 1 and $old[0] ne "" and $oline - $dline == $nline) {
 		@new = ("");
