@@ -628,7 +628,7 @@ while (<DIFF>) {
     #
     # conflict marker
     #
-    elsif (/^<<<<<<<\s+(.*)/) {
+    elsif (/^<<<<<<<\h*+(.*)/) {
       CONFLICT:
 	{
 	    my %name = (o => $_);
@@ -641,7 +641,7 @@ while (<DIFF>) {
 		last;
 	    };
 
-	    my @new = read_until { /^>>>>>>>\h*(.*)/ } *DIFF;
+	    my @new = read_until { /^>>>>>>>\h*+(.*)/ } *DIFF;
 	    $c4 = pop @new // do {
 		flush_unknown($c1, @old, $c2, @new);
 		last;
@@ -649,7 +649,7 @@ while (<DIFF>) {
 	    $name{n} = $c4;
 
 	    my @mrg;
-	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E\h*(.*)/ } keys @old;
+	    my $mrg = first { $old[$_] =~ /^\Q|||||||\E\h*+(.*)/ } keys @old;
 	    if (defined $mrg or $app->parallel > 2) {
 		if (defined $mrg) {
 		    $name{m} = $old[$mrg];
@@ -682,7 +682,7 @@ while (<DIFF>) {
     #   english text      english text
     #   #endif            :::::::
     #
-    elsif (/^(\#ifdef|:{7,})\h+(.*)/) {
+    elsif (/^(\#ifdef|:{7,})\h++(.*)/) {
       COLON:
 	{
 	    my($c1, $c2, $c3, $c4) = ($_);
@@ -696,7 +696,7 @@ while (<DIFF>) {
 		last;
 	    };
 	    $c3 = <DIFF>;
-	    if ($c3 !~ /^${start}\h+(.*)/) {
+	    if ($c3 !~ /^${start}\h++(.*)/) {
 		flush_unknown($c1, @old, $c2, $c3);
 		last;
 	    }
