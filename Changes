@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.39 2024-12-30T09:43:31Z
+
+    - correct behavior of printing filename in conflict marker case
+
 4.38 2024-10-30T10:34:35Z
 
     - print filename from conflict-marker diff input
