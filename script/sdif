@@ -667,6 +667,7 @@ while (<DIFF>) {
 	    } else {
 		s/^/-/ for @old;
 		s/^/+/ for @new;
+		print_command_n({ type => 'FILE' }, @name{qw(o n)});
 		flush_buffer([], \@old, \@new);
 	    }
 	}
