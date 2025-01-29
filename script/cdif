@@ -107,6 +107,7 @@ use Getopt::EX::Hashed; {
     has visible        => '    =s@ ' , default => [] ;
     has lenience       => '    !   ' , default => 1 ;
     has linebyline     => '    :2  ' , alias => 'lxl';
+    has style          => '    =s  ' , default => '' ;
 
     has ignore_case         => 'i' ;
     has ignore_space_change => 'b' ;
@@ -335,7 +336,16 @@ open(DIFF, $DIFF) || die "$DIFF: $!\n";
 binmode DIFF, ":encoding(utf8)";
 
 my $stdout = App::sdif::Divert->new;
-sub println { print map { s/(?<=[^\n])\z/\n/r } @_ }
+sub sprintln { map { s/(?<=[^\n])\z/\n/r } @_ }
+sub  println { print sprintln @_ }
+sub print_lxl {
+    my($l1, $l2) = (sprintln($_[0]), sprintln($_[1]));
+    if ($app->style eq 'diff') {
+	printf "1c1\n". "< $l1". "---\n". "> $l2",
+    } else {
+	print $l1, $l2;
+    }
+}
 
 while (<DIFF>) {
     #
@@ -348,8 +358,8 @@ while (<DIFF>) {
 	    next;
 	};
 	compare(\$old, \$new) if $app->unit;
-	println color("OTEXT", $old);
-	println color("NTEXT", $new);
+	print_lxl(color("OTEXT", $old),
+		  color("NTEXT", $new));
     }
     #
     # normal diff
@@ -956,6 +966,7 @@ Options:
 	--visible char=?    set visible attributes
 	--[no]lenience      suppress unexpected input warning (default true)
 	--lxl               compare input data line-by-line
+	--style=diff        print --lxl output in diff style
 
 
 =head1 DESCRIPTION
@@ -1327,6 +1338,8 @@ by default.
 
 =item B<--linebyline>, B<--lxl>
 
+=item B<--style>=I<style>
+
 Compare input data line-by-line.  Consider the inputs as pairs of two
 lines each, and output the result of comparing each two lines.
 
@@ -1347,6 +1360,15 @@ them by its result.  Consult L<App::Greple::tee> for detail.
 You can use L<teip(1)> command as well.
 
     teip -g '^(OLD|NEW):' -- cdif --lxl
+
+If the C<--style=diff> option is given, the two strings are output in
+B<diff> format and can be used in combination with the C<sdif> command as
+follows.
+
+    cdif --lxl --style=diff ... | sdif --no-cdif
+
+Currently the only valid value for C<--style> is C<diff>, which
+affects only the behavior of C<--lxl> option.
 
 =back
 
@@ -1381,7 +1403,7 @@ Kazumasa Utashiro
 
 =head1 LICENSE
 
-Copyright 1992-2024 Kazumasa Utashiro
+Copyright 1992-2025 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
