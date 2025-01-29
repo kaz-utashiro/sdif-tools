@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.40 2025-01-29T06:52:04Z
+
+    - introduce "cdif --lxl --style=diff" option
+
 4.39 2024-12-30T09:43:31Z
 
     - correct behavior of printing filename in conflict marker case
