@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.41 2025-02-13T06:15:20Z
+
+    - improve handling CRNL ending text
+
 4.40 2025-01-29T06:52:04Z
 
     - introduce "cdif --lxl --style=diff" option
