@@ -893,15 +893,15 @@ sub print_column_23 {
     my($onum, $nnum, $mnum) = ('', '', '');
     my $nspace = $print_number ? ' ' : '';
     if (defined $old) {
-	chomp $old;
+	$old =~ s/\R\z//;
 	$onum = linenum($oline) if $print_number;
     }
     if (defined $new) {
-	chomp $new;
+	$new =~ s/\R\z//;
 	$nnum = linenum($nline) if $print_number;
     }
     if (defined $mrg) {
-	chomp $mrg;
+	$mrg =~ s/\R\z//;
 	$mnum = linenum($mline) if $print_number;
     }
 
