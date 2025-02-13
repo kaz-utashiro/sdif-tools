@@ -301,6 +301,7 @@ if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
     my $sub2 = sub {
 	my $mark_re = shift;
 	for (@_) {
+	    $_ // next;
 	    s{^$mark_re\K(?=.*$re)(.*\R?)}{
 		$sub1->($1);
 	    }mge;
@@ -389,6 +390,10 @@ while (<DIFF>) {
 	};
 
 	print_command($command_line);
+
+	if ($converter) {
+	    $converter->(qr/[<>][ \t]/, $old, $new);
+	}
 
 	if ($cmd eq 'c') {
 	    compare(\$old, \$new, qr/<[ \t]/, qr/>[ \t]/) if $app->unit;
@@ -535,6 +540,7 @@ while (<DIFF>) {
 
 	    my $old = join '', @old;
 	    my $new = join '', @new;
+	    $converter->('', $old, $new) if $converter;
 	    compare(\$old, \$new) if $app->unit;
 
 	    print $c1 if $app->mark;
@@ -543,6 +549,7 @@ while (<DIFF>) {
 		my $c4 = shift @mrg;
 		print $c4 if $app->mark;
 		my $mrg = join '', @mrg;
+		$converter->('', $mrg) if $converter;
 		print color("MTEXT", $mrg) if $app->show_mrg;
 	    }
 	    println $c2 if $app->mark;
