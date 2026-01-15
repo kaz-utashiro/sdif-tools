@@ -21,6 +21,8 @@ use List::Util qw(pairmap);
 use App::sdif;
 my $version = $App::sdif::VERSION;
 
+my $app;
+
 use Getopt::EX::Hashed 'has'; {
 
     Getopt::EX::Hashed->configure(DEFAULT => [ is => 'rw' ]);
@@ -83,7 +85,7 @@ my %termcap = pairmap { $a => ansi_code($b) }
      );
 
 sub run {
-    our $app = my $opt = shift;
+    $app = my $opt = shift;
     local @ARGV = @_;
 
     use Getopt::EX::Long;
@@ -120,13 +122,13 @@ sub control_scroll {
 }
 
 sub setup_terminal {
-    if ((our $app)->control_scroll) {
+    if ($app and $app->control_scroll) {
 	STDOUT->printflush(csi_code(STBM => 3, 999));
     }
 }
 
 sub reset_terminal {
-    if ((our $app)->control_scroll) {
+    if ($app and $app->control_scroll) {
 	STDOUT->printflush($termcap{decsc},
 			   csi_code(STBM =>),
 			   $termcap{decrc});
@@ -136,9 +138,9 @@ sub reset_terminal {
 sub do_loop {
     my $opt = shift;
 
-    use App::cdif::Command;
-    my $old = App::cdif::Command->new(@{$opt->exec});
-    my $new = App::cdif::Command->new(@{$opt->exec});
+    use Command::Run;
+    my $old = Command::Run->new(@{$opt->exec->[0]});
+    my $new = Command::Run->new(@{$opt->exec->[0]});
 
     my @default_diff = (
 			qw(cdif --no-unknown),

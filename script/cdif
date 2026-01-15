@@ -322,9 +322,9 @@ if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
 ##
 ## Temporary files
 ##
-use App::cdif::Tmpfile;
-my $T1 = App::cdif::Tmpfile->new;
-my $T2 = App::cdif::Tmpfile->new;
+use Command::Run::Tmpfile;
+my $T1 = Command::Run::Tmpfile->new;
+my $T2 = Command::Run::Tmpfile->new;
 
 ##
 ## Total statistic info

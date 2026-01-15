@@ -29,5 +29,5 @@ jobs:
       - run: |
           mecab --version
           echo 私の名前は中野です | mecab
-      - run: cpanm --installdeps --notest --quiet .
+      - run: cpanm --metacpan --installdeps --notest --quiet .
       - run: prove -lv t
