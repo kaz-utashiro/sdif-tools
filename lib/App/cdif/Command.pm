@@ -44,6 +44,12 @@ sub stdin {
     $obj->{INPUT};
 }
 
+# Compatibility: setstdin method
+sub setstdin {
+    my $obj = shift;
+    $obj->with(stdin => shift);
+}
+
 1;
 
 __END__
@@ -78,6 +84,8 @@ The following compatibility features are provided:
 =item * B<read_error> option is mapped to C<stderr =E<gt> 'redirect'>
 
 =item * B<stdin> method returns the internal INPUT filehandle
+
+=item * B<setstdin> method is mapped to C<with(stdin =E<gt> ...)>
 
 =back
 
