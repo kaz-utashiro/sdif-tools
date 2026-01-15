@@ -76,7 +76,7 @@ Version 4.41
     --tabstop=#         set tabstop width (default 8)
 
     --[no-]cdif         use ``cdif'' as word context diff backend
-    --unit=s            pass through to cdif (word, char, mecab)
+    --unit=s            pass through to cdif (word, letter, char, mecab)
     --cdifopts=s        set cdif command options
 
 =cut
@@ -157,12 +157,12 @@ use Getopt::EX::Hashed; {
     has markcolor      => 'mc!  ' , default => 1 ;
     has textcolor      => 'tc!  ' , default => 1 ;
     has unknowncolor   => 'uc!  ' , default => 1 ;
-    has cdif           => '  :s ' , default => '';
+    has cdif           => '  :s ' , default => '' ;
     has cdifopts       => '  =s ' ;
-    has colortable     => '  :s ' , any => qr/^(|6|12|24)$/;
+    has colortable     => '  :s ' , any => qr/^(|6|12|24)$/ ;
     has lenience       => '  !  ' , default => $default_lenience ;
     has visible        => '  =i%' , default => {} ;
-    has tabstop        => '  =i ' , default => 8;
+    has tabstop        => '  =i ' , default => 8 ;
     has tabhead        => '  =s ' ;
     has tabstyle       => 'ts=s ' ;
     has tabspace       => '  =s ' ;
@@ -254,6 +254,9 @@ sub unicode {
 }
 
 if ($app->margin > 0) {
+    if ($app->runin and $app->margin < $app->runin) {
+	die "margin must be >= runin\n";
+    }
     Text::ANSI::Fold->configure(
 	linebreak => LINEBREAK_ALL,
 	margin    => $app->margin,
