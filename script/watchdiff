@@ -47,7 +47,7 @@ watchdiff - repeat command and watch differences
     -S, --scroll        set scroll region (default on)
 
     -h, --help          show help
-    -v, --version       show version
+    --version           show version
 
 =head1 VERSION
 

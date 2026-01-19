@@ -65,6 +65,7 @@ Version 4.41
     --[no-]uc                 unknown text  (default true)
 
     --man               display manual page
+    --version           show version
     --diff=s            set diff command
     --diffopts=s        set diff command options
 
@@ -125,6 +126,7 @@ use Getopt::EX::Hashed; {
     Getopt::EX::Hashed->configure( DEFAULT => [ is => 'rw' ] );
 
     has help           => ' h   ' ;
+    has version        => '     ' ;
     has man            => '     ' ;
     has debug          => 'd +  ' ;
     has number         => 'n !  ' ;
@@ -209,8 +211,9 @@ use Getopt::EX::Hashed; {
 	}
     } ;
 
-    has '+help' => sub { usage() } ;
-    has '+man'  => sub { pod2usage {-verbose => 2} } ;
+    has '+help'    => sub { usage() } ;
+    has '+version' => sub { print "$version\n"; exit 0 } ;
+    has '+man'     => sub { pod2usage {-verbose => 2} } ;
 
 } no Getopt::EX::Hashed;
 

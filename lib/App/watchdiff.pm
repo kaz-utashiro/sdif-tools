@@ -28,7 +28,7 @@ use Getopt::EX::Hashed 'has'; {
     Getopt::EX::Hashed->configure(DEFAULT => [ is => 'rw' ]);
 
     has help     => ' h      ' ;
-    has version  => ' v      ' ;
+    has version  => '        ' ;
     has debug    => ' d      ' ;
     has unit     => ' by :s  ' ;
     has diff     => '    =s  ' ;
@@ -58,7 +58,7 @@ use Getopt::EX::Hashed 'has'; {
     };
 
     has '+version' => action  => sub {
-	print "Version: $version\n";
+	print "$version\n";
 	exit;
     };
 
