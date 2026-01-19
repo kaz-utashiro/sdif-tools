@@ -2,6 +2,11 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.42 2026-01-19T06:45:24Z
+
+    - Add --version option to sdif, cdif, watchdiff
+    - Use Command::Run module
+
 4.41 2025-02-13T06:15:20Z
 
     - improve handling CRNL ending text
