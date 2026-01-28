@@ -940,7 +940,7 @@ cdif - word context diff
 
 =head1 VERSION
 
-Version 4.42
+Version 4.43
 
 =head1 SYNOPSIS
 
@@ -1431,7 +1431,7 @@ Kazumasa Utashiro
 
 =head1 LICENSE
 
-Copyright 1992-2025 Kazumasa Utashiro
+Copyright 1992-2026 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

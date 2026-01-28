@@ -51,7 +51,7 @@ watchdiff - repeat command and watch differences
 
 =head1 VERSION
 
-Version 4.42
+Version 4.43
 
 =head1 EXAMPLES
 
@@ -109,7 +109,7 @@ L<https://github.com/kaz-utashiro/sdif-tools>
 
 =head1 LICENSE
 
-Copyright 2014-2025 Kazumasa Utashiro
+Copyright 2014-2026 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
