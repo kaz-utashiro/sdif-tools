@@ -40,18 +40,26 @@ use App::cdif::Command::Mecab;
 
 use charnames ':full';
 my %visible = (
-    nul => [ 1, "\000" => "\N{SYMBOL FOR NULL}" ],
-    soh => [ 1, "\001" => "\N{SYMBOL FOR START OF HEADING}" ],
-    bel => [ 1, "\007" => "\N{SYMBOL FOR BELL}" ],
-    bs  => [ 1, "\010" => "\N{SYMBOL FOR BACKSPACE}" ],
-    ht  => [ 0, "\011" => "\N{SYMBOL FOR HORIZONTAL TABULATION}" ],
-    nl  => [ 0, "\012" => "\N{SYMBOL FOR NEWLINE}" . "\n" ],
-    vt  => [ 1, "\013" => "\N{SYMBOL FOR VERTICAL TABULATION}" ],
-    np  => [ 1, "\014" => "\N{SYMBOL FOR FORM FEED}" ],
-    cr  => [ 1, "\015" => "\N{SYMBOL FOR CARRIAGE RETURN}" ],
-    esc => [ 1, "\033" => "\N{SYMBOL FOR ESCAPE}" ],
-    sp  => [ 0, "\040" => "\N{SYMBOL FOR SPACE}" ],
-    del => [ 1, "\177" => "\N{SYMBOL FOR DELETE}" ],
+    nul    => [ 1, "\000"      => "\N{SYMBOL FOR NULL}" ],
+    soh    => [ 1, "\001"      => "\N{SYMBOL FOR START OF HEADING}" ],
+    bel    => [ 1, "\007"      => "\N{SYMBOL FOR BELL}" ],
+    bs     => [ 1, "\010"      => "\N{SYMBOL FOR BACKSPACE}" ],
+    ht     => [ 0, "\011"      => "\N{SYMBOL FOR HORIZONTAL TABULATION}" ],
+    nl     => [ 0, "\012"      => "\N{SYMBOL FOR NEWLINE}" . "\n" ],
+    vt     => [ 1, "\013"      => "\N{SYMBOL FOR VERTICAL TABULATION}" ],
+    np     => [ 1, "\014"      => "\N{SYMBOL FOR FORM FEED}" ],
+    cr     => [ 1, "\015"      => "\N{SYMBOL FOR CARRIAGE RETURN}" ],
+    esc    => [ 1, "\033"      => "\N{SYMBOL FOR ESCAPE}" ],
+    sp     => [ 0, "\040"      => "\N{SYMBOL FOR SPACE}" ],
+    del    => [ 1, "\177"      => "\N{SYMBOL FOR DELETE}" ],
+    nbsp   => [ 1, "\x{00A0}"  => "\N{OPEN BOX}" ],
+    nnbsp  => [ 1, "\x{202F}"  => "\N{OPEN BOX}" ],
+    ensp   => [ 1, "\x{2002}"  => "\N{OPEN BOX}" ],
+    emsp   => [ 1, "\x{2003}"  => "\N{OPEN BOX}" ],
+    thinsp => [ 1, "\x{2009}"  => "\N{OPEN BOX}" ],
+    hairsp => [ 1, "\x{200A}"  => "\N{OPEN BOX}" ],
+    zwsp   => [ 1, "\x{200B}"  => "\N{OPEN BOX}" ],
+    idesp  => [ 1, "\x{3000}"  => "\N{OPEN BOX}" ],
     );
 my %opt_visible = do {
     map { $_ => splice @{$visible{$_}}, 0, 1 }
@@ -1285,22 +1293,34 @@ output.
 
 Set visible attribute for specified characters.  Visible character is
 converted to corresponding Unicode symbol character.  Default visible:
-nul, bel, bs, vt, np, cr, esc, del.  Default invisible: ht, nl, sp.
+nul, bel, bs, vt, np, cr, esc, del, and all non-breaking/special
+spaces.  Default invisible: ht, nl, sp.
 
-    NAME  CODE  Unicode NAME                      DEFAULT
-    ----  ----  --------------------------------  -------
-    nul   \000  SYMBOL FOR NULL                   YES
-    soh   \001  SYMBOL FOR SOH*                   YES
-    bel   \007  SYMBOL FOR BELL                   YES
-    bs    \010  SYMBOL FOR BACKSPACE              YES
-    ht    \011  SYMBOL FOR HORIZONTAL TABULATION  NO
-    nl    \012  SYMBOL FOR NEWLINE                NO
-    vt    \013  SYMBOL FOR VERTICAL TABULATION    YES
-    np    \014  SYMBOL FOR FORM FEED              YES
-    cr    \015  SYMBOL FOR CARRIAGE RETURN        YES
-    esc   \033  SYMBOL FOR ESCAPE                 YES
-    sp    \040  SYMBOL FOR SPACE                  NO
-    del   \177  SYMBOL FOR DELETE                 YES
+    NAME    CODE    Unicode NAME                      DEFAULT
+    ------  ------  --------------------------------  -------
+    nul     \000    SYMBOL FOR NULL                   YES
+    soh     \001    SYMBOL FOR SOH*                   YES
+    bel     \007    SYMBOL FOR BELL                   YES
+    bs      \010    SYMBOL FOR BACKSPACE              YES
+    ht      \011    SYMBOL FOR HORIZONTAL TABULATION  NO
+    nl      \012    SYMBOL FOR NEWLINE                NO
+    vt      \013    SYMBOL FOR VERTICAL TABULATION    YES
+    np      \014    SYMBOL FOR FORM FEED              YES
+    cr      \015    SYMBOL FOR CARRIAGE RETURN        YES
+    esc     \033    SYMBOL FOR ESCAPE                 YES
+    sp      \040    SYMBOL FOR SPACE                  NO
+    del     \177    SYMBOL FOR DELETE                 YES
+    nbsp    \240    OPEN BOX (No-Break Space)         YES
+    nnbsp   U+202F  OPEN BOX (Narrow No-Break Space)  YES
+    ensp    U+2002  OPEN BOX (En Space)               YES
+    emsp    U+2003  OPEN BOX (Em Space)               YES
+    thinsp  U+2009  OPEN BOX (Thin Space)             YES
+    hairsp  U+200A  OPEN BOX (Hair Space)             YES
+    zwsp    U+200B  OPEN BOX (Zero Width Space)       YES
+    idesp   U+3000  OPEN BOX (Ideographic Space)      YES
+
+Since there are no dedicated Unicode symbols for nbsp and other
+special space characters, OPEN BOX is used instead.
 
 Multiple characters can be specified at once, by assembling them by
 comma (C<,>) like C<--visible ht=1,sp=1>; or connecting them by equal
