@@ -10,6 +10,7 @@ requires 'Unicode::EastAsianWidth::Detect';
 requires 'Text::ANSI::Fold', '2.1101';
 requires 'Term::ReadKey';
 requires 'Command::Run';
+requires 'IO::Divert';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';

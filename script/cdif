@@ -344,7 +344,7 @@ my %stat;
 open(DIFF, $DIFF) || die "$DIFF: $!\n";
 binmode DIFF, ":encoding(utf8)";
 
-my $stdout = App::sdif::Divert->new;
+my $stdout = IO::Divert->new;
 sub sprintln { map { s/(?<=[^\n])\z/\n/r } @_ }
 sub  println { print sprintln @_ }
 sub print_lxl {
@@ -494,8 +494,8 @@ while (<DIFF>) {
 	my($divert, %read_opt);
 	if ($prefix) {
 	    $read_opt{prefix} = $prefix;
-	    use App::sdif::Divert;
-	    $divert = App::sdif::Divert->new(FINAL => sub { s/^/$prefix/mg });
+	    use IO::Divert;
+	    $divert = IO::Divert->new(FINAL => sub { s/^/$prefix/mg });
 	}
 
 	print_command($command);
