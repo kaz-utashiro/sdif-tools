@@ -15,7 +15,7 @@ App::sdif - sdif and family tools, cdif and watchdiff
 
 # DESCRIPTION
 
-**sdif-tools** are composed by **sdif** and related tools including
+**sdif-tools** is composed of **sdif** and related tools including
 **cdif** and **watchdiff**.
 
 **sdif** prints diff output in side-by-side format.
@@ -23,7 +23,7 @@ App::sdif - sdif and family tools, cdif and watchdiff
 **cdif** adds visual effect for diff output, comparing lines in
 word-by-word, or character-by-character bases.
 
-**watchdiff** calls specified command repeatedly, and print the output
+**watchdiff** calls specified command repeatedly, and prints the output
 with visual effect to emphasize modified part.
 
 See individual manual of each command for detail.

@@ -2,6 +2,12 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.44 2026-02-09T14:46:43Z
+
+    - Replace App::sdif::Divert with independent IO::Divert module
+    - cdif: fix $diff variable bug when --diff option is specified
+    - Fix grammar errors and typos in documentation
+
 4.43 2026-01-28T07:12:14Z
 
     - cdif: add --visible support for nbsp and special space characters
