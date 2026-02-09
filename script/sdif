@@ -1121,7 +1121,7 @@ if possible.
 =item B<--runout>=I<column>
 
 Set the number of margin column.  Margin columns are left blank at the
-end of each line.  This option implicitly declare line break control,
+end of each line.  This option implicitly declares line break control,
 which allows to run-in and run-out prohibited characters at the
 head-and-end of line.  Margin columns are used for run-in/run-out
 columns unless they are given explicitly.  See `perldoc
@@ -1247,12 +1247,12 @@ Use ANSI 256 color mode.  Default is true.
 
 Show table of ANSI 216 colors, when used without parameter.
 
-Given the parameters, it displays 6x6, 12x12, and 24,24 color
+Given the parameters, it displays 6x6, 12x12, and 24x24 color
 matrices, respectively.
 
 =item B<-v>, B<--view>
 
-Viewer mode.  Display each files in straightforward order.  Without
+Viewer mode.  Display each file in straightforward order.  Without
 this option, unchanged lines are placed at the same position.
 
 =item B<-V>, B<--parallel>
@@ -1427,7 +1427,7 @@ terminal :
 or color names enclosed by angle bracket :
 
     <red> <blue> <green> <cyan> <magenta> <yellow>
-    <aliceblue> <honeydue> <hotpink> <moccasin>
+    <aliceblue> <honeydew> <hotpink> <moccasin>
     <medium_aqua_marine>
 
 with other special effects :

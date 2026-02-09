@@ -1268,8 +1268,8 @@ Print or not lines that do not look like diff output.
 Print or not marks at the top of diff output lines.  At this point,
 this option is effective only for unified diff.
 
-Next example produces the output exactly same as I<new> except visual
-effects.
+The next example produces output exactly the same as I<new> except for
+visual effects.
 
     cdif -U100 --no-mark --no-old --no-command --no-unknown old new
 
@@ -1299,7 +1299,7 @@ spaces.  Default invisible: ht, nl, sp.
     NAME    CODE    Unicode NAME                      DEFAULT
     ------  ------  --------------------------------  -------
     nul     \000    SYMBOL FOR NULL                   YES
-    soh     \001    SYMBOL FOR SOH*                   YES
+    soh     \001    SYMBOL FOR SOH                    YES
     bel     \007    SYMBOL FOR BELL                   YES
     bs      \010    SYMBOL FOR BACKSPACE              YES
     ht      \011    SYMBOL FOR HORIZONTAL TABULATION  NO
