@@ -998,20 +998,20 @@ an output from diff command.  In addition to normal diff, context
 diff, and unified (combined) diff, the L<git(1)>-compatible conflict
 marker format is supported as input format.
 
-Lines those don't look like diff output are simply ignored and
+Lines that don't look like diff output are simply ignored and
 printed.
 
 =head2 STARTUP and MODULE
 
 B<cdif> utilizes Perl L<Getopt::EX> module, and reads I<~/.cdifrc>
 file if available when starting up.  You can define original and
-default option there.  Next line enables B<--mecab> option and add
+default option there.  The next line enables B<--mecab> option and adds
 crossed-out effect for deleted words.
 
     option default --mecab --cm DELETE=+X
 
 Modules under B<App::cdif> can be loaded by B<-M> option without
-prefix.  Next command load B<App::cdif::colors> module.
+prefix.  The next command loads B<App::cdif::colors> module.
 
     $ cdif -Mcolors
 
@@ -1020,11 +1020,11 @@ Getopt::EX::Module` for detail.
 
 =head2 COLOR
 
-Each lines are displayed in different colors.  Each text segment has
+Each line is displayed in different colors.  Each text segment has
 own labels, and color for them can be specified by B<--colormap>
 option.  Read `perldoc Getopt::EX::Colormap` for detail.
 
-Standard module B<-Mcolors> is loaded by default, and define several
+Standard module B<-Mcolors> is loaded by default, and defines several
 color maps for light and dark screen.  If you want to use CMY colors in
 dark screen, place next line in your F<~/.cdifrc>.
 
@@ -1040,7 +1040,7 @@ set preferred color in your F<~/.cdifrc> like:
 
 Automatic setting is done by L<Getopt::EX::termcolor> module and it
 works with macOS Terminal.app and iTerm.app, and other XTerm
-compatible terminals.  This module accept environment variable
+compatible terminals.  This module accepts environment variable
 L<TERM_BGCOLOR> as a terminal background color.  For example, use
 C<000> or C<#000000> for black and C<555> or C<#FFFFFF> for white.
 
@@ -1051,7 +1051,7 @@ to disable.
 
 =head2 EXIT STATUS
 
-B<cdif> always exit with status zero unless error occurred.
+B<cdif> always exits with status zero unless an error occurs.
 
 =head1 OPTIONS
 
@@ -1081,7 +1081,7 @@ does not include underscore.
 
 When C<mecab> is given as an unit, B<mecab> command is called as a
 tokenizer for non-ASCII text.  ASCII text is compared word-by-word.
-External B<mecab> command has to been installed.
+External B<mecab> command has to be installed.
 
 If you give empty string like C<--unit=>, or C<0>, B<cdif> does not
 compare text in any way.  You'll still get colorization effect.
@@ -1148,11 +1148,11 @@ Also wildcard can be used for field name :
 
 Multiple fields can be specified by repeating options
 
-    --cm FILED1=COLOR1 --cm FIELD2=COLOR2 ...
+    --cm FIELD1=COLOR1 --cm FIELD2=COLOR2 ...
 
 or combined with comma (,) :
 
-    --cm FILED1=COLOR1,FIELD2=COLOR2, ...
+    --cm FIELD1=COLOR1,FIELD2=COLOR2, ...
 
 Color specification is a combination of single uppercase character
 representing 8 colors :
@@ -1261,7 +1261,7 @@ Print or not command lines preceding diff output.
 
 =item B<-->[B<no->]B<unknown>
 
-Print or not lines not look like diff output.
+Print or not lines that do not look like diff output.
 
 =item B<-->[B<no->]B<mark>
 
@@ -1324,7 +1324,7 @@ special space characters, OPEN BOX is used instead.
 
 Multiple characters can be specified at once, by assembling them by
 comma (C<,>) like C<--visible ht=1,sp=1>; or connecting them by equal
-sign (C<=>) like C<--visible ht=sp=1>.  Character name accept
+sign (C<=>) like C<--visible ht=sp=1>.  Character names accept
 wildcard; C<--visible '*=1'>.
 
 =begin comment
@@ -1337,7 +1337,7 @@ L<Getopt::EX::Colormap/~>).
 
 =end comment
 
-B<sdif> command also support B<--visible> option for horizontal tab
+B<sdif> command also supports B<--visible> option for horizontal tab
 with better visibility.
 
 =begin deprecated

@@ -69,7 +69,7 @@ Version 4.43
     --diff=s            set diff command
     --diffopts=s        set diff command options
 
-    --[no-]lenience     supress unexpected input warning (default on)
+    --[no-]lenience     suppress unexpected input warning (default on)
     --visible xx=1      set visible chars
     --tabhead=char      set tabhead char
     --tabspace=char     set tabspace char
@@ -1047,7 +1047,7 @@ this:
     option default -n
 
 Modules under B<App::sdif> can be loaded by B<-M> option without
-prefix.  Next command load B<App::sdif::colors> module.
+prefix.  The next command loads B<App::sdif::colors> module.
 
     $ sdif -Mcolors
 
@@ -1056,12 +1056,12 @@ Getopt::EX::Module` for detail.
 
 =head2 COLOR
 
-Each lines are displayed in different colors by default.  Use
+Each line is displayed in different colors by default.  Use
 B<--no-color> option to disable it.  Each text segment has own labels,
 and color for them can be specified by B<--colormap> option.  Read
 `perldoc Getopt::EX::Colormap` for detail.
 
-Standard module B<-Mcolors> is loaded by default, and define several
+Standard module B<-Mcolors> is loaded by default, and defines several
 color maps for light and dark screen.  If you want to use CMY colors in
 dark screen, place next line in your F<~/.sdifrc>.
 
@@ -1077,7 +1077,7 @@ set preferred color in your F<~/.sdifrc> like:
 
 Automatic setting is done by L<Getopt::EX::termcolor> module and it
 works with macOS Terminal.app and iTerm.app, and other XTerm
-compatible terminals.  This module accept environment variable
+compatible terminals.  This module accepts environment variable
 L<TERM_BGCOLOR> as a terminal background color in a form of
 C<#FFFFFF>.
 
@@ -1088,9 +1088,9 @@ to disable.
 
 =head2 WORD DIFFERENCE
 
-While B<sdif> doesn't care about the contents of each modified lines,
-it can read the output from B<cdif> command which show the word
-context differences of each lines.  Use B<cdif> command with option
+While B<sdif> doesn't care about the contents of each modified line,
+it can read the output from B<cdif> command which shows the word
+context differences of each line.  Use B<cdif> command with option
 B<--sdif> to set the appropriate options for B<sdif>.  Set B<--no-cc>,
 B<--no-mc> options at least when invoking B<cdif> manually.  Option
 B<--no-tc> is preferable because text color can be handled by B<sdif>.
@@ -1102,7 +1102,7 @@ specified by B<--cdifopts>.
 
 =head2 EXIT STATUS
 
-B<sdif> always exit with status zero unless error occurred.
+B<sdif> always exits with status zero unless an error occurs.
 
 =head1 OPTIONS
 
@@ -1129,7 +1129,7 @@ Text::ANSI::Fold` for detail.
 
 =item B<-n>, B<-->[B<no->]B<number>
 
-Print line number on each lines.
+Print line number on each line.
 Default false.
 
 =item B<-->[B<no->]B<command>
@@ -1393,11 +1393,11 @@ Also wildcard can be used for field name :
 
 Multiple fields can be specified by repeating options
 
-    --cm FILED1=COLOR1 --cm FIELD2=COLOR2 ...
+    --cm FIELD1=COLOR1 --cm FIELD2=COLOR2 ...
 
 or combined with comma (,) :
 
-    --cm FILED1=COLOR1,FIELD2=COLOR2, ...
+    --cm FIELD1=COLOR1,FIELD2=COLOR2, ...
 
 Color specification is a combination of single uppercase character
 representing 8 colors :
