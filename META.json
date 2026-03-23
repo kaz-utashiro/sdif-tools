@@ -44,7 +44,7 @@
          "requires" : {
             "Command::Run" : "0",
             "Getopt::EX" : "v1.25.0",
-            "Getopt::EX::Hashed" : "1.0503",
+            "Getopt::EX::Hashed" : "1.0702",
             "Getopt::EX::termcolor" : "1.07",
             "IO::Divert" : "0",
             "List::Util" : "1.45",
