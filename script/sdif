@@ -70,6 +70,7 @@ Version 4.44
     --diffopts=s        set diff command options
 
     --[no-]lenience     suppress unexpected input warning (default on)
+    --max-lines=#       max lines for add/delete section display
     --visible xx=1      set visible chars
     --tabhead=char      set tabhead char
     --tabspace=char     set tabspace char
@@ -164,6 +165,7 @@ use Getopt::EX::Hashed; {
     has cdifopts       => '  =s ' ;
     has colortable     => '  :s ' , any => qr/^(|6|12|24)$/ ;
     has lenience       => '  !  ' , default => $default_lenience ;
+    has max_lines      => '  =i ' ;
     has visible        => '  =i%' , default => {} ;
     has tabstop        => '  =i ' , default => 8 ;
     has tabhead        => '  =s ' ;
@@ -291,6 +293,7 @@ my %colormap = do {
 	NTEXT    =>  [ "K/454"    , "G"   ],
 	MTEXT    =>  [ "K/454"    , "G"   ],
 	UTEXT    =>    ""         ,
+	NOTICE   =>    "R"        ,
     );
 };
 
@@ -489,9 +492,9 @@ if ($readfile) {
 my @boundary = (boundary => $app->boundary);
 my $color_re = qr{ \e \[ [\d;]* [mK] }x;
 
-my $oline = 1;
-my $nline = 1;
-my $mline = 1;
+our $oline = 1;
+our $nline = 1;
+our $mline = 1;
 
 while (<DIFF>) {
     #
@@ -813,6 +816,9 @@ sub flush_buffer {
 	    $nline++;
 	}
 
+	my $max = $app->max_lines;
+	my $one_side = !@$o || !@$n;
+	my $count = 0;
 	while (@$o or @$n) {
 	    my $old = shift @$o;
 	    my $new = shift @$n;
@@ -823,6 +829,29 @@ sub flush_buffer {
 
 	    $oline++ if defined $old;
 	    $nline++ if defined $new;
+
+	    # truncate one-sided (add/delete) section exceeding max lines
+	    if ($max and $one_side and ++$count >= $max and @$o + @$n > 0) {
+		my $rest = @$o + @$n;
+		my $msg = $painter->(
+		    'NOTICE',
+		    sprintf "... %d lines omitted ...\n", $rest,
+		);
+		# show message on the side that has content
+		# suppress line number by localizing $oline/$nline
+		{
+		    local($oline, $nline) = (undef, undef);
+		    if (@$n) {
+			print_column_23(' ', undef, ' ', $msg);
+		    } else {
+			print_column_23(' ', $msg, ' ', undef);
+		    }
+		}
+		# advance line counter past omitted lines
+		$oline += $rest if !@$n;
+		$nline += $rest if !@$o;
+		last;
+	    }
 	}
     }
 }
@@ -1310,6 +1339,16 @@ output.
 
 Suppress warning message for unexpected input from diff command.  True
 by default.
+
+=item B<--max-lines>=I<#>
+
+Limit the number of lines displayed for add/delete sections.  When a
+diff section contains only additions or only deletions and the number
+of lines exceeds this value, only the first I<#> lines are shown and
+the rest are omitted with a message indicating the number of omitted
+lines.  This is useful for suppressing long diffs caused by large file
+additions or deletions, for example when browsing C<git log -p>
+output.
 
 =item B<--visible> I<charname>=[0,1]
 
