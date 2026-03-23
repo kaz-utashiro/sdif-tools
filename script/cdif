@@ -115,6 +115,7 @@ use Getopt::EX::Hashed; {
     has prefix_pattern => '    =s  ' , default => $prefix_default ;
     has visible        => '    =s@ ' , default => [] ;
     has lenience       => '    !   ' , default => 1 ;
+    has max_line_length => '   =i  ' , default => 1000 ;
     has linebyline     => '    :2  ' , alias => 'lxl';
     has style          => '    =s  ' , default => '' ;
 
@@ -696,6 +697,11 @@ sub compare {
     my($old, $new) = splice @_, 0, 2;
     return 0 unless $old && $new && $$old && $$new;
 
+    # skip word comparison for lines exceeding max length
+    if (my $max = $app->max_line_length) {
+	return 0 if $$old =~ /^.{$max}/m or $$new =~ /^.{$max}/m;
+    }
+
     my $omark_re = shift || undef;
     my $nmark_re = shift || $omark_re;
 
@@ -980,6 +986,7 @@ Options:
 	--prefix-pattern    prefix pattern
 	--visible char=?    set visible attributes
 	--[no]lenience      suppress unexpected input warning (default true)
+	--max-line-length=# skip word comparison for long lines (default 1000)
 	--lxl               compare input data line-by-line
 	--style=diff        print --lxl output in diff style
 	--version           show version
@@ -1363,6 +1370,15 @@ number which ignores insert/delete newlines.
 
 Suppress warning message for unexpected input from diff command.  True
 by default.
+
+=item B<--max-line-length>=I<#>
+
+Skip word comparison for lines longer than I<#> characters.  Default
+is 1000.  Extremely long lines, such as those found in SVG data, can
+make word-level diff processing very slow with no useful result.  When
+this limit is exceeded, the section is still displayed with basic
+colorization but without fine-grained word highlighting.  Set to 0 to
+disable this limit.
 
 =item B<--linebyline>, B<--lxl>
 
