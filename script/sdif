@@ -70,8 +70,7 @@ Version 4.44
     --diffopts=s        set diff command options
 
     --[no-]lenience     suppress unexpected input warning (default on)
-    --max-lines=#       max lines for add/delete section display
-    --max-line-length=# max characters per line (default 10000)
+    --limit key=val     set limit (line, length)
     --visible xx=1      set visible chars
     --tabhead=char      set tabhead char
     --tabspace=char     set tabspace char
@@ -166,8 +165,7 @@ use Getopt::EX::Hashed; {
     has cdifopts       => '  =s ' ;
     has colortable     => '  :s ' , any => qr/^(|6|12|24)$/ ;
     has lenience       => '  !  ' , default => $default_lenience ;
-    has max_lines      => '  =i ' ;
-    has max_line_length => ' =i ' , default => 10000 ;
+    has limit          => '  =s%' , default => { length => 10000 } ;
     has visible        => '  =i%' , default => {} ;
     has tabstop        => '  =i ' , default => 8 ;
     has tabhead        => '  =s ' ;
@@ -818,7 +816,7 @@ sub flush_buffer {
 	    $nline++;
 	}
 
-	my $max = $app->max_lines;
+	my $max = $app->limit->{line};
 	my $one_side = !@$o || !@$n;
 	my $count = 0;
 	while (@$o or @$n) {
@@ -943,7 +941,7 @@ sub print_column_23 {
     }
 
     # truncate long lines before processing
-    if (my $max = $app->max_line_length) {
+    if (my $max = $app->limit->{length}) {
 	for ($old, $new, $mrg) {
 	    defined and length > $max or next;
 	    state $fold = Text::ANSI::Fold->new;
@@ -1355,7 +1353,13 @@ output.
 Suppress warning message for unexpected input from diff command.  True
 by default.
 
-=item B<--max-lines>=I<#>
+=item B<--limit> I<key>=I<value>
+
+Set resource limits.  Available keys are:
+
+=over 4
+
+=item B<line>=I<#>
 
 Limit the number of lines displayed for add/delete sections.  When a
 diff section contains only additions or only deletions and the number
@@ -1365,12 +1369,14 @@ lines.  This is useful for suppressing long diffs caused by large file
 additions or deletions, for example when browsing C<git log -p>
 output.
 
-=item B<--max-line-length>=I<#>
+=item B<length>=I<#>
 
 Truncate lines longer than I<#> characters before display processing.
 Default is 10000.  Extremely long lines, such as SVG data with
 embedded base64 images, can make display processing very slow.  Set to
 0 to disable this limit.
+
+=back
 
 =item B<--visible> I<charname>=[0,1]
 
