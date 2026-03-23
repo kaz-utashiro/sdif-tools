@@ -71,6 +71,7 @@ Version 4.44
 
     --[no-]lenience     suppress unexpected input warning (default on)
     --max-lines=#       max lines for add/delete section display
+    --max-line-length=# max characters per line (default 10000)
     --visible xx=1      set visible chars
     --tabhead=char      set tabhead char
     --tabspace=char     set tabspace char
@@ -166,6 +167,7 @@ use Getopt::EX::Hashed; {
     has colortable     => '  :s ' , any => qr/^(|6|12|24)$/ ;
     has lenience       => '  !  ' , default => $default_lenience ;
     has max_lines      => '  =i ' ;
+    has max_line_length => ' =i ' , default => 10000 ;
     has visible        => '  =i%' , default => {} ;
     has tabstop        => '  =i ' , default => 8 ;
     has tabhead        => '  =s ' ;
@@ -940,6 +942,19 @@ sub print_column_23 {
 	$mnum = linenum($mline) if $print_number;
     }
 
+    # truncate long lines before processing
+    if (my $max = $app->max_line_length) {
+	for ($old, $new, $mrg) {
+	    defined and length > $max or next;
+	    state $fold = Text::ANSI::Fold->new;
+	    my $orig_len = length;
+	    ($_, undef) = $fold->fold($_, width => $max);
+	    my $truncated = $orig_len - length;
+	    $_ .= $painter->('NOTICE',
+			      sprintf " ... %d characters omitted ...", $truncated);
+	}
+    }
+
     my($OTEXT, $OLINE, $OMARK) =
 	$omark =~ /\S/ ? qw(OTEXT OLINE OMARK) : qw(UTEXT OULINE OUMARK);
     my($NTEXT, $NLINE, $NMARK) =
@@ -1349,6 +1364,13 @@ the rest are omitted with a message indicating the number of omitted
 lines.  This is useful for suppressing long diffs caused by large file
 additions or deletions, for example when browsing C<git log -p>
 output.
+
+=item B<--max-line-length>=I<#>
+
+Truncate lines longer than I<#> characters before display processing.
+Default is 10000.  Extremely long lines, such as SVG data with
+embedded base64 images, can make display processing very slow.  Set to
+0 to disable this limit.
 
 =item B<--visible> I<charname>=[0,1]
 
