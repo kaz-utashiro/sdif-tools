@@ -2,6 +2,12 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.4501 2026-03-24T06:56:56Z
+
+    - Require Getopt::EX::Hashed 1.0702 to fix --limit default
+      value preservation when specifying additional keys
+    - Add tests for --limit option
+
 4.45 2026-03-23T06:19:27Z
 
     - Add --limit option to sdif and cdif
