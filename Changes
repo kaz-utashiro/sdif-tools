@@ -2,6 +2,10 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.4701 2026-06-19T04:59:32Z
+
+    - Skip mecab test when mecab has no usable dictionary
+
 4.46 2026-04-27T04:45:28Z
 
     - Require Command::Run 1.00 for the fixed /dev/fd path detection
