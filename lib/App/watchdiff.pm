@@ -135,12 +135,26 @@ sub reset_terminal {
     }
 }
 
+##
+## Run all commands given by --exec and concatenate their output.
+##
+package App::watchdiff::Command {
+    use parent 'Command::Run';
+    use Time::localtime;
+    sub update {
+	my $obj = shift;
+	$obj->data(join "\n",
+		   map { $obj->execute($_)->{data} // '' } $obj->command);
+	$obj->date(ctime());
+	$obj;
+    }
+}
+
 sub do_loop {
     my $opt = shift;
 
-    use Command::Run;
-    my $old = Command::Run->new(@{$opt->exec->[0]});
-    my $new = Command::Run->new(@{$opt->exec->[0]});
+    my $old = App::watchdiff::Command->new(command => $opt->exec);
+    my $new = App::watchdiff::Command->new(command => $opt->exec);
 
     my @default_diff = (
 			qw(cdif --no-unknown),
@@ -223,6 +237,8 @@ sub execute {
     }
     ($? >> 8) == 3 ? undef : $result;
 }
+
+1;
 
 ######################################################################
 
