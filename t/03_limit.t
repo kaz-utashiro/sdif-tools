@@ -88,8 +88,12 @@ subtest 'cdif --limit length' => sub {
     my $long = "hello world " x 200;
     my $diff = make_diff("$long\n", uc($long) . "\n");
     my $out = run_cdif($diff, '--nocolor', '--limit', 'length=100');
+    # Drop the diff header first.  It carries the temporary file names,
+    # and a random name such as `6CDJZU_U_R' looks just like a word
+    # diff marker to the pattern below.
+    (my $body = $out) =~ s/^(?:---|\+\+\+) .*\n//mg;
     # word diff markers (_X_) should not be present
-    unlike($out, qr/_[A-Z]_/, 'word diff skipped for long lines');
+    unlike($body, qr/_[A-Z]_/, 'word diff skipped for long lines');
 };
 
 done_testing;
