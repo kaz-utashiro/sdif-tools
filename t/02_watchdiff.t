@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 use Test::More;
+use Config;
+use File::Basename qw(dirname);
 use File::Spec;
 use Command::Run::Tmpfile;
 
@@ -10,8 +12,12 @@ my $lib       = File::Spec->rel2abs('lib');
 my $script    = File::Spec->rel2abs('script');
 my $watchdiff = "$script/watchdiff";
 
-$ENV{PATH} .= ":$script";
-$ENV{PERL5LIB} .= ":$lib";
+# Prepend, not append.  watchdiff executes cdif by name, and cdif's
+# `#!/usr/bin/env perl' line makes the interpreter be looked up in
+# PATH again.  Appending would let an installed copy, or an unrelated
+# perl, win over the one under test.
+$ENV{PATH}     = join ':', $script, dirname($Config{perlpath}), $ENV{PATH};
+$ENV{PERL5LIB} = join ':', $lib, $ENV{PERL5LIB} // ();
 
 # Skip on systems where /dev/fd/N (N>2) is unavailable, e.g. FreeBSD
 # without fdescfs mounted.
