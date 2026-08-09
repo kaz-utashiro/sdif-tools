@@ -87,13 +87,19 @@ subtest 'sdif --limit line + length' => sub {
 subtest 'cdif --limit length' => sub {
     my $long = "hello world " x 200;
     my $diff = make_diff("$long\n", uc($long) . "\n");
-    my $out = run_cdif($diff, '--nocolor', '--limit', 'length=100');
-    # Drop the diff header first.  It carries the temporary file names,
-    # and a random name such as `6CDJZU_U_R' looks just like a word
-    # diff marker to the pattern below.
-    (my $body = $out) =~ s/^(?:---|\+\+\+) .*\n//mg;
-    # word diff markers (_X_) should not be present
-    unlike($body, qr/_[A-Z]_/, 'word diff skipped for long lines');
+    # Silence every color effect, then mark the changed words with a
+    # pattern of our own.  Reading the default decoration is fragile:
+    # with --nocolor it is an overstrike sequence, and a plain `_X_'
+    # matches a random temporary file name in the diff header just as
+    # happily as it matches a marker.
+    my @cm = ('--cm', '*=', '--cm', 'NCHANGE=sub{qq(<<$_>>)}');
+
+    unlike run_cdif($diff, @cm, '--limit', 'length=100'), qr/<</,
+	'word diff skipped for long lines';
+
+    # ... and make sure the check above can actually fail
+    like run_cdif($diff, @cm, '--limit', 'length=0'), qr/<</,
+	'word diff performed with no limit';
 };
 
 done_testing;
