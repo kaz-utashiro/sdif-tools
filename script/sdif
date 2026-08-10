@@ -214,7 +214,11 @@ use Getopt::EX::Hashed; {
 	}
     } ;
 
-    has '+help'    => sub { usage() } ;
+    has '+help'    => sub {
+	pod2usage
+	    -verbose  => 99,
+	    -sections => [ qw(SYNOPSIS VERSION) ];
+    } ;
     has '+version' => sub { print "$version\n"; exit 0 } ;
     has '+man'     => sub { pod2usage {-verbose => 2} } ;
 

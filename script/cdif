@@ -135,8 +135,6 @@ use Getopt::EX::Hashed; {
     has mecab => '!', action => sub {
 	$app->unit = $_[1] ? 'mecab' : $unit_default;
     } ;
-    has visible_cr  => ' vcr  !  ' , action => sub { $opt_visible{cr} = $_[1] } ;
-    has visible_esc => ' vesc !  ' , action => sub { $opt_visible{esc} = $_[1] } ;
     has c           => '         ' , action => sub { push @diffopts, "-c" } ;
     has u           => '         ' , action => sub { push @diffopts, "-u" } ;
     has context     => ' C    =i ' , action => sub { push @diffopts, "-C" . $_[1] } ;
@@ -969,6 +967,10 @@ Options:
 	-w		ignore whitespace
 	-t		expand tabs
 
+	--rcs		use rcsdiff
+	-r rev		RCS revision to compare
+	-q		passed through to rcsdiff
+
 	--diff=command      specify diff command
 	--subdiff=command   specify backend diff command
 	--stat              show statistical information
@@ -1073,14 +1075,14 @@ B<cdif> always exits with status zero unless an error occurs.
 
 Almost the same as for the B<diff> command.
 
-=begin deprecated
-
 =item B<--rcs>, B<-r>I<rev>, B<-q>
 
-Use rcsdiff instead of normal diff.  Option B<--rcs> is not required
-when B<-r>I<rev> is supplied.
+Use B<rcsdiff> instead of the normal diff command, and take the
+remaining argument as an RCS file name.  Option B<-r>I<rev> names the
+revision to compare against, and B<-q> is passed to B<rcsdiff> as it
+is.  B<--rcs> is not required when either of the other two is given.
 
-=end deprecated
+    cdif -r1.3 file
 
 =item B<-->B<unit>=[C<word>,C<letter>,C<char>,C<mecab>,C<0>,C<>]
 
@@ -1350,17 +1352,6 @@ L<Getopt::EX::Colormap/~>).
 
 The B<sdif> command also supports the B<--visible> option, with better
 visibility for horizontal tabs.
-
-=begin deprecated
-
-=item B<-->[B<no->]B<visible-cr>
-
-=item B<-->[B<no->]B<visible-esc>
-
-Set CARRIAGE-RETURN and ESCAPE visible attributes.  These options will
-be deprecated soon.  Use B<--visible> option instead.
-
-=end deprecated
 
 =item B<--stat>
 
