@@ -35,7 +35,7 @@ watchdiff - repeat command and watch differences
     -s, --silent        do not show same result
     -p, --plain         shortcut for --nodate --nonewline
     --[no-]date         show date at the beginning (default on)
-    --[no-]newline      print newline result (default on)
+    --[no-]newline      print newline after result (default on)
     --[no-]clear        clear screen after output (default on)
     --diff=command      diff command used to compare result
     --unit=unit         comparison unit (word/letter/char/mecab)
@@ -75,14 +75,16 @@ Version 4.4802
 
 =head1 DESCRIPTION
 
+B<watchdiff> repeatedly executes the given command and shows how its
+output changes, highlighting the difference from the previous run.
 Use C<^C> to terminate.
 
-Basically B<watchdiff> command expect the command output is small
-enough to fit within a terminal screen size.  If the output is longer
-than the screen height, only the final part is shown.
+The command basically expects the output to be small enough to fit on
+the terminal screen.  If the output is taller than the screen, only
+the final part is shown.
 
-Use C<-C#> option if the output is large and you want to see modified
-part only.
+Use the C<-C#> option if the output is large and you want to see only
+the modified part.
 
 =head1 OPTIONS
 
@@ -90,9 +92,9 @@ part only.
 
 =item B<-C>[I<context>]
 
-Show I<context> lines before/after updated part.  This option implies
-the C<--verbose> option enabled. To explicitly disable it, specify the
-C<--no-verbose> option.
+Show I<context> lines before and after the updated part.  This option
+turns on the C<--verbose> option; use C<--no-verbose> to disable it
+explicitly.
 
 =item B<-S>, B<-->[B<no->]B<scroll>
 
