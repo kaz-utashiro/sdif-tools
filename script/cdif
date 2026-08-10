@@ -319,7 +319,13 @@ if (my @names = grep $opt_visible{$_}, keys %opt_visible) {
     };
     $converter = $sub2;
 
-    if (my $color = $colormap{'VISIBLE'}) {
+    ##
+    ## Only an effect which can be cancelled by tilde is usable here,
+    ## since the end sequence is built by negating each character.
+    ## Drop anything else, so that a wildcard spec such as `--cm *=N'
+    ## does not end up asking for an impossible `~N'.
+    ##
+    if (my $color = $colormap{'VISIBLE'} =~ s/[^DFHIPQSUX]//gir) {
 	my $s = ansi_code($color);
 	my $e = ansi_code($color =~ s/(?=.)/~/gr); # cancel the effect
 	my $symbols = join('',
