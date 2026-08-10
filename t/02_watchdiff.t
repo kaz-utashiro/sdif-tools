@@ -19,6 +19,9 @@ my $watchdiff = "$script/watchdiff";
 $ENV{PATH}     = join ':', $script, dirname($Config{perlpath}), $ENV{PATH};
 $ENV{PERL5LIB} = join ':', $lib, $ENV{PERL5LIB} // ();
 
+# The output is compared as plain text, so silence the colors.
+$ENV{NO_COLOR} = 1;
+
 # Skip on systems where /dev/fd/N (N>2) is unavailable, e.g. FreeBSD
 # without fdescfs mounted.
 {
@@ -36,12 +39,6 @@ sub watchdiff {
     <$fh>;
 }
 
-# strip ANSI escape sequences
-sub plain {
-    (my $data = shift) =~ s/\e\[[\d;]*[a-zA-Z]//g;
-    $data;
-}
-
 # The target command must actually be executed and its output shown.
 like watchdiff(qw(--plain -r0 --count 1 -- echo hello)),
     qr/hello/, "execute target command";
@@ -53,7 +50,7 @@ like watchdiff(qw(--plain -r0 --count 1 -e), 'echo baz'),
     qr/baz/, "execute command given by --exec";
 
 # SYNOPSIS says: watchdiff -e uptime -e iostat -e df
-like plain(watchdiff(qw(--plain -r0 --count 1 -e), 'echo AAA', '-e', 'echo BBB')),
+like watchdiff(qw(--plain -r0 --count 1 -e), 'echo AAA', '-e', 'echo BBB'),
     qr/AAA\n\nBBB/, "execute multiple commands given by --exec";
 
 done_testing;

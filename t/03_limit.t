@@ -10,6 +10,11 @@ my $script = File::Spec->rel2abs('script');
 my $sdif   = "$script/sdif";
 my $cdif   = "$script/cdif";
 
+# These tests read plain text, so silence the colors.  Not with
+# --nocolor: that one does not remove the decoration but falls back to
+# overstrike, which predates NO_COLOR by decades.
+$ENV{NO_COLOR} = 1;
+
 # Skip on systems where /dev/fd/N (N>2) is unavailable, e.g. FreeBSD
 # without fdescfs mounted.
 {
@@ -47,7 +52,7 @@ sub make_diff {
 # --limit line: truncate add/delete sections
 subtest 'sdif --limit line' => sub {
     my $diff = make_diff("", join("", map "$_\n", 1..30));
-    my $out = run_sdif($diff, '--nocdif', '--limit', 'line=5', '-W80', '--nocolor');
+    my $out = run_sdif($diff, '--nocdif', '--limit', 'line=5', '-W80');
     like($out, qr/25 lines omitted/, 'omission message present');
 };
 
@@ -57,21 +62,21 @@ subtest 'sdif --limit line skip change' => sub {
 	join("", map "old$_\n", 1..20),
 	join("", map "new$_\n", 1..20),
     );
-    my $out = run_sdif($diff, '--nocdif', '--limit', 'line=5', '-W80', '--nocolor');
+    my $out = run_sdif($diff, '--nocdif', '--limit', 'line=5', '-W80');
     unlike($out, qr/lines omitted/, 'change sections not truncated');
 };
 
 # --limit length: truncate long lines
 subtest 'sdif --limit length' => sub {
     my $diff = make_diff("", "x" x 50000 . "\n");
-    my $out = run_sdif($diff, '--nocdif', '--limit', 'length=100', '-W200', '--nocolor');
+    my $out = run_sdif($diff, '--nocdif', '--limit', 'length=100', '-W200');
     like($out, qr/characters omitted/, 'long line truncated');
 };
 
 # --limit length=0: disable
 subtest 'sdif --limit length=0' => sub {
     my $diff = make_diff("", "x" x 200 . "\n");
-    my $out = run_sdif($diff, '--nocdif', '--limit', 'length=0', '-W80', '--nocolor');
+    my $out = run_sdif($diff, '--nocdif', '--limit', 'length=0', '-W80');
     unlike($out, qr/characters omitted/, 'length=0 disables truncation');
 };
 
@@ -79,7 +84,7 @@ subtest 'sdif --limit length=0' => sub {
 subtest 'sdif --limit line + length' => sub {
     my $diff = make_diff("", join("", map "$_\n", 1..30));
     my $out = run_sdif($diff, '--nocdif', '--limit', 'line=3', '--limit', 'length=5000',
-		       '-W80', '--nocolor');
+		       '-W80');
     like($out, qr/27 lines omitted/, 'both limits work together');
 };
 
@@ -87,12 +92,10 @@ subtest 'sdif --limit line + length' => sub {
 subtest 'cdif --limit length' => sub {
     my $long = "hello world " x 200;
     my $diff = make_diff("$long\n", uc($long) . "\n");
-    # Silence every color effect, then mark the changed words with a
-    # pattern of our own.  Reading the default decoration is fragile:
-    # with --nocolor it is an overstrike sequence, and a plain `_X_'
-    # matches a random temporary file name in the diff header just as
-    # happily as it matches a marker.
-    my @cm = ('--cm', '*=', '--cm', 'NCHANGE=sub{qq(<<$_>>)}');
+    # NO_COLOR leaves nothing to look at, so mark the changed words
+    # with a pattern of our own.  A function spec survives NO_COLOR,
+    # and gives us something no file name can imitate.
+    my @cm = ('--cm', 'NCHANGE=sub{qq(<<$_>>)}');
 
     unlike run_cdif($diff, @cm, '--limit', 'length=100'), qr/<</,
 	'word diff skipped for long lines';
