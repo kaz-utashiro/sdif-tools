@@ -2,6 +2,26 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.49 2026-08-10T03:10:58Z
+
+    - cdif: remove --visible-cr and --visible-esc, deprecated since
+      4.18.2 in favour of --visible cr=1 and --visible esc=1
+    - cdif: document --rcs, -r<rev> and -q again; they still work
+    - sdif: make --help print the same way as cdif and watchdiff
+    - watchdiff: document all the options.  Only two of twenty were
+      described; the rest had nothing but the SYNOPSIS summary
+    - watchdiff: say what the command does at the head of DESCRIPTION
+    - cdif: add the MODULE OPTIONS section, which sdif already had
+    - sdif: add the GIT section, and the LESS/LESSANSIENDCHARS advice
+      to ENVIRONMENT
+    - App::sdif: make GIT a section of its own, not a part of INSTALL
+    - Line up the section order of the three manuals
+    - Go through the manuals fixing what was hard to read or plainly
+      wrong: a misspelled color name (honeydue for honeydew), "locate"
+      for "locale", plain text and a command name marked up as links
+      to Perl modules, and a number of passages that said the opposite
+      of what was meant
+
 4.4802 2026-08-10T00:23:38Z
 
     - cdif: ignore effects the VISIBLE colormap label cannot use, so
