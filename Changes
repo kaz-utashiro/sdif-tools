@@ -2,6 +2,16 @@ Revision history for Perl application 'sdif-tools'.
 
 {{$NEXT}}
 
+4.4802 2026-08-10T00:23:38Z
+
+    - cdif: ignore effects the VISIBLE colormap label cannot use, so
+      that a wildcard spec such as --cm '*=N' no longer fails
+    - Fix the cdif --limit test, which looked for a pattern cdif never
+      produces and could fail at random when a temporary file name
+      happened to look like one
+    - Use NO_COLOR in tests rather than --nocolor, which does not
+      remove the decoration but falls back to overstrike
+
 4.4801 2026-08-09T02:25:06Z
 
     - Fix tests to exercise the scripts under test, and run them with
