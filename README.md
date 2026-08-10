@@ -20,24 +20,22 @@ App::sdif - sdif and family tools, cdif and watchdiff
 
 **sdif** prints diff output in side-by-side format.
 
-**cdif** adds visual effect for diff output, comparing lines in
-word-by-word, or character-by-character bases.
+**cdif** adds visual effects to diff output, comparing lines word by
+word or character by character.
 
-**watchdiff** calls specified command repeatedly, and prints the output
-with visual effect to emphasize modified part.
+**watchdiff** calls a command repeatedly, and prints its output with
+visual effects to emphasize the modified part.
 
-See individual manual of each command for detail.
+See the manual of each command for details.
 
 # INSTALL
 
-## CPANM
-
     $ cpanm App::sdif
 
-## GIT
+# GIT
 
-Those are sample configurations using **sdif** family in git
-environment.  You need to install **mecab** command to use **--mecab**
+These are sample configurations for using the **sdif** family under
+git.  The **mecab** command has to be installed to use the **--mecab**
 option.
 
     ~/.gitconfig
@@ -56,7 +54,7 @@ option.
         export LESS="-cR"
         export LESSANSIENDCHARS="mK"
 
-You can write everything in ~/.gitconfig:
+Everything can be written in `~/.gitconfig` instead:
 
     [pager]
         log  = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK less -cR

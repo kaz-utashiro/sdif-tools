@@ -45,24 +45,22 @@ B<cdif> and B<watchdiff>.
 
 B<sdif> prints diff output in side-by-side format.
 
-B<cdif> adds visual effect for diff output, comparing lines in
-word-by-word, or character-by-character bases.
+B<cdif> adds visual effects to diff output, comparing lines word by
+word or character by character.
 
-B<watchdiff> calls specified command repeatedly, and prints the output
-with visual effect to emphasize modified part.
+B<watchdiff> calls a command repeatedly, and prints its output with
+visual effects to emphasize the modified part.
 
-See individual manual of each command for detail.
+See the manual of each command for details.
 
 =head1 INSTALL
 
-=head2 CPANM
-
     $ cpanm App::sdif
 
-=head2 GIT
+=head1 GIT
 
-Those are sample configurations using B<sdif> family in git
-environment.  You need to install B<mecab> command to use B<--mecab>
+These are sample configurations for using the B<sdif> family under
+git.  The B<mecab> command has to be installed to use the B<--mecab>
 option.
 
     ~/.gitconfig
@@ -81,7 +79,7 @@ option.
         export LESS="-cR"
         export LESSANSIENDCHARS="mK"
 
-You can write everything in ~/.gitconfig:
+Everything can be written in F<~/.gitconfig> instead:
 
     [pager]
         log  = sdif -n --margin=4 --mecab | env LESSANSIENDCHARS=mK less -cR

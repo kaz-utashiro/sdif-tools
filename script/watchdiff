@@ -22,6 +22,10 @@ __END__
 
 watchdiff - repeat command and watch differences
 
+=head1 VERSION
+
+Version 4.4802
+
 =head1 SYNOPSIS
 
     watchdiff option -- command
@@ -49,9 +53,143 @@ watchdiff - repeat command and watch differences
     -h, --help          show help
     --version           show version
 
-=head1 VERSION
+=head1 DESCRIPTION
 
-Version 4.4802
+B<watchdiff> repeatedly executes the given command and shows how its
+output changes, highlighting the difference from the previous run.
+Use C<^C> to terminate.
+
+The command basically expects the output to be small enough to fit on
+the terminal screen.  If the output is taller than the screen, only
+the final part is shown.
+
+Use the C<-C#> option if the output is large and you want to see only
+the modified part.
+
+=head1 OPTIONS
+
+=head2 What to run
+
+=over 7
+
+=item B<-e> I<command>, B<--exec>=I<command>
+
+Set the command to execute.  The option can be repeated; the output of
+all the commands is joined together and compared as a whole.
+
+    watchdiff -e uptime -e iostat -e df
+
+The command can also be written after the options.  Put C<--> in front
+of it if it takes options of its own.
+
+=item B<-c> I<count>, B<--count>=I<count>
+
+Repeat the command I<count> times, then exit.  Default is 1000.
+
+=item B<-i> I<second>, B<--interval>=I<second>
+
+Wait I<second> seconds between executions.  Default is 2.
+
+=back
+
+=head2 How the screen is used
+
+=over 7
+
+=item B<-r>[I<count>], B<--refresh>[=I<count>]
+
+Clear the screen every I<count> executions, so the result stays at the
+top of the screen.  Default is 1, clearing every time.  With C<-r0>
+the screen is never cleared and the results simply scroll by.
+
+=item B<-->[B<no->]B<clear>
+
+Erase the rest of the screen after the result is printed, so that a
+longer result from an earlier round does not stay behind.  Effective
+only while refreshing.  Default on.
+
+=item B<-S>, B<-->[B<no->]B<scroll>
+
+Set the scroll area from the third line of the screen to the bottom
+edge, leaving the date header in place.  This takes effect only when
+the date is shown and the screen is refreshed every time.  Default on.
+
+=item B<-s>, B<-->[B<no->]B<silent>
+
+While the result does not change, do not print it again; only the date
+is updated in place.  Default off.
+
+=item B<-->[B<no->]B<date>
+
+Print the date in front of each result.  Default on.
+
+=item B<-->[B<no->]B<newline>
+
+Print a newline after the result.  Default on.
+
+=item B<-p>, B<--plain>
+
+Shortcut for B<--no-date> B<--no-newline>.
+
+=back
+
+=head2 How the difference is shown
+
+=over 7
+
+=item B<-C>[I<context>], B<--context>=I<context>, B<-U>I<context>
+
+Show I<context> lines before and after the updated part, instead of
+the whole result.  Bare B<-C> means 2.  Any context under 100 also
+turns on the B<--verbose> option; use B<--no-verbose> to keep it off.
+
+=item B<-V>, B<-->[B<no->]B<verbose>
+
+Print the control lines of the diff output.  Default off.
+
+=item B<-M>, B<-->[B<no->]B<mark>
+
+Print the diff mark at the head of each line.  Default off.
+
+=item B<-O>, B<-->[B<no->]B<old>
+
+Print the old text as well as the new one.  Default off.
+
+=item B<--unit>=I<unit>, B<--by>=I<unit>
+
+Set the unit of comparison, passed through to B<cdif>.  Choose from
+C<word> (default), C<letter>, C<char> or C<mecab>.
+
+=item B<--cm>=I<colormap>, B<--colormap>=I<colormap>
+
+Set the colors used for the difference.  The labels are C<APPEND>,
+C<DELETE>, C<OCHANGE>, C<NCHANGE>, C<OTEXT> and C<NTEXT>, and the
+values are handed to B<cdif>.  See L<cdif/--colormap> for the format.
+
+=item B<--diff>=I<command>
+
+Compare the two results with I<command> instead of the built-in
+B<cdif> call.  The command is given the two file names as its last two
+arguments.  Note that the options above that are implemented by
+passing something to B<cdif> have no effect once this is set.
+
+    watchdiff -ps --diff=sdif netstat -sp ip
+
+=back
+
+=head2 Others
+
+=over 7
+
+=item B<-h>, B<--help>
+
+Show the summary above and exit.
+
+=item B<--version>
+
+Show the version number and exit.
+
+=back
 
 =head1 EXAMPLES
 
@@ -72,36 +210,6 @@ Version 4.4802
     watchdiff -pc18i10r0 date; say -v Alex Ramen is ready
 
     watchdiff -sU2 du -h ~/Music
-
-=head1 DESCRIPTION
-
-B<watchdiff> repeatedly executes the given command and shows how its
-output changes, highlighting the difference from the previous run.
-Use C<^C> to terminate.
-
-The command basically expects the output to be small enough to fit on
-the terminal screen.  If the output is taller than the screen, only
-the final part is shown.
-
-Use the C<-C#> option if the output is large and you want to see only
-the modified part.
-
-=head1 OPTIONS
-
-=over 7
-
-=item B<-C>[I<context>]
-
-Show I<context> lines before and after the updated part.  This option
-turns on the C<--verbose> option; use C<--no-verbose> to disable it
-explicitly.
-
-=item B<-S>, B<-->[B<no->]B<scroll>
-
-Set the scroll area from the third line of the screen to the bottom
-edge.  Default on.
-
-=back
 
 =head1 AUTHOR
 

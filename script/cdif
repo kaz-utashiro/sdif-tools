@@ -1429,9 +1429,31 @@ affects nothing but the behavior of the C<--lxl> option.
 
 =back
 
+=head1 MODULE OPTIONS
+
+=head2 default
+
+  default      --autocolor
+  --nop        do nothing
+
+=head2 -Mcolors
+
+The following options are available by default.  Run C<perldoc -m
+App::cdif::colors> to see the actual settings.
+
+  --light
+  --green
+  --cmy
+  --mono
+
+  --dark
+  --dark-green
+  --dark-cmy
+  --dark-mono
+
 =head1 GIT
 
-See L<App::sdif> for how to use the related commands under GIT.
+See L<App::sdif/GIT> for how to use the B<sdif> family under GIT.
 
 =head1 ENVIRONMENT
 
